@@ -1,0 +1,38 @@
+<mujoco model="simple_robot">
+    <compiler angle="radian" />
+    <option timestep="0.002" />
+
+    <asset>
+        <texture name="checker" type="2d" builtin="checker" width="512" height="512" />
+        <material name="gray" texture="checker" rgba="0.7 0.7 0.7 1" />
+    </asset>
+
+    <worldbody>
+        <geom name="ground" type="plane" size="10 10 0.1" rgba="0.2 0.6 0.2 1"/>
+        <light name="main_light" pos="0 0 2" dir="0 0 -1" diffuse="1 1 1"/>
+
+        <!-- 机器人基座 -->
+        <body name="base" pos="0 0 0.58">
+            <freejoint />
+            <geom type="box" size="0.2 0.2 0.1" rgba="0.8 0.8 0.8 1"/>
+
+            <body name="LF_HIP" pos="0.277 0.116 0">
+                <!-- 让 LF_HIP 通过 hinge 关节连接到 base -->
+                <joint name="LF_HAA" type="hinge" axis="1 0 0" pos="0.277 0.116 0" range="-0.5 0.5"/>
+                <geom type="cylinder" size="0.05 0.1" rgba="1 0 0 1"/>
+            </body>
+
+            <body name="RF_HIP" pos="0.277 -0.116 0">
+                <!-- 让 RF_HIP 通过 hinge 关节连接到 base -->
+                <joint name="RF_HAA" type="hinge" axis="1 0 0" pos="0.277 -0.116 0" range="-0.5 0.5"/>
+                <geom type="cylinder" size="0.05 0.1" rgba="0 0 1 1"/>
+            </body>
+
+        </body>
+    </worldbody>
+
+    <actuator>
+        <motor name="LF_HAA_motor" joint="LF_HAA" ctrlrange="-1 1" gear="10"/>
+        <motor name="RF_HAA_motor" joint="RF_HAA" ctrlrange="-1 1" gear="10"/>
+    </actuator>
+</mujoco>
