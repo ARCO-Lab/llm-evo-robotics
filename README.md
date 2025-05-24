@@ -54,7 +54,7 @@ python visualize_robot.py best_distance.urdf
 You can specify simulation time and terrain type with parameters:
 
 ```bash
-python visualize_robot.py best_linearity.urdf --time 10 --terrain stairs
+python diverse_robot_envolution_v5.py
 ```
 
 Available terrain types:
