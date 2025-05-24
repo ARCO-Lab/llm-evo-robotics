@@ -1,0 +1,203 @@
+<?xml version="1.0"?>
+<robot name="evolved_robot">
+  <material name="metal">
+    <color rgba="0.7 0.7 0.7 1.0"/>
+  </material>
+  <material name="plastic">
+    <color rgba="0.3 0.3 0.9 1.0"/>
+  </material>
+  <material name="rubber">
+    <color rgba="0.1 0.1 0.1 1.0"/>
+  </material>
+  <material name="red">
+    <color rgba="1.0 0.0 0.0 1.0"/>
+  </material>
+  <material name="wheel_material">
+    <color rgba="0.2 0.2 0.2 1.0"/>
+  </material>
+  <link name="base_link">
+    <visual>
+      <geometry><cylinder radius="0.1279590186192485" length="0.08068832829829782"/></geometry>
+      <material name="plastic"/>
+    </visual>
+    <collision>
+      <geometry><cylinder radius="0.1279590186192485" length="0.08068832829829782"/></geometry>
+    </collision>
+    <inertial>
+      <mass value="5.0"/>
+      <inertia ixx="0.046359281384647864" ixy="0" ixz="0" 
+               iyy="0.046359281384647864" iyz="0" 
+               izz="0.08186755223000591"/>
+    </inertial>
+  </link>
+  <link name="link1">
+    <visual>
+      <geometry><cylinder radius="0.07293147120798081" length="0.17373881128567464"/></geometry>
+      <material name="rubber"/>
+    </visual>
+    <collision>
+      <geometry><cylinder radius="0.07293147120798081" length="0.17373881128567464"/></geometry>
+    </collision>
+    <inertial>
+      <mass value="0.5"/>
+      <inertia ixx="0.003845181085386739" ixy="0" ixz="0" 
+               iyy="0.003845181085386739" iyz="0" 
+               izz="0.002659499746280267"/>
+    </inertial>
+  </link>
+  <joint name="joint1" type="prismatic">
+    <parent link="base_link"/>
+    <child link="link1"/>
+    <origin xyz="0 0 0.04034416414914891" rpy="0 0 0"/>
+    <axis xyz="-0.5931821275305222 -0.47380127501873304 0.6508819519459624"/>
+    <dynamics damping="0.7765132943335169" friction="0.1"/>
+    <limit lower="-1.0531654999815447" upper="1.4129881147184713" effort="100" velocity="100"/>
+  </joint>
+  <link name="link2">
+    <visual>
+      <geometry>
+        <cylinder radius="0.05978355010138645" length="0.05844196811389643"/>
+      </geometry>
+      <material name="wheel_material"/>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder radius="0.05978355010138645" length="0.05844196811389643"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="1.0"/>
+      <inertia ixx="0.0011781401854333866" ixy="0" ixz="0" 
+               iyy="0.0011781401854333866" iyz="0" 
+               izz="0.001787036431362492"/>
+    </inertial>
+  </link>
+  <joint name="joint2" type="continuous">
+    <parent link="base_link"/>
+    <child link="link2"/>
+    <origin xyz="0.13799195674717837 0.09792608049131862 -0.04034416414914891" rpy="1.5708 0 0"/>
+    <axis xyz="0 1 0"/>
+    <dynamics damping="0.6311444549180445" friction="0.1"/>
+  </joint>
+  <link name="link3">
+    <visual>
+      <geometry><cylinder radius="0.06992649016010882" length="0.052851479769380164"/></geometry>
+      <material name="metal"/>
+    </visual>
+    <collision>
+      <geometry><cylinder radius="0.06992649016010882" length="0.052851479769380164"/></geometry>
+    </collision>
+    <inertial>
+      <mass value="0.5"/>
+      <inertia ixx="0.0014552017493457156" ixy="0" ixz="0" 
+               iyy="0.0014552017493457156" iyz="0" 
+               izz="0.002444857013055898"/>
+    </inertial>
+  </link>
+  <joint name="joint3" type="revolute">
+    <parent link="base_link"/>
+    <child link="link3"/>
+    <origin xyz="0 0 0.09034416414914892" rpy="0 0 0"/>
+    <axis xyz="-0.4751732809874817 0.8563950280725756 0.20198492252681727"/>
+    <dynamics damping="0.8416779145876575" friction="0.1"/>
+    <limit lower="-1.3479123737967016" upper="1.2169395730998822" effort="100" velocity="100"/>
+  </joint>
+  <link name="link4">
+    <visual>
+      <geometry>
+        <cylinder radius="0.0905179665410279" length="0.025554766153582837"/>
+      </geometry>
+      <material name="wheel_material"/>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder radius="0.0905179665410279" length="0.025554766153582837"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="1.0"/>
+      <inertia ixx="0.0021027960727776867" ixy="0" ixz="0" 
+               iyy="0.0021027960727776867" iyz="0" 
+               izz="0.004096751133361323"/>
+    </inertial>
+  </link>
+  <joint name="joint4" type="continuous">
+    <parent link="base_link"/>
+    <child link="link4"/>
+    <origin xyz="-0.13799195674717837 0.09792608049131862 -0.04034416414914891" rpy="1.5708 0 0"/>
+    <axis xyz="0 1 0"/>
+    <dynamics damping="0.46573290489831964" friction="0.1"/>
+  </joint>
+  <link name="link5">
+    <visual>
+      <geometry><box size="0.17494639463942896 0.13218542554824703 0.12290634875201151"/></geometry>
+      <material name="plastic"/>
+    </visual>
+    <collision>
+      <geometry><box size="0.17494639463942896 0.13218542554824703 0.12290634875201151"/></geometry>
+    </collision>
+    <inertial>
+      <mass value="0.5"/>
+      <inertia ixx="0.002714913107576853" ixy="0" ixz="0" 
+               iyy="0.003809350963407158" iyz="0" 
+               izz="0.004006602310392165"/>
+    </inertial>
+  </link>
+  <joint name="joint5" type="revolute">
+    <parent link="base_link"/>
+    <child link="link5"/>
+    <origin xyz="0 0 0.1403441641491489" rpy="0 0 0"/>
+    <axis xyz="-0.6775291648128731 0.26977987840232037 0.6842317210106531"/>
+    <dynamics damping="0.8925135069824413" friction="0.1"/>
+    <limit lower="-1.4039352720217013" upper="1.0316253842274055" effort="100" velocity="100"/>
+  </joint>
+  <link name="link6">
+    <visual>
+      <geometry>
+        <cylinder radius="0.0627546585025262" length="0.05400195749273819"/>
+      </geometry>
+      <material name="wheel_material"/>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder radius="0.0627546585025262" length="0.05400195749273819"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <mass value="1.0"/>
+      <inertia ixx="0.0012275544086961297" ixy="0" ixz="0" 
+               iyy="0.0012275544086961297" iyz="0" 
+               izz="0.0019690735818843424"/>
+    </inertial>
+  </link>
+  <joint name="joint6" type="continuous">
+    <parent link="base_link"/>
+    <child link="link6"/>
+    <origin xyz="-0.13799195674717837 -0.09792608049131862 -0.04034416414914891" rpy="1.5708 0 0"/>
+    <axis xyz="0 1 0"/>
+    <dynamics damping="0.9110968808329006" friction="0.1"/>
+  </joint>
+  <link name="link7">
+    <visual>
+      <geometry><cylinder radius="0.07099410359948277" length="0.07336953301714812"/></geometry>
+      <material name="plastic"/>
+    </visual>
+    <collision>
+      <geometry><cylinder radius="0.07099410359948277" length="0.07336953301714812"/></geometry>
+    </collision>
+    <inertial>
+      <mass value="0.5"/>
+      <inertia ixx="0.0017086313844030556" ixy="0" ixz="0" 
+               iyy="0.0017086313844030556" iyz="0" 
+               izz="0.0025200813729470465"/>
+    </inertial>
+  </link>
+  <joint name="joint7" type="revolute">
+    <parent link="base_link"/>
+    <child link="link7"/>
+    <origin xyz="0 0 0.19034416414914893" rpy="0 0 0"/>
+    <axis xyz="0.2877510822785141 -0.855992091863958 0.42950768714181237"/>
+    <dynamics damping="0.1" friction="0.1"/>
+    <limit lower="-2.112682392199435" upper="0.0" effort="100" velocity="100"/>
+  </joint>
+</robot>

@@ -1,0 +1,85 @@
+{
+  "num_links": 7,
+  "joint_types": [
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    0
+  ],
+  "has_motor": [
+    true,
+    true,
+    true,
+    true,
+    true,
+    true,
+    true
+  ],
+  "shapes": [
+    2,
+    4,
+    4,
+    0,
+    3,
+    4,
+    4
+  ],
+  "is_wheel": [
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+  ],
+  "wheel_types": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "joint_axes": [
+    [
+      0,
+      0,
+      1
+    ],
+    [
+      1,
+      0,
+      0
+    ],
+    [
+      0,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      0
+    ],
+    [
+      0,
+      0,
+      1
+    ],
+    [
+      0,
+      1,
+      0
+    ],
+    [
+      1,
+      0,
+      0
+    ]
+  ]
+}
