@@ -1,81 +1,81 @@
-# 机器人形态优化系统
+# Robot Morphology Optimization System
 
-这个项目使用多目标进化算法（NSGA-II）来优化机器人的形态设计，以实现更好的运动性能。系统支持复杂的机器人结构、多样化的地形环境和真实的物理模拟。
+This project uses multi-objective evolutionary algorithms (NSGA-II) to optimize robot morphology design for better movement performance. The system supports complex robot structures, diverse terrain environments, and realistic physical simulation.
 
-## 功能特点
+## Features
 
-- 使用基因编码表示机器人的形态结构：
-  - 多种关节类型（旋转、固定、棱柱、球形、连续）
-  - 多种几何形状（盒子、圆柱、球体、胶囊体）
-  - 不同材质（金属、塑料、橡胶）
-  - 可调整的尺寸和物理参数
-- 基于PyBullet物理引擎进行真实物理仿真
-- 多种地形环境：
-  - 平地
-  - 台阶
-  - 随机不平地形
-  - 带障碍物的地形
-- 多目标优化，同时考虑：
-  - 到达目标点的距离（最小化）
-  - 运动路径的直线性（最大化）
-  - 运动过程中的稳定性/倾斜度（最小化）
-  - 能量效率（最小化）
-- 生成帕累托前沿，展示不同设计之间的权衡
-- 可视化最佳设计的3D模型和运动性能，包括实时轨迹显示
+- Using genetic encoding to represent robot morphology:
+  - Multiple joint types (rotational, fixed, prismatic, spherical, continuous)
+  - Various geometric shapes (box, cylinder, sphere, capsule)
+  - Different materials (metal, plastic, rubber)
+  - Adjustable dimensions and physical parameters
+- Realistic physical simulation based on PyBullet physics engine
+- Multiple terrain environments:
+  - Flat ground
+  - Stairs
+  - Random uneven terrain
+  - Terrain with obstacles
+- Multi-objective optimization, considering:
+  - Distance to target point (minimize)
+  - Motion path linearity (maximize)
+  - Stability/tilt during movement (minimize)
+  - Energy efficiency (minimize)
+- Generation of Pareto front to show trade-offs between different designs
+- Visualization of the best designs in 3D models and movement performance, including real-time trajectory display
 
-## 依赖库
+## Dependencies
 
 - NumPy
 - PyBullet
 - Matplotlib
-- Pymoo (进化算法库)
+- Pymoo (evolutionary algorithm library)
 
-## 使用方法
+## Usage
 
-### 运行优化
+### Running Optimization
 
 ```bash
 python test33.py
 ```
 
-这将启动优化过程，并生成以下文件：
-- `pareto_front.png`: 帕累托前沿的3D可视化图
-- `best_distance.urdf`: 最小化到目标距离的最佳设计
-- `best_linearity.urdf`: 最大化路径直线性的最佳设计
-- `best_stability.urdf`: 最小化倾斜度的最佳设计
-- `best_energy.urdf`: 最小化能量消耗的最佳设计
+This will start the optimization process and generate the following files:
+- `pareto_front.png`: 3D visualization of the Pareto front
+- `best_distance.urdf`: Best design for minimizing distance to target
+- `best_linearity.urdf`: Best design for maximizing path linearity
+- `best_stability.urdf`: Best design for minimizing tilt
+- `best_energy.urdf`: Best design for minimizing energy consumption
 
-### 可视化机器人设计
+### Visualizing Robot Design
 
 ```bash
 python visualize_robot.py best_distance.urdf
 ```
 
-可以通过参数指定仿真时间和地形类型：
+You can specify simulation time and terrain type with parameters:
 
 ```bash
 python visualize_robot.py best_linearity.urdf --time 10 --terrain stairs
 ```
 
-可用的地形类型：
-- `flat`: 平地（默认）
-- `stairs`: 台阶地形
-- `rough`: 随机不平地形
-- `obstacles`: 带障碍物的地形
+Available terrain types:
+- `flat`: Flat ground (default)
+- `stairs`: Stair terrain
+- `rough`: Random uneven terrain
+- `obstacles`: Terrain with obstacles
 
-## 工作原理
+## Working Principle
 
-1. 使用基因编码表示机器人的各种设计参数（关节类型、几何形状、尺寸、材质等）
-2. 通过URDF文件描述机器人的物理结构
-3. 在PyBullet物理引擎中仿真机器人的运动性能
-4. 使用NSGA-II算法进行多目标优化
-5. 生成帕累托前沿，展示不同设计目标之间的权衡关系
+1. Using genetic encoding to represent various robot design parameters (joint types, geometric shapes, dimensions, materials, etc.)
+2. Describing the physical structure of the robot through URDF files
+3. Simulating robot movement performance in the PyBullet physics engine
+4. Using the NSGA-II algorithm for multi-objective optimization
+5. Generating a Pareto front to show the trade-offs between different design objectives
 
-## 未来改进
+## Future Improvements
 
-- 集成ROS MoveIt框架，实现更复杂的运动规划
-- 使用PyBullet URDF Models库中的真实物品模型作为机器人部件
-- 参考UTIAS STARS的UR5和Robotiq夹爪模型，实现更真实的机械结构
-- 实现更复杂的控制策略和任务评估
-- 添加更多地形适应性测试
-- 优化计算效率，支持并行仿真 
+- Integrate ROS MoveIt framework to implement more complex motion planning
+- Use real object models from the PyBullet URDF Models library as robot components
+- Reference UTIAS STARS' UR5 and Robotiq gripper models to implement more realistic mechanical structures
+- Implement more complex control strategies and task evaluations
+- Add more terrain adaptability tests
+- Optimize computational efficiency and support parallel simulation 
