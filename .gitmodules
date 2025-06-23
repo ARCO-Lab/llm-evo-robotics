@@ -1,0 +1,21 @@
+[submodule "extern/bullet3"]
+	path = extern/bullet3
+	url = https://github.com/bulletphysics/bullet3.git
+[submodule "extern/glfw"]
+	path = extern/glfw
+	url = https://github.com/glfw/glfw.git
+[submodule "extern/PEGTL"]
+	path = extern/PEGTL
+	url = https://github.com/taocpp/PEGTL.git
+[submodule "extern/lodepng"]
+	path = extern/lodepng
+	url = https://github.com/lvandeve/lodepng.git
+[submodule "extern/tinyxml2"]
+	path = extern/tinyxml2
+	url = https://github.com/leethomason/tinyxml2.git
+[submodule "extern/pybind11"]
+	path = extern/pybind11
+	url = https://github.com/pybind/pybind11.git
+[submodule "extern/eigen"]
+	path = extern/eigen
+	url = https://github.com/eigenteam/eigen-git-mirror.git

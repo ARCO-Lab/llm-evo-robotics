@@ -1,1 +1,0 @@
-num_links = max(4, int(x[0] * max_links) + 1)  # 最小链接数为4

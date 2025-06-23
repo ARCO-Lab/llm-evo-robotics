@@ -1,7 +1,0 @@
-    # 计算最终适应度（距离目标近、移动距离长、路径直、稳定性好）
-    # 添加结构复杂度奖励
-    complexity_bonus = gene["num_links"] * 0.2  # 每个链接增加0.2的适应度
-    wheel_bonus = sum(gene["is_wheel"]) * 0.3  # 每个轮子增加0.3的适应度
-    
-    # 计算最终适应度
-    fitness = (1.0 / (1e-3 + dist_to_goal)) + base_move + path_linearity + stability_score + complexity_bonus + wheel_bonus
