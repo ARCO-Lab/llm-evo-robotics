@@ -36,7 +36,7 @@ def make_graph(rules, rule_sequence):
     if matches:
       graph = rd.apply_rule(rules[r], graph, matches[0])
     else:
-      raise ValueError("Rule in sequence has no applicable matches")
+      raise ValueError(f"Rule in sequence has no applicable matches, r: {r}")
   return graph
 
 def build_normalized_robot(graph):
