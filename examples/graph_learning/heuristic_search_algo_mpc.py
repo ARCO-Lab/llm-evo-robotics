@@ -166,6 +166,7 @@ def search_algo(args):
     num_features = sample_features.shape[1]
     V = Net(max_nodes = max_nodes, num_channels = num_features, num_outputs = 1).to(device)
 
+
     # load pretrained V function
     if args.load_V_path is not None:
         V.load_state_dict(torch.load(args.load_V_path))
@@ -329,7 +330,7 @@ def search_algo(args):
             # update best design
             if reward > best_reward:
                 best_design, best_reward = selected_rule_seq, reward
-                print_info('new best: reward = {:.4f}, predicted reward = {:.4f}, num_samples = {}'.format(reward, selected_reward, num_samples))
+                print_info('new best: reward = {:.4f}, predicted reward = {:.4f}, num_samples = {}, best sequence = {}'.format(reward, selected_reward, num_samples, selected_rule_seq))
 
             t0 = time.time()
 

@@ -44,6 +44,32 @@ digraph make_body_with_legs {
   }
 }
 
+// digraph make_body_with_four_limbs {
+//   subgraph L {
+//     body [require_label="body"];
+//   }
+
+//   subgraph R {
+//     body [shape=capsule, length=0.15, radius=0.045, density=3.0];
+//     limb_mount_1 [shape=capsule, length=0.1, radius=0.025];
+//     limb_mount_2 [shape=capsule, length=0.1, radius=0.025];
+  
+//     limb_1 [label="limb"];
+//     limb_2 [label="limb"];
+ 
+    
+//     body -> limb_mount_1 [type=fixed, offset=0.5, axis_angle="0 1 0 90"];
+//     body -> limb_mount_1 [type=fixed, offset=0.5, axis_angle="0 1 0 90", mirror=true, mirror_type="xy"];
+ 
+//     body -> limb_mount_2 [type=fixed, offset=0.5, axis_angle="0 0 1 90"];
+//     body -> limb_mount_2 [type=fixed, offset=0.5, axis_angle="0 0 1 90", mirror=true, mirror_type="xz"];
+    
+//     limb_mount_1 -> limb_1 [label="limb_joint"];
+//     limb_mount_2 -> limb_2 [label="limb_joint"];
+
+//   }
+// }
+
 digraph make_body_without_legs {
   subgraph L {
     body [require_label="body"];

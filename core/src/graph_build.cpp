@@ -29,6 +29,7 @@ Robot buildRobot(const Graph &graph) {
     Scalar scale_;
     // Mirror subsequent links/joints across the xy plane
     bool mirror_;
+    MirrorType mirror_type_ = MirrorType::NONE;  // 新增这个字段
   };
 
   assert(!graph.nodes_.empty());
@@ -66,7 +67,7 @@ Robot buildRobot(const Graph &graph) {
       /*joint_axis=*/Vector3::Zero(), /*joint_kp=*/0.0, /*joint_kd=*/0.0,
       /*joint_torque=*/1.0, /*joint_control_mode=*/JointControlMode::POSITION,
       /*joint_color=*/Color::Zero(), /*joint_label=*/"", /*scale=*/1.0,
-      /*mirror=*/false}};
+      /*mirror=*/false, /*mirror_type=*/MirrorType::NONE}};
   while (!entries_to_expand.empty()) {
     NodeEntry &entry = entries_to_expand.front();
     const Node &node = graph.nodes_[entry.node_];
@@ -75,10 +76,32 @@ Robot buildRobot(const Graph &graph) {
     Quaternion joint_rot = entry.joint_rot_;
     Vector3 joint_axis = entry.joint_axis_;
     if (entry.mirror_) {
-      // Mirror parameters across xy plane
-      joint_rot.x() = -joint_rot.x();
-      joint_rot.y() = -joint_rot.y();
-      joint_axis(2) = -joint_axis(2);
+          switch (entry.mirror_type_) {
+          case MirrorType::XY_PLANE:
+            // 当前的左右镜像
+            joint_rot.x() = -joint_rot.x();
+            joint_rot.y() = -joint_rot.y();
+            joint_axis(2) = -joint_axis(2);
+            break;
+          case MirrorType::XZ_PLANE:
+            // 前后镜像
+            joint_rot.x() = -joint_rot.x();
+            joint_rot.z() = -joint_rot.z();
+            joint_axis(1) = -joint_axis(1);
+            break;
+          case MirrorType::YZ_PLANE:
+            // 上下镜像
+            joint_rot.y() = -joint_rot.y();
+            joint_rot.z() = -joint_rot.z();
+            joint_axis(0) = -joint_axis(0);
+            break;
+          default:
+            // 保持原有的默认行为
+            joint_rot.x() = -joint_rot.x();
+            joint_rot.y() = -joint_rot.y();
+            joint_axis(2) = -joint_axis(2);
+            break;
+        }
     }
     robot.links_.emplace_back(
         /*parent=*/entry.parent_link_, /*joint_type=*/entry.joint_type_,
@@ -108,7 +131,8 @@ Robot buildRobot(const Graph &graph) {
              /*joint_color=*/edge.attrs_.color_,
              /*joint_label=*/edge.attrs_.label_,
              /*scale=*/entry.scale_ * edge.attrs_.scale_,
-             /*mirror=*/entry.mirror_ != edge.attrs_.mirror_});
+             /*mirror=*/entry.mirror_ != edge.attrs_.mirror_,
+             /*mirror_type=*/edge.attrs_.mirror_ ? edge.attrs_.mirror_type_ : entry.mirror_type_});
       }
     }
 

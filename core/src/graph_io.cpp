@@ -155,14 +155,30 @@ void updateEdgeAttributes(
     } else if (key == "scale") {
       std::istringstream in(value);
       in >> edge_attrs.scale_;
-    } else if (key == "mirror") {
+    } 
+    
+    else if (key == "mirror") {
       edge_attrs.mirror_ = parseDOTBool(value);
-    } else if (key == "color") {
+    } 
+    
+    
+    else if (key == "color") {
       std::istringstream in(value);
       Color &color = edge_attrs.color_;
       in >> color(0) >> color(1) >> color(2);
     } else if (key == "require_label") {
       edge_attrs.require_label_ = value;
+    }
+    else if (key == "mirror_type") {
+        if (value == "xy" || value == "lr") {
+          edge_attrs.mirror_type_ = MirrorType::XY_PLANE;
+        } else if (value == "xz" || value == "fb") {
+          edge_attrs.mirror_type_ = MirrorType::XZ_PLANE;
+        } else if (value == "yz" || value == "ud") {
+          edge_attrs.mirror_type_ = MirrorType::YZ_PLANE;
+        } else {
+          edge_attrs.mirror_type_ = MirrorType::NONE;  // 添加默认情况
+        }
     }
   }
 }

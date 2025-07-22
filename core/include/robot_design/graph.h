@@ -55,11 +55,17 @@ struct Node {
   NodeAttributes attrs_;
 };
 
+enum class MirrorType {
+  NONE = 0,
+  XY_PLANE = 1,  // 当前的左右镜像
+  XZ_PLANE = 2,  // 新增：前后镜像
+  YZ_PLANE = 3   // 如果需要上下镜像
+};
+
 // Edges contain Link attributes which are unique to each instance
 // E.g. the rigid transformation relative to the parent link, uniform scaling
 struct EdgeAttributes {
   EdgeAttributes() = default;
-
   std::string id_ = "";
   std::string label_ = "";
   JointType joint_type_ = JointType::NONE;
@@ -74,6 +80,7 @@ struct EdgeAttributes {
   JointControlMode joint_control_mode_ = JointControlMode::POSITION;
   Scalar scale_ = 1.0;
   bool mirror_ = false;
+  MirrorType mirror_type_ = MirrorType::XY_PLANE;  // 确保这个字段存在
   Color color_ = {1.0f, 0.5f, 0.3f}; // Coral
   std::string require_label_ = "";   // Only used for rule matching
 
@@ -95,6 +102,7 @@ struct EdgeAttributes {
     visit(std::forward<Args>(args).joint_control_mode_...);
     visit(std::forward<Args>(args).scale_...);
     visit(std::forward<Args>(args).mirror_...);
+    visit(std::forward<Args>(args).mirror_type_...);  // 添加这行
     visit(std::forward<Args>(args).color_...);
     visit(std::forward<Args>(args).require_label_...);
   }

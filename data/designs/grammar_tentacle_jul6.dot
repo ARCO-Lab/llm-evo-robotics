@@ -1,0 +1,10 @@
+digraph make_robot {
+  subgraph L {
+    robot [require_label="robot"];
+  }
+
+  subgraph R {
+        
+
+  }
+}
