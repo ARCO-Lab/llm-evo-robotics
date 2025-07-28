@@ -90,7 +90,6 @@ def train(args):
         vertex_v = batch["vertex_v"]
         vertex_mask = batch["vertex_mask"]
         attn_output = attn_model(joint_q, vertex_k, vertex_v, vertex_mask)
-        print(attn_output.shape)
 
 
 if __name__ == "__main__":

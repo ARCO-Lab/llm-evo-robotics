@@ -1,10 +1,72 @@
 import torch
-from torch.utils.data import DataLoader
-from robot_attn_dataset import RobotDataset, collate_fn
+import torch.nn as nn
+import torch.nn.functional as F
+import os
+import sys
+base_dir = os.path.join(os.path.dirname(__file__), "../../../")
+sys.path.append(base_dir)
+sys.path.insert(0, os.path.join(base_dir, "examples/surrogate_model/attn_dataset"))
+sys.path.insert(0, os.path.join(base_dir, "examples/surrogate_model/attn_model"))
+print(sys.path)
 from data_utils import prepare_joint_q_input
-# 创建数据集对象
-dataset = RobotDataset()
+from attn_model import AttnModel
+class AttentionCritic(nn.Module):
+    def __init__(self, attn_model, joint_embed_dim, hidden_dim=256, device='cpu'):
+        super(AttentionCritic, self).__init__()
 
+        self.attn_model = attn_model  # 你自定义的多输入 attention 模型
+        self.joint_embed_dim = joint_embed_dim
+        # 聚合后传入 Q 网络的 MLP
+        self.q_net = nn.Sequential(
+            nn.Linear(joint_embed_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, 1)
+        )
+        self.proj_dict = nn.ModuleDict()
+        self.device = device
+
+    def forward(self, joint_q, vertex_k, vertex_v, vertex_mask=None, action=None):
+        """
+        joint_q:     [B, N, Dq]，每个关节 query（例如 position/velocity）
+        vertex_k/v:  [B, N, Dk] / [B, N, Dv]，图结构中的 key / value
+        vertex_mask: [B, N]，True 表示该节点是 padding，需要 mask 掉
+        action:      [B, N, Da]，每个关节对应的动作（需拼接到每个 state 上）
+        """
+
+        # 1. 使用你的 attention 模型编码结构状态
+        state_features = self.attn_model(joint_q, vertex_k, vertex_v, vertex_mask)  # [B, N, D]
+
+        # 2. 拼接动作到每个节点表示（假设 action 与 joint 对齐）
+        if action is not None:
+            x = torch.cat([state_features, action], dim=-1)  # [B, N, D + Da]
+        else:
+            x = state_features  # 允许无动作输入
+
+        # 3. 线性映射到统一维度
+
+        proj = self.get_proj(x.size(-1))
+        x = proj(x)
+        # x = x.unsqueeze(-1)
+        # 4. 处理 padding mask：用 masked mean pooling 聚合节点特征
+        # if vertex_mask is not None:
+        #     # vertex_mask: True = padding，需要忽略
+        #     mask_float = (~vertex_mask).unsqueeze(-1).float()  # [B, N, 1]
+        #     x_sum = (x * mask_float).sum(dim=1)                 # [B, D]
+        #     valid_count = mask_float.sum(dim=1) + 1e-6          # [B, 1]，避免除以0
+        #     x_pooled = x_sum / valid_count                      # [B, D]
+        # else:
+        #     x_pooled = x.mean(dim=1)  # 没有 mask，就简单平均
+
+        # 5. 送入 Q 网络输出标量 Q 值
+        q_value = self.q_net(x)  # [B, 1]
+
+        return q_value
+    
+    def get_proj(self, input_dim):
+        key = str(input_dim)
+        if key not in self.proj_dict:
+            self.proj_dict[key] = nn.Linear(input_dim, self.joint_embed_dim).to(self.device)
+        return self.proj_dict[key]
 
 
 if __name__ == "__main__":
@@ -80,21 +142,14 @@ if __name__ == "__main__":
          -1.4542e+00,  1.9766e+00, -7.6521e-01, -1.2677e+00, -4.2978e-02]],
        dtype=torch.float32)
     
-    gnn_embeds_test = torch.randn(B, 12, D)
+    gnn_embeds_test = torch.randn(B, 12, 128)
     joint_q_input = prepare_joint_q_input(test_obs, gnn_embeds_test, 12)
 
     vertex_k_test = gnn_embeds_test
     joint_vel = test_obs[:, 28:40]
-    vertex_v_test = torch.cat([gnn_embeds_test, joint_vel.unsqueeze(-1)], dim=-1)  # shape: [B, N, 33]
-
-    for _ in range(10000):
-        for i in zip(joint_q_input, vertex_k_test, vertex_v_test):
-            sample = {
-                "joint_q": i[0],
-                "vertex_k": i[1],
-                "vertex_v": i[2],
-                "vertex_len": i[1].shape[0],
-            }
-            dataset.add_data(sample)
-
-    loader = DataLoader(dataset, collate_fn=collate_fn, batch_size=32, shuffle=True)
+    vertex_v_test = gnn_embeds_test
+    test_action = torch.randn(B, 12)
+    attn_model = AttnModel(128, 128, 130, 4)
+    critic = AttentionCritic(attn_model, 128, 256)
+    q_value = critic(joint_q_input, vertex_k_test, vertex_v_test)
+    print(q_value)
