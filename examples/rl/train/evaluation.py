@@ -5,7 +5,7 @@ import time
 import gym
 from a2c_ppo_acktr import utils
 from a2c_ppo_acktr.envs import make_vec_envs
-from common.common import *
+from common import *
 
 import pyrobotdesign as rd
 

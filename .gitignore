@@ -10,3 +10,4 @@ trained_models/
 .vscode/
 *.egg-info
 venv/
+venv_backup_20250725_1705/

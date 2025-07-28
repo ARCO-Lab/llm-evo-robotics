@@ -8,6 +8,9 @@ import time
 from collections import deque
 
 import numpy as np
+if not hasattr(np, 'bool'):
+    np.bool = bool
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -19,7 +22,7 @@ import environments
 # from rl.train.evaluation import evaluate, render
 from rl.train.arguments import get_parser
 from rl.train.utils import solve_argv_conflict
-from common.common import *
+from common import *
 from rl.train.evaluation import render
 
 # import a2c_ppo_acktr

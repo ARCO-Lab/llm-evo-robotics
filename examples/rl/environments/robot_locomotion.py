@@ -11,7 +11,7 @@ from os import path
 import copy
 
 from simulation.simulation_utils import *
-from common.common import *
+from common import *
 import tasks
 
 class RobotLocomotionEnv(gym.Env):
