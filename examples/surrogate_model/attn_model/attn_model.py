@@ -40,11 +40,11 @@ class AttnModel(nn.Module):
         joint_q = joint_q.view(batch_size, num_joints, self.num_heads, self.vertex_key_size)
         
         attn_output = vertex_attention(vertex_k, vertex_v, joint_q, vertex_mask)
-        print(f"attn_output shape: {attn_output.shape}")  # 验证实际形状
+        # print(f"attn_output shape: {attn_output.shape}")  # 验证实际形状
         
         # 展平多头输出
         attn_output = attn_output.view(batch_size, num_joints, self.num_heads * self.vertex_value_size)
-        print(f"after view shape: {attn_output.shape}")  # 应该是 [32, 12, 512]
+        # print(f"after view shape: {attn_output.shape}")  # 应该是 [32, 12, 512]
         
         output = self.output_layer(attn_output)  # [32, 12, 1]
         output = output.squeeze(-1)              # [32, 12]
