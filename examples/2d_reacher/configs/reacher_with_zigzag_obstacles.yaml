@@ -1,0 +1,29 @@
+obstacles:
+  # 原始 zigzag
+  - shape: segment
+    points: [[600, 600], [650, 650]]
+  - shape: segment
+    points: [[650, 650], [700, 600]]
+  - shape: segment
+    points: [[700, 600], [750, 650]]
+  - shape: segment
+    points: [[750, 650], [800, 600]]
+
+  # 上方平行 zigzag（整体向上平移 50 像素）
+  - shape: segment
+    points: [[600, 700], [650, 750]]
+  - shape: segment
+    points: [[650, 750], [700, 700]]
+  - shape: segment
+    points: [[700, 700], [750, 750]]
+  - shape: segment
+    points: [[750, 750], [800, 700]]
+
+
+goal:
+    position: [800, 650]
+    radius: 10
+
+start:
+    position: [300, 900]
+    angle: 0
