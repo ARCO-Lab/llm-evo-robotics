@@ -3,6 +3,7 @@ import os
 base_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../')
 sys.path.append(base_dir)
 
+sys.path.insert(0, os.path.join(base_dir, 'examples/2d_reacher/envs'))
 sys.path.insert(0, os.path.join(base_dir, 'examples/surrogate_model/gnn_encoder'))
 sys.path.insert(0, os.path.join(base_dir, 'examples/rl/train'))  # 使用insert确保优先级
 sys.path.insert(0, os.path.join(base_dir, 'examples/rl/common'))

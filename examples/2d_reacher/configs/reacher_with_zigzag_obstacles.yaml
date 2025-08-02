@@ -25,5 +25,5 @@ goal:
     radius: 10
 
 start:
-    position: [300, 900]
+    position: [500, 700]
     angle: 0

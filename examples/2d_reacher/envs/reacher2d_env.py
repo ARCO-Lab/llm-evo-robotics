@@ -1,6 +1,13 @@
-import gymnasium as gym
-from gymnasium import Env
-from gymnasium.spaces import Box
+# import gymnasium as gym
+# from gymnasium import Env
+# from gymnasium.spaces import Box
+
+import gym
+
+from gym import Env
+
+from gym.spaces import Box
+
 from pymunk import Segment
 import pymunk
 import pymunk.pygame_util  # 明确导入pygame_util
@@ -14,6 +21,8 @@ import sys
 base_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../..")
 sys.path.append(base_dir)
 sys.path.insert(0, os.path.join(base_dir, 'examples/2d_reacher'))
+sys.path.insert(0, os.path.join(base_dir, 'examples/2d_reacher/envs'))
+sys.path.insert(0, os.path.join(base_dir, 'examples/2d_reacher/configs'))
 print(sys.path)
 
 class Reacher2DEnv(Env):
@@ -23,7 +32,9 @@ class Reacher2DEnv(Env):
 
         super().__init__()
         self.config = self._load_config(config_path)
+        print(f"self.config: {self.config}")
         self.anchor_point = self.config["start"]["position"]
+        self.gym_api_version = "old" # old or new. new is gymnasium, old is gym
 
         self.num_links = num_links  # 修复：使用传入的参数
         if link_lengths is None:
@@ -139,7 +150,10 @@ class Reacher2DEnv(Env):
         self._create_obstacle()
         observation = self._get_observation()
         info = {}
-        return observation, info
+        if self.gym_api_version == "old":
+            return observation
+        else:
+            return observation, info
 
     def _get_observation(self):
         """获取当前状态观察值"""
@@ -198,8 +212,12 @@ class Reacher2DEnv(Env):
         terminated = False
         truncated = False
         info = {}
-        
-        return observation, reward, terminated, truncated, info
+
+        if self.gym_api_version == "old":
+            done = terminated or truncated
+            return observation, reward, done, info
+        else:
+            return observation, reward, terminated, truncated, info
 
     def _compute_reward(self):
         """计算奖励函数"""
