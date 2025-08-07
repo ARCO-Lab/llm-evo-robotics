@@ -24,7 +24,7 @@ def make_reacher2d_env(env_params, seed, rank, log_dir=None, allow_early_resets=
         env = Reacher2DEnv(
             num_links=env_params.get('num_links', 5),
             link_lengths=env_params.get('link_lengths', [80, 50, 30, 20, 10]),
-            render_mode=None,  # 训练环境不渲染
+            render_mode=env_params.get('render_mode', "human"),  # 训练环境不渲染
             config_path=env_params.get('config_path', None)
         )
         
@@ -147,12 +147,19 @@ if __name__ == "__main__":
     
     # 测试2: 单个环境创建和包装
     print("\n=== 测试2: 环境创建和包装 ===")
+
+    abs_config_path = "/home/xli149/Documents/repos/RoboGrammar/examples/2d_reacher/configs/reacher_with_zigzag_obstacles.yaml"
+
+    print(f"🔍 使用绝对路径: {abs_config_path}")
+    print(f"🔍 文件存在: {os.path.exists(abs_config_path)}")
+    
     try:
         # 创建基础环境
         base_env = Reacher2DEnv(
             num_links=3,
             link_lengths=[80, 50, 30],
-            render_mode=None
+            render_mode="human",
+            config_path = abs_config_path
         )
         print("✅ 基础环境创建成功")
         
@@ -194,7 +201,8 @@ if __name__ == "__main__":
         env_params = {
             'num_links': 5,
             'link_lengths': [80, 50, 30, 20, 10],
-            'config_path': None
+            'config_path': None,
+            'render_mode': "human"
         }
         
         # 创建 thunk
@@ -238,7 +246,8 @@ if __name__ == "__main__":
             env_params = {
                 'num_links': 3,
                 'link_lengths': [80, 50, 30],
-                'config_path': 'configs/reacher_with_zigzag_obstacles.yaml'
+                'config_path': abs_config_path,
+                'render_mode': "human"
             }
             
             device = torch.device('cpu')
@@ -273,11 +282,38 @@ if __name__ == "__main__":
             
             # 测试多步执行
             print("🔄 执行10步测试...")
-            for i in range(10):
-                actions = torch.randn(1, envs.action_space.shape[0]) * 0.5
+            print("🎥 创建渲染环境...")
+            render_env = Reacher2DEnv(
+                num_links=3,
+                link_lengths=[80, 50, 30],
+                render_mode="human",
+                config_path=abs_config_path  # 使用相同的配置
+            )
+            render_obs = render_env.reset()
+
+            for i in range(5000):
+                actions = torch.randn(1, envs.action_space.shape[0])
                 obs, rewards, dones, infos = envs.step(actions)
-                if i % 3 == 0:
+                render_env.render()
+                if i % 20 == 0:
                     print(f"   步骤 {i}: 奖励 {rewards[0].item():.3f}")
+
+                    # 处理pygame事件（避免窗口无响应）
+                import pygame
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        break
+                
+                if terminated or truncated:
+                    obs, info = wrapped_env.reset()
+                if dones:
+                    render_obs = render_env.reset()
+                    
+                # 添加小延迟以便观察
+                import time
+                time.sleep(0.05)  # 20 FPS
+
+            print("✅ 渲染测试完成")
             
             envs.close()
             print("✅ 向量化环境关闭成功")
@@ -298,7 +334,8 @@ if __name__ == "__main__":
             env_params = {
                 'num_links': 3,
                 'link_lengths': [80, 50, 30],
-                'config_path': "configs/reacher_with_zigzag_obstacles.yaml"
+                'config_path': "configs/reacher_with_zigzag_obstacles.yaml",
+                'render_mode': "human"
             }
             
             device = torch.device('cpu')
@@ -322,7 +359,7 @@ if __name__ == "__main__":
             # 并行执行几步
             import time
             start_time = time.time()
-            for i in range(5):
+            for i in range(5000):
                 actions = torch.randn(5, envs.action_space.shape[0]) * 0.5
                 obs, rewards, dones, infos = envs.step(actions)
 
@@ -347,3 +384,86 @@ if __name__ == "__main__":
     print("如果看到这里，说明基本功能都正常工作。")
     print("如果有任何 ❌ 错误，请检查相应的依赖和路径设置。")
     print("⚠️  警告通常是可以忽略的（表示某些高级功能不可用）。")
+
+
+
+
+
+    print("🔄 执行可视化测试...")
+
+    # 创建单独的可视化环境
+    vis_env = Reacher2DEnv(
+        num_links=4,  # 减少关节数，运动更明显
+        link_lengths=[80, 80, 80, 60],  # 增加连杆长度
+        render_mode="human",
+        config_path=abs_config_path
+    )
+
+    # 调整物理参数让运动更明显
+    vis_env.max_torque = 100.0  # 大幅增加最大扭矩
+    vis_env.space.damping = 0.85  # 减少阻尼让运动更自由
+    vis_env.dt = 1/25.0  # 稍大的时间步长
+
+    # 减少body质量让它们更容易运动
+    for body in vis_env.bodies:
+        body.mass = body.mass * 0.4  # 减少质量
+        body.moment = body.moment * 0.4  # 减少转动惯量
+
+    print("🎥 开始大幅度可视化（按ESC退出）...")
+    vis_obs = vis_env.reset()
+
+    import pygame
+    import time
+
+    try:
+        for i in range(2000):
+            # 处理事件
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    break
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        break
+            
+            # 生成整个时间段都大幅度的动作
+            t = i * 0.01  # 统一的时间频率
+            
+            # 多层叠加的大幅度正弦波，创造复杂而明显的运动
+            action = np.array([
+                # 第一关节：主要大幅摆动
+                60 * np.sin(t) + 25 * np.sin(t * 2.3),
+                
+                # 第二关节：跟随摆动，稍有延迟
+                50 * np.sin(t + 0.5) + 20 * np.sin(t * 1.7),
+                
+                # 第三关节：更快的振荡
+                45 * np.sin(t * 1.2 + 1) + 15 * np.sin(t * 3.1),
+                
+                # 第四关节：高频小幅叠加
+                40 * np.sin(t * 0.8 + 1.5) + 12 * np.sin(t * 4.2)
+            ])
+            
+            # 确保动作在范围内
+            action = np.clip(action, -80, 80)  # 扩大扭矩限制
+            
+            # 执行动作
+            vis_obs, vis_reward, vis_done, vis_info = vis_env.step(action)
+            
+            # 渲染
+            vis_env.render()
+            
+            if i % 50 == 0:
+                end_pos = vis_env._get_end_effector_position()
+                print(f"   步骤 {i}: 奖励 {vis_reward:.3f}, 末端位置 ({end_pos[0]:.1f}, {end_pos[1]:.1f})")
+            
+            if vis_done:
+                vis_obs = vis_env.reset()
+            
+            time.sleep(0.06)  # 稍慢的帧率让运动更明显
+
+    except KeyboardInterrupt:
+        print("\n⏹️ 用户停止可视化")
+
+    finally:
+        vis_env.close()
+        print("✅ 可视化环境关闭")

@@ -1,23 +1,27 @@
 import torch
 from torch.utils.data import DataLoader
 from attn_dataset.robot_attn_dataset import RobotDataset, collate_fn
-from attn_dataset.data_utils import prepare_joint_q_input
+from attn_dataset.data_utils import prepare_joint_q_input, prepare_reacher2d_joint_q_input
 
 
 class DataHandler:
-    def __init__(self,num_joints):
+    def __init__(self,num_joints, env_type):
         self.dataset = RobotDataset()
         self.num_joints = num_joints
-      
+        self.env_type = env_type
+        print(f"🤖 初始化 DataHandler，环境类型: {env_type}，关节数: {num_joints}")
 
     def save_data(self, obs, action, reward, gnn_embeds, done):
            
-        joint_q_input = prepare_joint_q_input(obs, gnn_embeds, self.num_joints)
+        if self.env_type == 'reacher2d':
+            joint_q_input = prepare_reacher2d_joint_q_input(obs, gnn_embeds, self.num_joints)
+        else:
+            joint_q_input = prepare_joint_q_input(obs, gnn_embeds, self.num_joints)
 
         vertex_k = gnn_embeds  # [B, N, 128]
-        joint_vel_start = 16 + self.num_joints  # 位置信息后面是速度信息
-        joint_vel_end = joint_vel_start + self.num_joints
-        joint_vel = obs[:, joint_vel_start:joint_vel_end]  # [B, num_joints]
+        # joint_vel_start = 16 + self.num_joints  # 位置信息后面是速度信息
+        # joint_vel_end = joint_vel_start + self.num_joints
+        # joint_vel = obs[:, joint_vel_start:joint_vel_end]  # [B, num_joints]
         vertex_v = gnn_embeds  # [B, N, 128] - 直接使用相同的嵌入
 
         for i in zip(joint_q_input, vertex_k, vertex_v):

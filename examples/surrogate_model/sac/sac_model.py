@@ -12,7 +12,7 @@ sys.path.append(base_dir)
 sys.path.insert(0, os.path.join(base_dir, "examples/surrogate_model/attn_dataset"))
 sys.path.insert(0, os.path.join(base_dir, "examples/surrogate_model/attn_model"))
 sys.path.insert(0, os.path.join(base_dir, "examples/surrogate_model/sac"))
-from data_utils import prepare_joint_q_input
+from data_utils import prepare_joint_q_input, prepare_reacher2d_joint_q_input
 # 导入你的组件
 from attn_actor import AttentionActor
 from attn_critic import AttentionCritic
@@ -87,12 +87,13 @@ class ReplayBuffer:
 class AttentionSACWithBuffer:
     def __init__(self, attn_model, action_dim, joint_embed_dim=128, 
                  buffer_capacity=100000, batch_size=256, lr=3e-4, 
-                 gamma=0.99, tau=0.005, alpha=0.2, device='cpu'):
+                 gamma=0.99, tau=0.005, alpha=0.2, device='cpu', env_type='bullet'):
         
         self.device = device
         self.action_dim = action_dim
         self.batch_size = batch_size
         self.warmup_steps = 10000
+        self.env_type = env_type
  
         # 创建独立的模型拷贝 - 解决共享问题
         actor_model = copy.deepcopy(attn_model)
@@ -134,14 +135,18 @@ class AttentionSACWithBuffer:
         
     def store_experience(self, obs, gnn_embeds, action, reward, next_obs, next_gnn_embeds, done, num_joints=12):
         """存储环境交互经验"""
-        
+        if self.env_type == 'reacher2d':
+            joint_q = prepare_reacher2d_joint_q_input(obs.unsqueeze(0), gnn_embeds.unsqueeze(0), num_joints).squeeze(0)
+            next_joint_q = prepare_reacher2d_joint_q_input(next_obs.unsqueeze(0), next_gnn_embeds.unsqueeze(0), num_joints).squeeze(0)
+        else:  # bullet 环境
+            joint_q = prepare_joint_q_input(obs.unsqueeze(0), gnn_embeds.unsqueeze(0), num_joints).squeeze(0)
+            next_joint_q = prepare_joint_q_input(next_obs.unsqueeze(0), next_gnn_embeds.unsqueeze(0), num_joints).squeeze(0)
         # 准备当前状态
-        joint_q = prepare_joint_q_input(obs.unsqueeze(0), gnn_embeds.unsqueeze(0), num_joints).squeeze(0)
         vertex_k = gnn_embeds
         vertex_v = gnn_embeds
         
         # 准备下一个状态
-        next_joint_q = prepare_joint_q_input(next_obs.unsqueeze(0), next_gnn_embeds.unsqueeze(0), num_joints).squeeze(0)
+        # next_joint_q = prepare_joint_q_input(next_obs.unsqueeze(0), next_gnn_embeds.unsqueeze(0), num_joints).squeeze(0)
         next_vertex_k = next_gnn_embeds
         next_vertex_v = next_gnn_embeds
         
@@ -158,7 +163,12 @@ class AttentionSACWithBuffer:
     
     def get_action(self, obs, gnn_embeds, num_joints=12, deterministic=False):
         """获取动作"""
-        joint_q = prepare_joint_q_input(obs.unsqueeze(0), gnn_embeds.unsqueeze(0), num_joints)
+          
+        # 🎯 根据环境类型选择数据处理函数
+        if self.env_type == 'reacher2d':
+            joint_q = prepare_reacher2d_joint_q_input(obs.unsqueeze(0), gnn_embeds.unsqueeze(0), num_joints)
+        else:  # bullet 环境
+            joint_q = prepare_joint_q_input(obs.unsqueeze(0), gnn_embeds.unsqueeze(0), num_joints)
         vertex_k = gnn_embeds.unsqueeze(0)
         vertex_v = gnn_embeds.unsqueeze(0)
         

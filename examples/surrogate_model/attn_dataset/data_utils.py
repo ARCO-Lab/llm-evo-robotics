@@ -77,3 +77,49 @@ def create_vertex_mask(vertex_lengths, max_vertices):
 
     # reshape 成为 [B, 1, 1, N]，方便广播到 multi-head attention
     return mask.unsqueeze(1).unsqueeze(1)  # [B, 1, 1, N]
+
+
+def prepare_reacher2d_joint_q_input(obs_batch, gnn_embeds, num_joints):
+    """
+    直接适配 Reacher2D，不需要填充到12关节
+    
+    Args:
+        obs_batch: Tensor [B, 2*num_joints + 2] 
+        gnn_embeds: Tensor [B, N, 128]
+        num_joints: int → 实际关节数 (3, 4, 5)
+    
+    Returns:
+        joint_q_input: Tensor [B, num_joints, 130] 👈 动态维度！
+    """
+    joint_q_input = []
+    
+    for b in range(obs_batch.size(0)):
+        obs = obs_batch[b]
+        
+        # 提取 Reacher2D 数据
+        joint_angles = obs[:num_joints]                    # [num_joints]
+        joint_angular_vels = obs[num_joints:2*num_joints]  # [num_joints]
+        # end_effector_pos = obs[2*num_joints:2*num_joints+2]  # 暂不使用
+        
+        # 获取 GNN embedding
+        gnn_embed = gnn_embeds[b]  # [N, 128]
+        
+        # 🎯 关键：只处理实际关节数，不填充
+        if gnn_embed.size(0) > num_joints:
+            gnn_embed = gnn_embed[:num_joints]  # 取前num_joints个
+        elif gnn_embed.size(0) < num_joints:
+            # 用零向量填充到num_joints
+            padding_size = num_joints - gnn_embed.size(0)
+            padding = torch.zeros(padding_size, gnn_embed.size(1), 
+                                dtype=gnn_embed.dtype, device=gnn_embed.device)
+            gnn_embed = torch.cat([gnn_embed, padding], dim=0)
+        
+        # 构建输入: [num_joints, 130]
+        pos = joint_angles.unsqueeze(1)      # [num_joints, 1] 
+        vel = joint_angular_vels.unsqueeze(1) # [num_joints, 1]
+        
+        q_input = torch.cat([pos, vel, gnn_embed], dim=1)  # [num_joints, 130]
+        joint_q_input.append(q_input)
+    
+    joint_q_input = torch.stack(joint_q_input, dim=0)  # [B, num_joints, 130]
+    return joint_q_input
