@@ -305,7 +305,7 @@ class Reacher2D_Graph_Net(torch.nn.Module):
         self.output_projection = torch.nn.Linear(self.struct_dim, 1)
         
         # 🔧 关键修复：将所有参数转换为 float64
-        self.double()
+        # self.double()
     
     def forward(self, x, adj, mask=None, num_joints=None):
         # 🔸 多层GNN处理 (与 RoboGrammar 完全相同)
@@ -410,18 +410,18 @@ class Reacher2D_GNN_Encoder:
         # 预处理器
         self.preprocessor = Reacher2DPreprocessor(max_nodes=max_nodes)
         
-        # 🔧 临时设置为 float32，避免与全局 float64 设置冲突
-        original_dtype = torch.get_default_dtype()
-        torch.set_default_dtype(torch.float32)
+        # # 🔧 临时设置为 float32，避免与全局 float64 设置冲突
+        # original_dtype = torch.get_default_dtype()
+        # torch.set_default_dtype(torch.float32)
         
-        try:
-            # GNN 网络
-            self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-            self.gnn = Reacher2D_Graph_Net(max_nodes=max_nodes, num_channels=39, num_outputs=1).to(self.device)
-            self.gnn.eval()
-        finally:
-            # 🔧 恢复原始数据类型设置
-            torch.set_default_dtype(original_dtype)
+        # try:
+        #     # GNN 网络
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.gnn = Reacher2D_Graph_Net(max_nodes=max_nodes, num_channels=39, num_outputs=1).to(self.device)
+        self.gnn.eval()
+        # finally:
+        #     # 🔧 恢复原始数据类型设置
+        #     torch.set_default_dtype(original_dtype)
     
     def get_gnn_embeds(self, num_links, link_lengths):
         """主要函数：从 Reacher2D 参数生成 GNN 嵌入"""
@@ -436,8 +436,8 @@ class Reacher2D_GNN_Encoder:
         
         # 🔸 转换为张量
         with torch.no_grad():
-            features = torch.tensor(features, dtype=torch.float32).unsqueeze(0)     # [1, N, 39]
-            adj_matrix = torch.tensor(adj_matrix, dtype=torch.float32).unsqueeze(0) # [1, N, N]
+            features = torch.tensor(features).unsqueeze(0)     # [1, N, 39]
+            adj_matrix = torch.tensor(adj_matrix).unsqueeze(0) # [1, N, N]
             masks = torch.tensor(masks).unsqueeze(0)                                # [1, N]
             
             # 移动到设备
