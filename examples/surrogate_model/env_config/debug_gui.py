@@ -17,7 +17,7 @@ def quick_fix_and_test():
     print("🛠️ 快速修复环境配置...")
     
     # 动态修改Reacher2DEnv类
-    from reacher2d_env import Reacher2DEnv
+from reacher2d_env import Reacher2DEnv
     
     # 保存原始__init__方法
     original_init = Reacher2DEnv.__init__
@@ -92,9 +92,9 @@ def quick_fix_and_test():
     
     # 现在测试环境
     try:
-        env = Reacher2DEnv(
-            num_links=4,
-            link_lengths=[80, 60, 40, 30],
+    env = Reacher2DEnv(
+        num_links=4,
+        link_lengths=[80, 60, 40, 30],
             render_mode="human",
             config_path=None
         )
@@ -116,9 +116,9 @@ def quick_fix_and_test():
         # 开始可视化
         print("\n🎥 开始可视化演示（按ESC退出）...")
         
-        running = True
-        step_count = 0
-        
+    running = True
+    step_count = 0
+    
         while running:
             # 处理事件
             for event in pygame.event.get():
@@ -155,7 +155,7 @@ def quick_fix_and_test():
             if done:
                 obs = env.reset()
                 print("🔄 环境自动重置")
-        
+                
         env.close()
         print("✅ 可视化演示完成")
         

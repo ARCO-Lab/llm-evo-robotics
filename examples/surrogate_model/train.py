@@ -113,11 +113,43 @@ def main(args):
     num_updates = 5
     num_step = 5000  # 减少总训练步数，方便调试
     data_handler = DataHandler(num_joints, args.env_type)
-    rule_sequence = [int(s.strip(",")) for s in args.rule_sequence]
-    gnn_encoder = GNN_Encoder(args.grammar_file, rule_sequence, 70, num_joints)
+
+
+
+    #TODO: 需要修改，现在reacher2d是不支持rule_sequence的
+
+    # 在第115行 data_handler = DataHandler(num_joints, args.env_type) 之后添加：
+
+    if args.env_type == 'reacher2d':
+        # 🔸 使用 Reacher2D GNN 编码器
+        sys.path.append(os.path.join(os.path.dirname(__file__), '../2d_reacher/utils'))
+        from reacher2d_gnn_encoder import Reacher2D_GNN_Encoder
+        
+        print("🤖 初始化 Reacher2D GNN 编码器...")
+        reacher2d_encoder = Reacher2D_GNN_Encoder(max_nodes=20, num_joints=num_joints)
+        single_gnn_embed = reacher2d_encoder.get_gnn_embeds(
+            num_links=num_joints, 
+            # link_lengths=[80, 80, 80, 60]  # 或者从 env_params 获取
+            link_lengths = env_params['link_lengths']
+        )
+        print(f"✅ Reacher2D GNN 嵌入生成成功，形状: {single_gnn_embed.shape}")
+    else:
+        # 🔸 使用原有的 Bullet GNN 编码器
+        rule_sequence = [int(s.strip(",")) for s in args.rule_sequence]
+        gnn_encoder = GNN_Encoder(args.grammar_file, rule_sequence, 70, num_joints)
+        gnn_graph = gnn_encoder.get_graph(rule_sequence)
+        single_gnn_embed = gnn_encoder.get_gnn_embeds(gnn_graph)
+
+    # 然后删除或注释掉原来的第117-121行：
+    # rule_sequence = [int(s.strip(",")) for s in args.rule_sequence]
+    # gnn_encoder = GNN_Encoder(args.grammar_file, rule_sequence, 70, num_joints)
+    # gnn_graph = gnn_encoder.get_graph(rule_sequence)
+    # single_gnn_embed = gnn_encoder.get_gnn_embeds(gnn_graph)
+    # rule_sequence = [int(s.strip(",")) for s in args.rule_sequence]
+    # gnn_encoder = GNN_Encoder(args.grammar_file, rule_sequence, 70, num_joints)
     
-    gnn_graph = gnn_encoder.get_graph(rule_sequence)
-    single_gnn_embed = gnn_encoder.get_gnn_embeds(gnn_graph)  # [1, N, D]
+    # gnn_graph = gnn_encoder.get_graph(rule_sequence)
+    # single_gnn_embed = gnn_encoder.get_gnn_embeds(gnn_graph)  # [1, N, D]
 
 
     action_dim = num_joints  # 使用实际的关节数，而不是硬编码12
