@@ -1,5 +1,5 @@
 obstacles:
-  # 原始 zigzag
+  # 锯齿形障碍物
   - shape: segment
     points: [[600, 600], [650, 650]]
   - shape: segment
@@ -8,8 +8,7 @@ obstacles:
     points: [[700, 600], [750, 650]]
   - shape: segment
     points: [[750, 650], [800, 600]]
-
-  # 上方平行 zigzag（整体向上平移 50 像素）
+  
   - shape: segment
     points: [[600, 700], [650, 750]]
   - shape: segment
@@ -19,11 +18,10 @@ obstacles:
   - shape: segment
     points: [[750, 750], [800, 700]]
 
-
 goal:
-    position: [800, 650]
-    radius: 10
+  position: [650, 650]  # 修改目标位置到可达范围内
+  radius: 10
 
 start:
-    position: [500, 700]
-    angle: 0
+  position: [400, 550]  # 保持起始位置不变
+  angle: 0

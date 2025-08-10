@@ -175,10 +175,21 @@ class AttentionSACWithBuffer:
         with torch.no_grad():
             if deterministic:
                 mean, _ = self.actor.forward(joint_q, vertex_k, vertex_v)
-                return torch.tanh(mean).squeeze(0)
+                tanh_action = torch.tanh(mean).squeeze(0)
             else:
-                action, _, _ = self.actor.sample(joint_q, vertex_k, vertex_v)
-                return action.squeeze(0)
+                tanh_action, _, _ = self.actor.sample(joint_q, vertex_k, vertex_v)
+                tanh_action = tanh_action.squeeze(0)
+            
+            # 🔧 关键修复：Action Scaling！
+            # SAC输出[-1,+1]，需要缩放到环境的action space
+            if self.env_type == 'reacher2d':
+                # Reacher2D环境使用±500的action space
+                action_scale = 500.0
+                scaled_action = tanh_action * action_scale
+                return scaled_action
+            else:
+                # Bullet环境保持原有逻辑
+                return tanh_action
     
     def soft_update_targets(self):
         """软更新target networks"""

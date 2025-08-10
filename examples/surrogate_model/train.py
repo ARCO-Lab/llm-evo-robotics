@@ -47,8 +47,12 @@ from attn_dataset.sim_data_handler import DataHandler
 from attn_model.attn_model import AttnModel
 from sac.sac_model import AttentionSACWithBuffer
 
-from env_config.env_wrapper import make_reacher2d_vec_envs
+# 修改第50行的导入
+from env_config.env_wrapper import make_reacher2d_vec_envs, make_smart_reacher2d_vec_envs
 from reacher2d_env import Reacher2DEnv
+# 在 train.py 第6行后添加
+sys.path.insert(0, os.path.join(base_dir, 'examples/2d_reacher/envs'))
+from async_renderer import AsyncRenderer, StateExtractor  # 🎨 添加这行
 
 
 def main(args):
@@ -75,26 +79,50 @@ def main(args):
         print(f"num links: {env_params['num_links']}")
         print(f"link lengths: {env_params['link_lengths']}")
 
+        # 🎨 异步渲染模式：多进程训练 + 独立渲染
+        async_renderer = None
+        sync_env = None
+        
+        if args.num_processes > 1:
+            print("🚀 多进程模式：启用异步渲染")
+            
+            # 创建无渲染的训练环境
+            train_env_params = env_params.copy()
+            train_env_params['render_mode'] = None  # 训练环境不渲染
+            
+            envs = make_reacher2d_vec_envs(
+                env_params=train_env_params,
+                seed=args.seed,
+                num_processes=args.num_processes,
+                gamma=args.gamma,
+                log_dir=None,
+                device=device,
+                allow_early_resets=False,
+            )
+            
+            # 创建异步渲染器
+       
+            async_renderer = AsyncRenderer(env_params)  # 使用原始参数（包含渲染）
+            async_renderer.start()
+            
+            # 创建状态同步环境
+            sync_env = Reacher2DEnv(**train_env_params)
+            print(f"✅ 异步渲染器已启动 (PID: {async_renderer.render_process.pid})")
+            
+        else:
+            print("🏃 单进程模式：直接渲染")
+            # 单进程直接渲染
+            envs = make_reacher2d_vec_envs(
+                env_params=env_params,
+                seed=args.seed,
+                num_processes=args.num_processes,
+                gamma=args.gamma,
+                log_dir=None,
+                device=device,
+                allow_early_resets=False
+            )
 
-        envs = make_reacher2d_vec_envs(
-            env_params = env_params,
-            seed = args.seed,
-            num_processes = args.num_processes,
-            gamma = args.gamma,
-            log_dir = None,
-            device = device,
-            allow_early_resets = False
-        )
-
-        print(f"✅ 多进程向量化环境创建成功")
-
-        render_env = Reacher2DEnv(
-            num_links = env_params['num_links'],
-            link_lengths = env_params['link_lengths'],
-            render_mode = env_params['render_mode'],
-            config_path = env_params['config_path']
-
-        )
+        print(f"✅ 环境创建成功")
         args.env_type = 'reacher2d'
 
         
@@ -156,8 +184,11 @@ def main(args):
     attn_model = AttnModel(128, 128, 130, 4)
     sac = AttentionSACWithBuffer(attn_model, action_dim, buffer_capacity=10000, batch_size=64, env_type=args.env_type)
     
-    # 手动设置较短的预热期
-    sac.warmup_steps = 500  # 预热500步，约为总步数的10%
+    # 🔧 增强exploration的SAC参数
+    sac.warmup_steps = 2000  # 从500增加到2000，更充分的随机探索
+    sac.alpha = 0.5  # 增加entropy regularization，鼓励更多探索
+    if hasattr(sac, 'target_entropy'):
+        sac.target_entropy = -action_dim * 2.0  # 更高的target entropy
     current_obs = envs.reset()
     current_gnn_embeds = single_gnn_embed.repeat(args.num_processes, 1, 1)  # [B, N, D]
     total_steps =0
@@ -171,91 +202,222 @@ def main(args):
     print(f"Total training steps: {num_step}, Update frequency: {args.update_frequency}")
     print(f"Expected warmup completion at step: {sac.warmup_steps}")
 
-    for step in range(num_step):
-        
-        # 添加进度信息
-        if step % 100 == 0:
-            if step < sac.warmup_steps:
-                print(f"Step {step}/{num_step}: Warmup phase ({step}/{sac.warmup_steps})")
+    try:
+
+        for step in range(num_step):
+            
+            # 添加进度信息
+            if step % 100 == 0:
+                if step < sac.warmup_steps:
+                    print(f"Step {step}/{num_step}: Warmup phase ({step}/{sac.warmup_steps})")
+                else:
+                    print(f"Step {step}/{num_step}: Training phase, Buffer size: {len(sac.memory)}")
+
+                if async_renderer:
+                    stats = async_renderer.get_stats()
+                    print(f"   🎨 渲染FPS: {stats.get('fps', 0):.1f}")
+
+            if step < sac.warmup_steps:  # 使用step而不是total_steps来判断预热期
+                action_batch = torch.from_numpy(np.array([envs.action_space.sample() for _ in range(args.num_processes)]))
             else:
-                print(f"Step {step}/{num_step}: Training phase, Buffer size: {len(sac.memory)}")
+                actions = []
+                for proc_id in range(args.num_processes):
+                    action = sac.get_action(current_obs[proc_id],
+                                            current_gnn_embeds[proc_id],
+                                            num_joints = envs.action_space.shape[0],
+                                            deterministic = False)
+                    actions.append(action)
 
-        if step < sac.warmup_steps:  # 使用step而不是total_steps来判断预热期
-            action_batch = torch.from_numpy(np.array([envs.action_space.sample() for _ in range(args.num_processes)]))
-        else:
-            actions = []
-            for proc_id in range(args.num_processes):
-                action = sac.get_action(current_obs[proc_id],
-                                         current_gnn_embeds[proc_id],
-                                         num_joints = envs.action_space.shape[0],
-                                        deterministic = False)
-                actions.append(action)
+                action_batch = torch.stack(actions)
 
-            action_batch = torch.stack(actions)
-
-
-        next_obs, reward, done, infos = envs.step(action_batch)
-        #TODO: 需要修改 成更灵活的gnn_embeds
-        next_gnn_embeds = single_gnn_embed.repeat(args.num_processes, 1, 1)  # [B, N, D]
-
-        for proc_id in range(args.num_processes):
-            sac.store_experience(
-                    obs = current_obs[proc_id],
-                    gnn_embeds = current_gnn_embeds[proc_id],
-                    action = action_batch[proc_id],
-                    reward = reward[proc_id],
-                    next_obs = next_obs[proc_id],
-                    next_gnn_embeds = next_gnn_embeds[proc_id],
-                    done = done[proc_id],
-                    num_joints = num_joints
-            )
-            episode_rewards[proc_id] += reward[proc_id].item()  # 将tensor转换为标量
-
-        current_obs = next_obs.clone()
-        current_gnn_embeds = next_gnn_embeds.clone()
-
-
-        for proc_id in range(args.num_processes):
-            # 安全检查done状态
-            is_done = done[proc_id].item() if torch.is_tensor(done[proc_id]) else bool(done[proc_id])
-            if is_done:
-                print(f"Episode {step} finished with reward {episode_rewards[proc_id]:.2f}")
-
-
-                episode_rewards[proc_id] = 0.0
+            # 🔍 添加Action监控 - 每50步详细打印action值
+            if step % 50 == 0 or step < 20:  # 前20步和每50步
+                print(f"\n🎯 Step {step} Action Analysis:")
+                action_numpy = action_batch.cpu().numpy() if hasattr(action_batch, 'cpu') else action_batch.numpy()
                 
-                # 重置环境（如果需要）
-                if hasattr(envs, 'reset_one'):
-                    current_obs[proc_id] = envs.reset_one(proc_id)
-                    current_gnn_embeds[proc_id] = single_gnn_embed
-
-        if (step >= sac.warmup_steps and 
-            step % args.update_frequency == 0 and 
-            sac.memory.can_sample(sac.batch_size)):
-            
-            metrics = sac.update()
-            
-            if metrics and step % 100 == 0:
-                print(f"Step {step} (total_steps {total_steps}): "
-                      f"Critic Loss: {metrics['critic_loss']:.4f}, "
-                      f"Actor Loss: {metrics['actor_loss']:.4f}, "
-                      f"Alpha: {metrics['alpha']:.4f}, "
-                      f"Buffer Size: {len(sac.memory)}")
+                for proc_id in range(min(args.num_processes, 2)):  # 只打印前2个进程
+                    action_values = action_numpy[proc_id]
+                    print(f"  Process {proc_id}: Actions = [{action_values[0]:+6.2f}, {action_values[1]:+6.2f}, {action_values[2]:+6.2f}, {action_values[3]:+6.2f}]")
+                    print(f"    Max action: {np.max(np.abs(action_values)):6.2f}, Mean abs: {np.mean(np.abs(action_values)):6.2f}")
                 
-                # 添加详细的loss分析
-                if 'entropy_term' in metrics:
-                    print(f"  Actor Loss 组件分析:")
-                    print(f"    Entropy Term (α*log_π): {metrics['entropy_term']:.4f}")
-                    print(f"    Q Term (Q值): {metrics['q_term']:.4f}")
-                    print(f"    Actor Loss = {metrics['entropy_term']:.4f} - {metrics['q_term']:.4f} = {metrics['actor_loss']:.4f}")
+                # 打印action统计
+                all_actions = action_numpy.flatten()
+                print(f"  📊 All Actions Stats:")
+                print(f"    Range: [{np.min(all_actions):+6.2f}, {np.max(all_actions):+6.2f}]")
+                print(f"    Mean: {np.mean(all_actions):+6.2f}, Std: {np.std(all_actions):6.2f}")
+                print(f"    Action space limit: ±{envs.action_space.high[0]:.1f}")
+                
+                # 检查action是否饱和
+                saturated = np.sum(np.abs(all_actions) > envs.action_space.high[0] * 0.9)
+                print(f"    Actions near saturation (>90% limit): {saturated}/{len(all_actions)}")
+
+            next_obs, reward, done, infos = envs.step(action_batch)
+            
+            # 🔍 添加距离和位置监控 - 每步都检查
+            if step % 10 == 0 or step < 30:  # 前30步和每10步监控距离
+                # 🎯 获取机器人末端位置和目标距离
+                if async_renderer and sync_env:
+                    # 多进程模式：使用sync_env获取准确的状态信息
+                    end_pos = sync_env._get_end_effector_position()
+                    goal_pos = sync_env.goal_pos
+                    distance = np.linalg.norm(np.array(end_pos) - goal_pos)
                     
-                    if metrics['actor_loss'] < 0:
-                        print(f"    ✓ 负数Actor Loss = 高Q值 = 好的策略!")
-                    else:
-                        print(f"    ⚠ 正数Actor Loss = 低Q值 = 策略需要改进")
-        
-        total_steps += args.num_processes  # 并行环境步数累加
-        
+                    print(f"  🎯 Distance Monitoring (Step {step}):")
+                    print(f"    End Effector: [{end_pos[0]:7.1f}, {end_pos[1]:7.1f}]")
+                    print(f"    Goal Position: [{goal_pos[0]:7.1f}, {goal_pos[1]:7.1f}]")
+                    print(f"    Distance to Goal: {distance:7.1f} pixels")
+                elif args.num_processes == 1:
+                    # 🔧 单进程模式：直接从envs获取状态
+                    # 需要访问底层环境
+                    if hasattr(envs, 'envs') and len(envs.envs) > 0:
+                        base_env = envs.envs[0]
+                        # 查找真正的环境实例
+                        while hasattr(base_env, 'env'):
+                            base_env = base_env.env
+                        
+                        if hasattr(base_env, '_get_end_effector_position'):
+                            end_pos = base_env._get_end_effector_position()
+                            goal_pos = base_env.goal_pos
+                            distance = np.linalg.norm(np.array(end_pos) - goal_pos)
+                            
+                            print(f"  🎯 Distance Monitoring (Step {step}) [Single Process]:")
+                            print(f"    End Effector: [{end_pos[0]:7.1f}, {end_pos[1]:7.1f}]")
+                            print(f"    Goal Position: [{goal_pos[0]:7.1f}, {goal_pos[1]:7.1f}]")
+                            print(f"    Distance to Goal: {distance:7.1f} pixels")
+                    
+                # 记录距离变化趋势（公共部分）
+                if 'end_pos' in locals():
+                    if not hasattr(main, 'prev_distances'):
+                        main.prev_distances = []
+                    main.prev_distances.append(distance)
+                    
+                    # 计算距离变化趋势（最近5步）
+                    if len(main.prev_distances) >= 5:
+                        recent_distances = main.prev_distances[-5:]
+                        distance_trend = recent_distances[-1] - recent_distances[0]  # 正值=远离，负值=接近
+                        avg_distance = np.mean(recent_distances)
+                        print(f"    Distance Trend (last 5 steps): {distance_trend:+6.1f} ({'🔴 Moving Away' if distance_trend > 10 else '🟢 Getting Closer' if distance_trend < -10 else '🟡 No Clear Trend'})")
+                        print(f"    Average Distance (last 5): {avg_distance:7.1f}")
+                        
+                        # 如果距离数据太多，保留最近50个
+                        if len(main.prev_distances) > 50:
+                            main.prev_distances = main.prev_distances[-50:]
+            
+            # 🔍 添加Reward监控 - 显示reward变化
+            if step % 50 == 0 or step < 20:
+                # 安全处理reward数据类型
+                if hasattr(reward, 'cpu'):
+                    reward_numpy = reward.cpu().numpy()
+                elif hasattr(reward, 'numpy'):
+                    reward_numpy = reward.numpy()
+                else:
+                    reward_numpy = reward
+                    
+                # 安全地处理reward值，转换为标量
+                reward_0 = float(reward_numpy[0]) if len(reward_numpy) > 0 else 0.0
+                reward_1 = float(reward_numpy[1]) if len(reward_numpy) > 1 else 0.0
+                reward_min = float(np.min(reward_numpy))
+                reward_max = float(np.max(reward_numpy))
+                
+                print(f"  💰 Rewards: [{reward_0:+7.3f}, {reward_1:+7.3f}] (Process 0, 1)")
+                print(f"    Reward range: [{reward_min:+7.3f}, {reward_max:+7.3f}]")
+                
+                # 检查done状态
+                if hasattr(done, 'cpu'):
+                    done_numpy = done.cpu().numpy()
+                elif hasattr(done, 'numpy'):
+                    done_numpy = done.numpy()
+                else:
+                    done_numpy = done
+                    
+                done_count = np.sum(done_numpy)
+                if done_count > 0:
+                    print(f"  🏁 Episodes completed: {done_count}/{len(done_numpy)}")
+            
+            # 🎨 异步渲染
+            if async_renderer and sync_env:
+                sync_action = action_batch[0].cpu().numpy() if hasattr(action_batch, 'cpu') else action_batch[0]
+                
+                # 🔧 关键修复：确保渲染环境也使用缩放后的action！
+                # SAC在get_action中已经缩放了action，但这里需要确认
+                if args.env_type == 'reacher2d':
+                    # action_batch已经是缩放后的值，直接使用
+                    print(f"  🎨 渲染Action: [{sync_action[0]:+6.1f}, {sync_action[1]:+6.1f}, {sync_action[2]:+6.1f}, {sync_action[3]:+6.1f}]")
+                
+                sync_env.step(sync_action)
+                robot_state = StateExtractor.extract_robot_state(sync_env, step)
+                async_renderer.render_frame(robot_state)
+            #TODO: 需要修改 成更灵活的gnn_embeds
+            next_gnn_embeds = single_gnn_embed.repeat(args.num_processes, 1, 1)  # [B, N, D]
+
+            for proc_id in range(args.num_processes):
+                sac.store_experience(
+                        obs = current_obs[proc_id],
+                        gnn_embeds = current_gnn_embeds[proc_id],
+                        action = action_batch[proc_id],
+                        reward = reward[proc_id],
+                        next_obs = next_obs[proc_id],
+                        next_gnn_embeds = next_gnn_embeds[proc_id],
+                        done = done[proc_id],
+                        num_joints = num_joints
+                )
+                episode_rewards[proc_id] += reward[proc_id].item()  # 将tensor转换为标量
+
+            current_obs = next_obs.clone()
+            current_gnn_embeds = next_gnn_embeds.clone()
+
+
+            for proc_id in range(args.num_processes):
+                # 安全检查done状态
+                is_done = done[proc_id].item() if torch.is_tensor(done[proc_id]) else bool(done[proc_id])
+                if is_done:
+                    print(f"Episode {step} finished with reward {episode_rewards[proc_id]:.2f}")
+
+
+                    episode_rewards[proc_id] = 0.0
+                    
+                    # 重置环境（如果需要）
+                    if hasattr(envs, 'reset_one'):
+                        current_obs[proc_id] = envs.reset_one(proc_id)
+                        current_gnn_embeds[proc_id] = single_gnn_embed
+
+            if (step >= sac.warmup_steps and 
+                step % args.update_frequency == 0 and 
+                sac.memory.can_sample(sac.batch_size)):
+                
+                metrics = sac.update()
+                
+                if metrics and step % 100 == 0:
+                    print(f"Step {step} (total_steps {total_steps}): "
+                        f"Critic Loss: {metrics['critic_loss']:.4f}, "
+                        f"Actor Loss: {metrics['actor_loss']:.4f}, "
+                        f"Alpha: {metrics['alpha']:.4f}, "
+                        f"Buffer Size: {len(sac.memory)}")
+                    
+                    # 添加详细的loss分析
+                    if 'entropy_term' in metrics:
+                        print(f"  Actor Loss 组件分析:")
+                        print(f"    Entropy Term (α*log_π): {metrics['entropy_term']:.4f}")
+                        print(f"    Q Term (Q值): {metrics['q_term']:.4f}")
+                        print(f"    Actor Loss = {metrics['entropy_term']:.4f} - {metrics['q_term']:.4f} = {metrics['actor_loss']:.4f}")
+                        
+                        if metrics['actor_loss'] < 0:
+                            print(f"    ✓ 负数Actor Loss = 高Q值 = 好的策略!")
+                        else:
+                            print(f"    ⚠ 正数Actor Loss = 低Q值 = 策略需要改进")
+            
+            total_steps += args.num_processes  # 并行环境步数累加
+
+    except Exception as e:
+        print(f"🔴 训练过程中发生错误: {e}")
+        raise e
+
+    finally:
+        # 清理资源
+        if 'async_renderer' in locals() and async_renderer:
+            async_renderer.stop()
+        if 'sync_env' in locals() and sync_env:
+            sync_env.close()
         # 8. 定期评估
         # if step % eval_frequency == 0:
         #     eval_reward = evaluate_sac(envs, sac, single_gnn_embed, args)
@@ -392,7 +554,7 @@ if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == '--test-reacher2d':
         print("🤖 启动 Reacher2D 环境测试")
         args_list = ['--env-name', 'reacher2d',
-                     '--num-processes', '2',  # 减少进程数便于调试
+                     '--num-processes', '2',  # 恢复多进程便于并行训练
                      '--lr', '3e-4',
                      '--gamma', '0.99',
                      '--seed', '42',
@@ -410,7 +572,7 @@ if __name__ == "__main__":
                      '--use-gae',
                      '--log-interval', '5',
                      '--num-steps', '1024',
-                     '--num-processes', '8',
+                     '--num-processes', '2',  # 恢复多进程便于并行训练
                      '--lr', '3e-4',
                      '--entropy-coef', '0',
                      '--value-loss-coef', '0.5',

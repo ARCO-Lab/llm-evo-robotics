@@ -46,23 +46,24 @@ class Reacher2DEnv(Env):
             self.link_lengths = link_lengths
         
         self.render_mode = render_mode
-        self.goal_pos = np.array([250.0, 250.0])
+        # self.goal_pos = np.array([250.0, 250.0])
         self.dt = 1/60.0  # 增加时间步长精度
-        self.max_torque = 50.0  # 增加最大扭矩
+        self.max_torque = 500  # 增加最大扭矩
 
         # 定义Gymnasium必需的action_space和observation_space
         self.action_space = Box(low=-self.max_torque, high=self.max_torque, shape=(self.num_links,), dtype=np.float32)
-        self.observation_space = Box(low=-np.inf, high=np.inf, shape=(self.num_links * 2 + 2,), dtype=np.float32)
-
+        # self.observation_space = Box(low=-np.inf, high=np.inf, shape=(self.num_links * 2 + 2,), dtype=np.float32)
+        self.observation_space = Box(low=-np.inf, high=np.inf, shape=(self.num_links * 2 + 7,), dtype=np.float32)
         self.space = pymunk.Space()
         self.space.gravity = (0.0, 981.0)
         # 减少全局阻尼
-        self.space.damping = 0.99  # 减少阻尼，让运动更明显
+        self.space.damping = 0.9  # 减少阻尼，让运动更明显
         self.obstacles = []
         self.bodies = []
         self.joints = []
 
         self._create_robot()  # 修复：方法名改为_create_robot
+        self._create_obstacle()
 
         # 初始化渲染相关变量
         self.screen = None
@@ -85,7 +86,7 @@ class Reacher2DEnv(Env):
         # anchor_point = (300, 300)
 
         prev_body = None
-        density = 0.1  # 大幅减少密度，让link更轻
+        density = 0.02  # 大幅减少密度，让link更轻
         
         for i in range(self.num_links):
             length = self.link_lengths[i]
@@ -134,7 +135,7 @@ class Reacher2DEnv(Env):
     def _apply_damping(self, body, gravity, damping, dt):
         """应用轻微的阻尼力"""
         # 减少阻尼系数，让运动更明显
-        body.velocity = body.velocity * 0.999  # 极小的线性阻尼
+        body.velocity = body.velocity * 0.99  # 极小的线性阻尼
         body.angular_velocity = body.angular_velocity * 0.998  # 极小的角速度阻尼
         # 应用重力
         pymunk.Body.update_velocity(body, gravity, damping, dt)
@@ -164,6 +165,17 @@ class Reacher2DEnv(Env):
         # 计算末端执行器位置
         end_effector_pos = self._get_end_effector_position()
         obs.extend(end_effector_pos)
+        
+        # 🔧 添加目标信息
+        obs.extend(self.goal_pos)  # 目标位置
+        
+        # 🔧 添加相对位置信息  
+        relative_pos = np.array(self.goal_pos) - np.array(end_effector_pos)
+        obs.extend(relative_pos)  # 到目标的相对位置
+        
+        # 🔧 添加距离信息
+        distance = np.linalg.norm(relative_pos)
+        obs.append(distance)  # 到目标的距离
         
         return np.array(obs, dtype=np.float32)
 
@@ -220,11 +232,22 @@ class Reacher2DEnv(Env):
             return observation, reward, terminated, truncated, info
 
     def _compute_reward(self):
-        """计算奖励函数"""
         end_effector_pos = np.array(self._get_end_effector_position())
         distance_to_goal = np.linalg.norm(end_effector_pos - self.goal_pos)
-        reward = -distance_to_goal / 100.0  # 简单的距离奖励
-        return reward
+        
+        # 基础距离奖励
+        distance_reward = -distance_to_goal / 100.0
+        
+        # 🔧 添加进步奖励
+        if not hasattr(self, 'prev_distance'):
+            self.prev_distance = distance_to_goal
+        
+        progress = self.prev_distance - distance_to_goal  # 正值表示靠近
+        progress_reward = progress * 10.0  # 放大进步奖励
+        
+        self.prev_distance = distance_to_goal
+        
+        return distance_reward + progress_reward
     
     def _load_config(self, config_path):
         if config_path is None:
