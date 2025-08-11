@@ -183,8 +183,8 @@ class AttentionSACWithBuffer:
             # 🔧 关键修复：Action Scaling！
             # SAC输出[-1,+1]，需要缩放到环境的action space
             if self.env_type == 'reacher2d':
-                # Reacher2D环境使用±500的action space
-                action_scale = 500.0
+                # Reacher2D环境使用±100的action space（修改为更小的范围）
+                action_scale = 100.0  # 从500.0改为100.0
                 scaled_action = tanh_action * action_scale
                 return scaled_action
             else:

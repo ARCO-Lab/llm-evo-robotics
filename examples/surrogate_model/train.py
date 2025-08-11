@@ -55,6 +55,77 @@ sys.path.insert(0, os.path.join(base_dir, 'examples/2d_reacher/envs'))
 from async_renderer import AsyncRenderer, StateExtractor  # 🎨 添加这行
 
 
+def check_goal_reached(env, goal_threshold=50.0):  # 调整默认阈值为50.0
+    """检查是否到达目标"""
+    try:
+        if hasattr(env, '_get_end_effector_position') and hasattr(env, 'goal_pos'):
+            end_pos = env._get_end_effector_position()
+            goal_pos = env.goal_pos
+            distance = np.linalg.norm(np.array(end_pos) - goal_pos)
+            return distance <= goal_threshold, distance
+    except Exception as e:
+        print(f"目标检测失败: {e}")
+    return False, float('inf')
+
+def save_best_model(sac, model_save_path, success_rate, min_distance, step):
+    """保存最佳模型"""
+    try:
+        timestamp = time.strftime("%Y%m%d_%H%M%S")
+        
+        # 保存SAC所有组件
+        model_data = {
+            'step': step,
+            'success_rate': success_rate,
+            'min_distance': min_distance,
+            'timestamp': timestamp,
+            'actor_state_dict': sac.actor.state_dict(),
+            'critic1_state_dict': sac.critic1.state_dict(),
+            'critic2_state_dict': sac.critic2.state_dict(),
+            'target_critic1_state_dict': sac.target_critic1.state_dict(),
+            'target_critic2_state_dict': sac.target_critic2.state_dict(),
+            'actor_optimizer_state_dict': sac.actor_optimizer.state_dict(),
+            'critic_optimizer_state_dict': sac.critic_optimizer.state_dict(),
+            'alpha_optimizer_state_dict': sac.alpha_optimizer.state_dict(),
+            'alpha': sac.alpha.item() if torch.is_tensor(sac.alpha) else sac.alpha,
+            'log_alpha': sac.log_alpha.item() if torch.is_tensor(sac.log_alpha) else sac.log_alpha,
+        }
+        
+        # 保存文件
+        model_file = os.path.join(model_save_path, f'best_model_step_{step}_{timestamp}.pth')
+        torch.save(model_data, model_file)
+        
+        # 同时保存一个"latest_best"版本便于加载
+        latest_file = os.path.join(model_save_path, 'latest_best_model.pth')
+        torch.save(model_data, latest_file)
+        
+        print(f"🏆 保存最佳模型: {model_file}")
+        print(f"   成功率: {success_rate:.3f}, 最小距离: {min_distance:.1f}, 步骤: {step}")
+        
+        return True
+    except Exception as e:
+        print(f"❌ 保存模型失败: {e}")
+        return False
+
+def load_best_model(sac, model_save_path):
+    """加载最佳模型"""
+    try:
+        latest_file = os.path.join(model_save_path, 'latest_best_model.pth')
+        if os.path.exists(latest_file):
+            model_data = torch.load(latest_file, map_location=sac.device)
+            
+            sac.actor.load_state_dict(model_data['actor_state_dict'])
+            sac.critic1.load_state_dict(model_data['critic1_state_dict'])
+            sac.critic2.load_state_dict(model_data['critic2_state_dict'])
+            sac.target_critic1.load_state_dict(model_data['target_critic1_state_dict'])
+            sac.target_critic2.load_state_dict(model_data['target_critic2_state_dict'])
+            
+            print(f"✅ 加载最佳模型成功: Step {model_data['step']}, 成功率: {model_data['success_rate']:.3f}")
+            return True
+    except Exception as e:
+        print(f"❌ 加载模型失败: {e}")
+    return False
+
+
 def main(args):
 
     torch.manual_seed(args.seed)
@@ -139,7 +210,7 @@ def main(args):
     num_joints = envs.action_space.shape[0]  # 这就是关节数量！
     print(f"Number of joints: {num_joints}")
     num_updates = 5
-    num_step = 5000  # 减少总训练步数，方便调试
+    num_step = 20000  # 增加训练步数到20000，给模型更多学习时间
     data_handler = DataHandler(num_joints, args.env_type)
 
 
@@ -182,21 +253,34 @@ def main(args):
 
     action_dim = num_joints  # 使用实际的关节数，而不是硬编码12
     attn_model = AttnModel(128, 128, 130, 4)
-    sac = AttentionSACWithBuffer(attn_model, action_dim, buffer_capacity=10000, batch_size=64, env_type=args.env_type)
+    sac = AttentionSACWithBuffer(attn_model, action_dim, 
+                                buffer_capacity=10000, batch_size=32,  # 从64减少到32
+                                lr=1e-4,  # 降低学习率从3e-4到1e-4
+                                env_type=args.env_type)
     
     # 🔧 增强exploration的SAC参数
-    sac.warmup_steps = 2000  # 从500增加到2000，更充分的随机探索
-    sac.alpha = 0.5  # 增加entropy regularization，鼓励更多探索
+    sac.warmup_steps = 1000  # 从2000减少到1000，让训练更早开始
+    sac.alpha = 0.2  # 降低alpha从0.5到0.2，减少过度探索
     if hasattr(sac, 'target_entropy'):
-        sac.target_entropy = -action_dim * 2.0  # 更高的target entropy
+        sac.target_entropy = -action_dim * 1.0  # 从-action_dim * 2.0改为-action_dim * 1.0
     current_obs = envs.reset()
     current_gnn_embeds = single_gnn_embed.repeat(args.num_processes, 1, 1)  # [B, N, D]
     total_steps =0
     episode_rewards = [0.0] * args.num_processes
     eval_frequency = 200  # 增加评估间隔
+    
+    # 🏆 添加最佳模型保存相关变量
+    best_success_rate = 0.0
+    best_min_distance = float('inf')
+    goal_threshold = 50.0  # 调整目标距离阈值从20.0增加到50.0像素
+    consecutive_success_count = 0
+    min_consecutive_successes = 3  # 连续成功次数要求
+    model_save_path = os.path.join(args.save_dir, 'best_models')
+    os.makedirs(model_save_path, exist_ok=True)
+    
     # 添加缺少的参数
     if not hasattr(args, 'update_frequency'):
-        args.update_frequency = 4
+        args.update_frequency = 2  # 从4减少到2，更频繁更新
     
     print(f"start training, warmup {sac.warmup_steps} steps")
     print(f"Total training steps: {num_step}, Update frequency: {args.update_frequency}")
@@ -229,6 +313,8 @@ def main(args):
                     actions.append(action)
 
                 action_batch = torch.stack(actions)
+
+            # action_batch = torch.from_numpy(np.random.uniform(-100, 100, (args.num_processes, num_joints)))
 
             # 🔍 添加Action监控 - 每50步详细打印action值
             if step % 50 == 0 or step < 20:  # 前20步和每50步
@@ -266,6 +352,26 @@ def main(args):
                     print(f"    End Effector: [{end_pos[0]:7.1f}, {end_pos[1]:7.1f}]")
                     print(f"    Goal Position: [{goal_pos[0]:7.1f}, {goal_pos[1]:7.1f}]")
                     print(f"    Distance to Goal: {distance:7.1f} pixels")
+                    
+                    # 🏆 检查是否到达目标
+                    goal_reached, current_distance = check_goal_reached(sync_env, goal_threshold)
+                    if goal_reached:
+                        consecutive_success_count += 1
+                        print(f"    🎉 目标到达! 连续成功次数: {consecutive_success_count}")
+                        
+                        # 更新最佳距离
+                        if current_distance < best_min_distance:
+                            best_min_distance = current_distance
+                        
+                        # 连续成功达到要求时保存模型
+                        if consecutive_success_count >= min_consecutive_successes:
+                            current_success_rate = consecutive_success_count / min_consecutive_successes
+                            if current_success_rate > best_success_rate:
+                                best_success_rate = current_success_rate
+                                save_best_model(sac, model_save_path, best_success_rate, best_min_distance, step)
+                    else:
+                        consecutive_success_count = 0  # 重置连续成功计数
+                        
                 elif args.num_processes == 1:
                     # 🔧 单进程模式：直接从envs获取状态
                     # 需要访问底层环境
@@ -284,6 +390,23 @@ def main(args):
                             print(f"    End Effector: [{end_pos[0]:7.1f}, {end_pos[1]:7.1f}]")
                             print(f"    Goal Position: [{goal_pos[0]:7.1f}, {goal_pos[1]:7.1f}]")
                             print(f"    Distance to Goal: {distance:7.1f} pixels")
+                            
+                            # 🏆 检查是否到达目标（单进程版本）
+                            goal_reached, current_distance = check_goal_reached(base_env, goal_threshold)
+                            if goal_reached:
+                                consecutive_success_count += 1
+                                print(f"    🎉 目标到达! 连续成功次数: {consecutive_success_count}")
+                                
+                                if current_distance < best_min_distance:
+                                    best_min_distance = current_distance
+                                
+                                if consecutive_success_count >= min_consecutive_successes:
+                                    current_success_rate = consecutive_success_count / min_consecutive_successes
+                                    if current_success_rate > best_success_rate:
+                                        best_success_rate = current_success_rate
+                                        save_best_model(sac, model_save_path, best_success_rate, best_min_distance, step)
+                            else:
+                                consecutive_success_count = 0
                     
                 # 记录距离变化趋势（公共部分）
                 if 'end_pos' in locals():
@@ -394,6 +517,13 @@ def main(args):
                         f"Alpha: {metrics['alpha']:.4f}, "
                         f"Buffer Size: {len(sac.memory)}")
                     
+                    # 🏆 添加训练状态报告
+                    print(f"  🎯 Training Status:")
+                    print(f"    Best Success Rate: {best_success_rate:.3f}")
+                    print(f"    Best Min Distance: {best_min_distance:.1f} pixels")
+                    print(f"    Consecutive Successes: {consecutive_success_count}")
+                    print(f"    Goal Threshold: {goal_threshold:.1f} pixels")
+                    
                     # 添加详细的loss分析
                     if 'entropy_term' in metrics:
                         print(f"  Actor Loss 组件分析:")
@@ -405,6 +535,21 @@ def main(args):
                             print(f"    ✓ 负数Actor Loss = 高Q值 = 好的策略!")
                         else:
                             print(f"    ⚠ 正数Actor Loss = 低Q值 = 策略需要改进")
+            
+            # 🏆 定期保存检查点模型（不管是否到达目标）
+            if step % 1000 == 0 and step > 0:
+                checkpoint_path = os.path.join(model_save_path, f'checkpoint_step_{step}.pth')
+                checkpoint_data = {
+                    'step': step,
+                    'best_success_rate': best_success_rate,
+                    'best_min_distance': best_min_distance,
+                    'consecutive_success_count': consecutive_success_count,
+                    'actor_state_dict': sac.actor.state_dict(),
+                    'critic1_state_dict': sac.critic1.state_dict(),
+                    'critic2_state_dict': sac.critic2.state_dict(),
+                }
+                torch.save(checkpoint_data, checkpoint_path)
+                print(f"💾 保存检查点模型: {checkpoint_path}")
             
             total_steps += args.num_processes  # 并行环境步数累加
 
@@ -418,6 +563,33 @@ def main(args):
             async_renderer.stop()
         if 'sync_env' in locals() and sync_env:
             sync_env.close()
+            
+        # 🏆 训练结束时保存最终模型
+        print(f"\n{'='*60}")
+        print(f"🏁 训练完成总结:")
+        print(f"  总步数: {step}")
+        print(f"  最佳成功率: {best_success_rate:.3f}")
+        print(f"  最佳最小距离: {best_min_distance:.1f} pixels")
+        print(f"  当前连续成功次数: {consecutive_success_count}")
+        
+        # 保存最终模型
+        final_model_path = os.path.join(model_save_path, f'final_model_step_{step}.pth')
+        final_model_data = {
+            'step': step,
+            'final_success_rate': best_success_rate,
+            'final_min_distance': best_min_distance,
+            'final_consecutive_successes': consecutive_success_count,
+            'training_completed': True,
+            'actor_state_dict': sac.actor.state_dict(),
+            'critic1_state_dict': sac.critic1.state_dict(),
+            'critic2_state_dict': sac.critic2.state_dict(),
+            'target_critic1_state_dict': sac.target_critic1.state_dict(),
+            'target_critic2_state_dict': sac.target_critic2.state_dict(),
+        }
+        torch.save(final_model_data, final_model_path)
+        print(f"💾 保存最终模型: {final_model_path}")
+        print(f"{'='*60}")
+        
         # 8. 定期评估
         # if step % eval_frequency == 0:
         #     eval_reward = evaluate_sac(envs, sac, single_gnn_embed, args)
