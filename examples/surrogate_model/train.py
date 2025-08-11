@@ -210,7 +210,7 @@ def main(args):
     num_joints = envs.action_space.shape[0]  # 这就是关节数量！
     print(f"Number of joints: {num_joints}")
     num_updates = 5
-    num_step = 20000  # 增加训练步数到20000，给模型更多学习时间
+    num_step = 50000  # 增加训练步数到20000，给模型更多学习时间
     data_handler = DataHandler(num_joints, args.env_type)
 
 
@@ -252,7 +252,7 @@ def main(args):
 
 
     action_dim = num_joints  # 使用实际的关节数，而不是硬编码12
-    attn_model = AttnModel(128, 128, 130, 4)
+    attn_model = AttnModel(128, 130, 130, 4)
     sac = AttentionSACWithBuffer(attn_model, action_dim, 
                                 buffer_capacity=10000, batch_size=32,  # 从64减少到32
                                 lr=1e-4,  # 降低学习率从3e-4到1e-4

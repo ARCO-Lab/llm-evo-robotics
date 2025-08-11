@@ -128,7 +128,7 @@ if __name__ == "__main__":
     joint_vel = test_obs[:, 28:40]
     vertex_v_test = gnn_embeds_test
 
-    attn_model = AttnModel(128, 128, 130, 4)
+    attn_model = AttnModel(128, 130, 130, 4)
     actor = AttentionActor(attn_model, 12, 12)
     action, log_prob, mean = actor.sample(joint_q_input, vertex_k_test, vertex_v_test)
     print(action)

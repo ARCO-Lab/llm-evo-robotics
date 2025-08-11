@@ -13,7 +13,7 @@ from attn_dataset.data_utils import vertex_attention
 
 
 class AttnModel(nn.Module):
-    def __init__(self, vertex_key_size=128, vertex_value_size=128, joint_query_size=130, num_heads=4):  # 改为128
+    def __init__(self, vertex_key_size=128, vertex_value_size=130, joint_query_size=130, num_heads=4):  # 改为128
         super(AttnModel, self).__init__()
         self.vertex_key_size = vertex_key_size
         self.vertex_value_size = vertex_value_size  # 现在是128

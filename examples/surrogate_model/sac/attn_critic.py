@@ -149,7 +149,7 @@ if __name__ == "__main__":
     joint_vel = test_obs[:, 28:40]
     vertex_v_test = gnn_embeds_test
     test_action = torch.randn(B, 12)
-    attn_model = AttnModel(128, 128, 130, 4)
+    attn_model = AttnModel(128, 130, 130, 4)
     critic = AttentionCritic(attn_model, 128, 256)
     q_value = critic(joint_q_input, vertex_k_test, vertex_v_test, action = test_action)
     print(q_value)

@@ -12,7 +12,7 @@ sys.path.append(base_dir)
 sys.path.insert(0, os.path.join(base_dir, "examples/surrogate_model/attn_dataset"))
 sys.path.insert(0, os.path.join(base_dir, "examples/surrogate_model/attn_model"))
 sys.path.insert(0, os.path.join(base_dir, "examples/surrogate_model/sac"))
-from data_utils import prepare_joint_q_input, prepare_reacher2d_joint_q_input
+from data_utils import prepare_joint_q_input, prepare_reacher2d_joint_q_input, prepare_dynamic_vertex_v
 # 导入你的组件
 from attn_actor import AttentionActor
 from attn_critic import AttentionCritic
@@ -143,12 +143,12 @@ class AttentionSACWithBuffer:
             next_joint_q = prepare_joint_q_input(next_obs.unsqueeze(0), next_gnn_embeds.unsqueeze(0), num_joints).squeeze(0)
         # 准备当前状态
         vertex_k = gnn_embeds
-        vertex_v = gnn_embeds
+        vertex_v = vertex_v = prepare_dynamic_vertex_v(obs.unsqueeze(0), gnn_embeds.unsqueeze(0), num_joints, self.env_type).squeeze(0)  # 🎯 动态V
         
         # 准备下一个状态
         # next_joint_q = prepare_joint_q_input(next_obs.unsqueeze(0), next_gnn_embeds.unsqueeze(0), num_joints).squeeze(0)
         next_vertex_k = next_gnn_embeds
-        next_vertex_v = next_gnn_embeds
+        next_vertex_v = prepare_dynamic_vertex_v(next_obs.unsqueeze(0), next_gnn_embeds.unsqueeze(0), num_joints, self.env_type).squeeze(0)  # 🎯 动态V
         
         # 转换为适当的tensor格式
         if not torch.is_tensor(reward):
@@ -170,7 +170,7 @@ class AttentionSACWithBuffer:
         else:  # bullet 环境
             joint_q = prepare_joint_q_input(obs.unsqueeze(0), gnn_embeds.unsqueeze(0), num_joints)
         vertex_k = gnn_embeds.unsqueeze(0)
-        vertex_v = gnn_embeds.unsqueeze(0)
+        vertex_v = prepare_dynamic_vertex_v(obs.unsqueeze(0), gnn_embeds.unsqueeze(0), num_joints, self.env_type)  # 🎯 动态V
         
         with torch.no_grad():
             if deterministic:

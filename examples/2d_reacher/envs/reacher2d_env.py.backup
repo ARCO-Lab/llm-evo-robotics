@@ -86,16 +86,15 @@ class Reacher2DEnv(Env):
         prev_body = None
         density = 0.8  # 🔧 增加密度，让约束更稳定
         self.joint_limits = []  # 🔧 存储角度限制约束
-        self.motors = []  # 🔧 存储Motor控制器
         
         # 🔧 定义关节角度限制范围（弧度）
-        # 基座关节无限制，其他关节有适当限制
+        # 更严格的角度限制
         self.joint_angle_limits = [
-            None,                                      # 第1个关节（基座）：无角度限制，可360°旋转
-            (-math.pi * 2/3, math.pi * 2/3),          # 第2个关节：±120°
-            (-math.pi * 2/3, math.pi * 2/3),          # 第3个关节：±120°
-            (-math.pi * 2/3, math.pi * 2/3),          # 第4个关节：±120°
-            (-math.pi * 2/3, math.pi * 2/3),          # 第5个关节：±120°
+            (-math.pi * 3/4, math.pi * 3/4),    # 第1个关节：±135° (比之前更严格)
+            (-math.pi * 1/2, math.pi * 1/2),    # 第2个关节：±90°  (比之前更严格)
+            (-math.pi * 1/2, math.pi * 1/2),    # 第3个关节：±90°  (比之前更严格)
+            (-math.pi * 1/2, math.pi * 1/2),    # 第4个关节：±90°  (比之前更严格)
+            (-math.pi * 1/2, math.pi * 1/2),    # 第5个关节：±90°  (比之前更严格)
         ]
         
         # 🔧 从锚点开始构建机器人，每个link都有明确的位置
@@ -109,7 +108,7 @@ class Reacher2DEnv(Env):
             
             # 🔧 设置初始位置（让机器人自然垂直下垂）
             body.position = current_pos
-            body.angle = math.pi/4  # 改为45°避开边界
+            body.angle = math.pi/2  # 所有link初始都垂直向下
             
             # 🔧 创建形状 - 增加半径让碰撞更明显
             shape = pymunk.Segment(body, (0, 0), (length, 0), 8)  # 半径从5增加到8
@@ -119,65 +118,49 @@ class Reacher2DEnv(Env):
             self.space.add(body, shape)
             self.bodies.append(body)
             
-            # 创建关节连接和Motor
+            # 创建关节连接
             if i == 0:
-                # 🔧 基座关节：连接到世界 - 使用PivotJoint实现revolute关节
-                joint = pymunk.PivotJoint(self.space.static_body, body, self.anchor_point, (0, 0))
+                # 🔧 基座关节：连接到世界
+                joint = pymunk.PinJoint(self.space.static_body, body, self.anchor_point, (0, 0))
                 joint.collide_bodies = False
                 self.space.add(joint)
                 self.joints.append(joint)
                 
-                # 🔧 添加Motor控制器 - 控制关节运动
-                motor = pymunk.SimpleMotor(self.space.static_body, body, 0.0)
-                self.space.add(motor)
-                self.motors.append(motor)
-                
-                # 🔧 添加角度限制约束 - 基座关节跳过角度限制
-                if i < len(self.joint_angle_limits) and self.joint_angle_limits[i] is not None:
+                # 🔧 添加强力角度限制约束
+                if i < len(self.joint_angle_limits):
                     min_angle, max_angle = self.joint_angle_limits[i]
                     limit_joint = pymunk.RotaryLimitJoint(
                         self.space.static_body, body, 
                         min_angle, max_angle
                     )
                     # 🔧 增加约束的刚度
-                    limit_joint.max_force = 100000  # 进一步增加约束力，确保能够约束Motor
+                    limit_joint.max_force = 50000  # 大幅增加最大约束力
                     self.space.add(limit_joint)
                     self.joint_limits.append(limit_joint)
-                else:
-                    # 基座关节无角度限制，添加None占位符
-                    self.joint_limits.append(None)
                 
             else:
-                # 🔧 连接到前一个link的末端 - 使用PivotJoint实现revolute关节
-                joint = pymunk.PivotJoint(prev_body, body, (self.link_lengths[i-1], 0), (0, 0))
+                # 🔧 连接到前一个link的末端
+                joint = pymunk.PinJoint(prev_body, body, (self.link_lengths[i-1], 0), (0, 0))
                 joint.collide_bodies = False
                 self.space.add(joint)
                 self.joints.append(joint)
                 
-                # 🔧 添加Motor控制器 - 控制关节运动
-                motor = pymunk.SimpleMotor(prev_body, body, 0.0)
-                self.space.add(motor)
-                self.motors.append(motor)
-                
-                # 🔧 添加相对角度限制约束 - 物理约束防止过度旋转
-                if i < len(self.joint_angle_limits) and self.joint_angle_limits[i] is not None:
+                # 🔧 添加相对角度限制约束
+                if i < len(self.joint_angle_limits):
                     min_angle, max_angle = self.joint_angle_limits[i]
                     limit_joint = pymunk.RotaryLimitJoint(
                         prev_body, body, 
                         min_angle, max_angle
                     )
                     # 🔧 增加约束的刚度
-                    limit_joint.max_force = 100000  # 进一步增加约束力，确保能够约束Motor
+                    limit_joint.max_force = 50000  # 大幅增加最大约束力
                     self.space.add(limit_joint)
                     self.joint_limits.append(limit_joint)
-                else:
-                    # 无角度限制的关节，添加None占位符
-                    self.joint_limits.append(None)
             
             # 🔧 计算下一个link的起始位置（用于初始化）
             if i < self.num_links - 1:
-                end_x = current_pos[0] + length * math.cos(math.pi/4)  # 45度角
-                end_y = current_pos[1] + length * math.sin(math.pi/4)
+                end_x = current_pos[0] + length * math.cos(math.pi/2)  # 垂直向下
+                end_y = current_pos[1] + length * math.sin(math.pi/2)
                 current_pos = [end_x, end_y]
             
             prev_body = body
@@ -186,49 +169,32 @@ class Reacher2DEnv(Env):
         self._setup_collision_handlers()
 
     def _setup_collision_handlers(self):
-        """设置碰撞处理器"""
+        """设置关节间碰撞处理"""
         try:
-            # 🎯 1. 机器人关节间碰撞处理（现有代码）
-            def joint_collision_handler(arbiter, space, data):
-                return True  # 允许关节间碰撞处理
+            def collision_handler(arbiter, space, data):
+                # 当相邻关节碰撞时，阻止穿透
+                return True  # 允许碰撞处理
             
-            # 关节间碰撞（现有逻辑）
+            # 🔧 只处理非相邻关节的碰撞（相邻关节允许接触）
             for i in range(self.num_links):
                 for j in range(i + 2, self.num_links):  # 跳过相邻关节
                     try:
+                        # 尝试不同的方法名
                         if hasattr(self.space, 'add_collision_handler'):
                             handler = self.space.add_collision_handler(i + 1, j + 1)
-                            handler.pre_solve = joint_collision_handler
+                        elif hasattr(self.space, 'add_wildcard_collision_handler'):
+                            handler = self.space.add_wildcard_collision_handler(i + 1)
+                        else:
+                            # 如果方法不存在，跳过碰撞处理设置
+                            print("⚠️ 碰撞处理器设置跳过 - pymunk版本不兼容")
+                            return
+                        handler.pre_solve = collision_handler
                     except Exception as e:
-                        print(f"⚠️ 设置关节碰撞处理器失败: {e}")
-            
-            # 🎯 2. 新增：机器人与障碍物碰撞处理
-            def robot_obstacle_collision_handler(arbiter, space, data):
-                """处理机器人与障碍物的碰撞"""
-                # 记录碰撞信息
-                if not hasattr(self, 'collision_count'):
-                    self.collision_count = 0
-                self.collision_count += 1
-                
-                # 可以选择：
-                # return True   # 允许碰撞（物理反弹）
-                # return False  # 阻止碰撞（穿透）
-                return True  # 推荐：允许物理碰撞，提供真实反馈
-            
-            # 为每个机器人链接设置与障碍物的碰撞检测
-            OBSTACLE_COLLISION_TYPE = 100
-            for i in range(self.num_links):
-                robot_link_type = i + 1
-                try:
-                    if hasattr(self.space, 'add_collision_handler'):
-                        handler = self.space.add_collision_handler(robot_link_type, OBSTACLE_COLLISION_TYPE)
-                        handler.pre_solve = robot_obstacle_collision_handler
-                        print(f"✅ 设置机器人链接{i+1}与障碍物的碰撞检测")
-                except Exception as e:
-                    print(f"⚠️ 设置机器人-障碍物碰撞处理器失败: {e}")
-                    
+                        print(f"⚠️ 设置碰撞处理器失败: {e}")
+                        continue
         except Exception as e:
             print(f"⚠️ 碰撞处理器设置跳过: {e}")
+            # 不影响主要功能，继续运行
 
     def _apply_damping(self, body, gravity, damping, dt):
         """应用轻微的阻尼力"""
@@ -245,11 +211,9 @@ class Reacher2DEnv(Env):
         self.joints.clear()
         self.obstacles.clear()
         
-        # 🔧 清理角度限制约束和Motors
+        # 🔧 清理角度限制约束
         if hasattr(self, 'joint_limits'):
             self.joint_limits.clear()
-        if hasattr(self, 'motors'):
-            self.motors.clear()
 
         self._create_robot()
         self._create_obstacle()
@@ -315,22 +279,23 @@ class Reacher2DEnv(Env):
     
     
     def step(self, actions):
-        """使用Motor控制 + 物理约束，结合真实性和安全性"""
+        """使用直接力矩控制，移除SimpleMotor"""
         actions = np.clip(actions, -self.max_torque, self.max_torque)
         
-        # 🔧 将扭矩转换为角速度目标，通过Motor控制
-        # 简单的比例控制：扭矩 → 角速度
-        torque_to_speed_ratio = 0.01  # 调节这个比例来控制响应性
-        
+        # 🔧 直接应用力矩到关节，不使用马达
         for i, torque in enumerate(actions):
-            if i < len(self.motors):
-                motor = self.motors[i]
-                # 将扭矩转换为目标角速度
-                target_angular_velocity = torque * torque_to_speed_ratio
-                motor.rate = float(target_angular_velocity)
+            if i < len(self.bodies):
+                body = self.bodies[i]
+                # 直接设置扭矩
+                body.torque = float(torque)
 
-        # 🔧 让物理约束自动处理角度限制，无需手动干预
+        # 🔧 步进物理仿真前，先检查和修正角度
+        self._enforce_joint_limits_before_step()
+        
         self.space.step(self.dt)
+        
+        # 🔧 步进后再次强制执行角度限制
+        self._enforce_joint_limits_after_step()
         
         # 🧪 减少输出频率
         if not hasattr(self, 'step_counter'):
@@ -338,7 +303,7 @@ class Reacher2DEnv(Env):
         self.step_counter += 1
         
         if self.step_counter % 20 == 0:  # 每20步打印一次
-            self._print_motor_status()
+            self._print_joint_status()
         
         observation = self._get_observation()
         reward = self._compute_reward()
@@ -352,107 +317,93 @@ class Reacher2DEnv(Env):
         else:
             return observation, reward, terminated, truncated, info
 
-    def _print_motor_status(self):
-        """打印Motor和物理约束状态信息"""
-        # 计算绝对角度和相对角度
-        absolute_angles = [math.degrees(body.angle) for body in self.bodies]
-        relative_angles = []
-        
+    def _enforce_joint_limits_before_step(self):
+        """在物理步进前强制执行角度限制"""
         for i, body in enumerate(self.bodies):
-            if i == 0:
-                # 基座关节：相对角度 = 绝对角度
-                relative_angles.append(absolute_angles[i])
-            else:
-                # 其他关节：相对角度 = 当前body角度 - 前一个body角度
-                relative_angle = absolute_angles[i] - absolute_angles[i-1]
-                # 标准化到[-180°, 180°]
-                while relative_angle > 180:
-                    relative_angle -= 360
-                while relative_angle < -180:
-                    relative_angle += 360
-                relative_angles.append(relative_angle)
-        
-        print(f"步骤 {self.step_counter:4d} - 绝对角度: {[f'{a:7.1f}°' for a in absolute_angles]}")
-        print(f"              相对角度: {[f'{a:7.1f}°' for a in relative_angles]}")
-        
-        # 打印Motor状态
-        motor_rates = [motor.rate for motor in self.motors]
-        print(f"    Motor角速度: {[f'{r:6.2f}' for r in motor_rates]} rad/s")
+            if i < len(self.joint_angle_limits):
+                min_angle, max_angle = self.joint_angle_limits[i]
+                
+                # 标准化角度到 [-π, π]
+                angle = body.angle
+                while angle > math.pi:
+                    angle -= 2 * math.pi
+                while angle < -math.pi:
+                    angle += 2 * math.pi
+                
+                # 如果超出限制，强制设回范围内并停止旋转
+                if angle < min_angle:
+                    body.angle = min_angle
+                    body.angular_velocity = 0
+                    body.torque = 0  # 🔧 也清零扭矩
+                elif angle > max_angle:
+                    body.angle = max_angle
+                    body.angular_velocity = 0
+                    body.torque = 0  # 🔧 也清零扭矩
+
+    def _enforce_joint_limits_after_step(self):
+        """在物理步进后强制执行角度限制"""
+        for i, body in enumerate(self.bodies):
+            if i < len(self.joint_angle_limits):
+                min_angle, max_angle = self.joint_angle_limits[i]
+                
+                # 标准化角度到 [-π, π]
+                angle = body.angle
+                while angle > math.pi:
+                    angle -= 2 * math.pi
+                while angle < -math.pi:
+                    angle += 2 * math.pi
+                
+                # 双重检查：如果仍然超出限制
+                if angle < min_angle or angle > max_angle:
+                    # 限制角度
+                    body.angle = max(min_angle, min(max_angle, angle))
+                    # 停止旋转
+                    body.angular_velocity = 0
+
+    def _print_joint_status(self):
+        """打印关节状态信息"""
+        angles = [math.degrees(body.angle) for body in self.bodies]
+        print(f"步骤 {self.step_counter:4d} - 关节角度: {[f'{a:7.1f}°' for a in angles]}")
         
         # 检查约束是否还存在
-        active_constraints = [c for c in self.joint_limits if c is not None]
         constraints_count = len([c for c in self.space.constraints if hasattr(c, 'min')])
-        motors_count = len([c for c in self.space.constraints if isinstance(c, pymunk.SimpleMotor)])
-        print(f"    约束数量: {constraints_count}/{len(active_constraints)} 角度限制, {motors_count}/{len(self.motors)} Motors")
+        print(f"    约束数量: {constraints_count}/{len(self.joint_limits)} (期望{len(self.joint_limits)})")
         
-        # 检查相对角度是否超出限制
-        limit_degrees = [None, (-120, 120), (-120, 120), (-120, 120), (-120, 120)]  # 基座无限制
+        # 检查是否有角度超出限制 - 使用更严格的限制
+        limit_degrees = [(-135, 135), (-90, 90), (-90, 90), (-90, 90), (-90, 90)]
         violations = []
-        for i, (rel_angle, limits) in enumerate(zip(relative_angles, limit_degrees)):
-            if limits is not None:  # 跳过无限制的关节
-                min_limit, max_limit = limits
-                if rel_angle < min_limit or rel_angle > max_limit:
-                    violations.append(f"关节{i+1}相对角度超限: {rel_angle:.1f}°")
+        for i, (angle, (min_limit, max_limit)) in enumerate(zip(angles, limit_degrees)):
+            if angle < min_limit or angle > max_limit:
+                violations.append(f"关节{i+1}超限: {angle:.1f}°")
         
         if violations:
-            print(f"    ⚠️  角度超限: {', '.join(violations)} (物理约束应该防止这种情况)")
+            print(f"    ⚠️  角度超限: {', '.join(violations)}")
         else:
-            if len(active_constraints) > 0:
-                print(f"    ✅ 所有受限关节相对角度在范围内 (基座关节无限制)")
-            else:
-                print(f"    ✅ 所有关节正常运行")
-
-    def get_joint_angles(self):
-        """获取所有关节的当前角度（度数）"""
-        return [math.degrees(body.angle) for body in self.bodies]
+            print(f"    ✅ 所有关节角度在限制范围内")
 
     def _compute_reward(self):
-        """增强奖励函数，包含碰撞惩罚"""
         end_effector_pos = np.array(self._get_end_effector_position())
         distance_to_goal = np.linalg.norm(end_effector_pos - self.goal_pos)
         
-        # 距离奖励
-        distance_reward = -distance_to_goal / 50.0
+        # 🔧 更强的距离奖励信号
+        distance_reward = -distance_to_goal / 50.0  # 从100.0改为50.0，增强距离惩罚
         
-        # 进步奖励
+        # 🔧 添加进步奖励
         if not hasattr(self, 'prev_distance'):
             self.prev_distance = distance_to_goal
         
-        progress = self.prev_distance - distance_to_goal
-        progress_reward = progress * 20.0
+        progress = self.prev_distance - distance_to_goal  # 正值表示靠近
+        progress_reward = progress * 20.0  # 从10.0增加到20.0，更强的进步奖励
         
-        # 成功奖励
-        if distance_to_goal <= 50.0:
-            success_bonus = 100.0
+        # 🔧 添加到达目标的巨大奖励
+        if distance_to_goal <= 50.0:  # 在50像素阈值内
+            success_bonus = 100.0  # 大的成功奖励
         else:
             success_bonus = 0.0
-        
-        # 🎯 新增：碰撞惩罚
-        collision_penalty = 0.0
-        if hasattr(self, 'collision_count'):
-            # 每次碰撞扣分
-            current_collisions = self.collision_count
-            if not hasattr(self, 'prev_collision_count'):
-                self.prev_collision_count = 0
             
-            new_collisions = current_collisions - self.prev_collision_count
-            collision_penalty = -new_collisions * 10.0  # 每次新碰撞扣10分
-            self.prev_collision_count = current_collisions
-            
-            if new_collisions > 0:
-                print(f"⚠️ 检测到{new_collisions}次新碰撞，碰撞惩罚: {collision_penalty}")
-        
         self.prev_distance = distance_to_goal
         
-        total_reward = distance_reward + progress_reward + success_bonus + collision_penalty
-        return total_reward
-    
-    def get_collision_info(self):
-        """获取碰撞统计信息"""
-        return {
-            'total_collisions': getattr(self, 'collision_count', 0),
-            'collision_penalty': getattr(self, 'prev_collision_count', 0) * -10.0
-        }
+        return distance_reward + progress_reward + success_bonus
     
     def _load_config(self, config_path):
         if config_path is None:
@@ -477,13 +428,9 @@ class Reacher2DEnv(Env):
             print(f"错误：加载配置文件失败: {e}")
             return {}
 
-
     def _create_obstacle(self):
         if "obstacles" not in self.config:
             return
-        
-        # 🎯 定义障碍物的collision_type
-        OBSTACLE_COLLISION_TYPE = 100  # 使用大数字避免与机器人冲突
         
         for obs in self.config["obstacles"]:
             if obs["shape"] == "segment":
@@ -492,16 +439,14 @@ class Reacher2DEnv(Env):
                 shape = pymunk.Segment(self.space.static_body, p1, p2, 3.0)
                 shape.friction = 1.0
                 shape.color = (0,0,0,255)
-                
-                # 🎯 关键添加：设置障碍物碰撞类型
-                shape.collision_type = OBSTACLE_COLLISION_TYPE
-                
                 self.space.add(shape)
                 self.obstacles.append(shape)
 
         if "goal" in self.config:
             self.goal_pos = np.array(self.config["goal"]["position"])
             self.goal_radius = self.config["goal"]["radius"]
+
+   
 
     def render(self):
         if not self.render_mode:
@@ -519,7 +464,11 @@ class Reacher2DEnv(Env):
     def close(self):
         if hasattr(self, 'screen'):
             pygame.quit()
-    
+
+    def get_joint_angles(self):
+        """获取所有关节的当前角度（度数）"""
+        return [math.degrees(body.angle) for body in self.bodies]
+
     
 if __name__ == "__main__":
     env = Reacher2DEnv(num_links=5, 

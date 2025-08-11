@@ -123,3 +123,60 @@ def prepare_reacher2d_joint_q_input(obs_batch, gnn_embeds, num_joints):
     
     joint_q_input = torch.stack(joint_q_input, dim=0)  # [B, num_joints, 130]
     return joint_q_input
+
+
+# examples/surrogate_model/attn_dataset/data_utils.py
+def prepare_dynamic_vertex_v(obs_batch, gnn_embeds, num_joints, env_type='reacher2d'):
+    """
+    🎯 创建包含动态信息的vertex_v向量
+    
+    Args:
+        obs_batch: Tensor [B, obs_dim] 
+        gnn_embeds: Tensor [B, N, 128] - 静态GNN嵌入
+        num_joints: int → 实际关节数
+        env_type: str → 环境类型
+    
+    Returns:
+        vertex_v: Tensor [B, num_joints, 130] - 包含动态信息的V向量
+    """
+    vertex_v_list = []
+    
+    for b in range(obs_batch.size(0)):
+        obs = obs_batch[b]
+        
+        if env_type == 'reacher2d':
+            # Reacher2D: [angles, angular_vels, end_effector_pos]
+            joint_angles = obs[:num_joints]                    
+            joint_angular_vels = obs[num_joints:2*num_joints]  
+        else:
+            # Bullet环境的提取方式
+            joint_pos_start = 16
+            joint_pos_end = joint_pos_start + num_joints
+            joint_vel_start = joint_pos_end  
+            joint_vel_end = joint_vel_start + num_joints
+            
+            joint_angles = obs[joint_pos_start:joint_pos_end]
+            joint_angular_vels = obs[joint_vel_start:joint_vel_end]
+        
+        # 获取静态GNN嵌入
+        gnn_embed = gnn_embeds[b]  # [N, 128]
+        
+        # 对齐维度
+        if gnn_embed.size(0) > num_joints:
+            gnn_embed = gnn_embed[:num_joints]
+        elif gnn_embed.size(0) < num_joints:
+            padding_size = num_joints - gnn_embed.size(0)
+            padding = torch.zeros(padding_size, gnn_embed.size(1), 
+                                dtype=gnn_embed.dtype, device=gnn_embed.device)
+            gnn_embed = torch.cat([gnn_embed, padding], dim=0)
+        
+        # 🎯 构建增强的V向量：静态结构 + 动态状态
+        pos = joint_angles.unsqueeze(1)       # [num_joints, 1] 
+        vel = joint_angular_vels.unsqueeze(1) # [num_joints, 1]
+        
+        # 组合：[结构信息 + 运动信息] = [128 + 2] = 130
+        v_enhanced = torch.cat([gnn_embed, pos, vel], dim=1)  # [num_joints, 130]
+        vertex_v_list.append(v_enhanced)
+    
+    vertex_v = torch.stack(vertex_v_list, dim=0)  # [B, num_joints, 130]
+    return vertex_v
