@@ -456,6 +456,30 @@ def main(args):
                 done_count = np.sum(done_numpy)
                 if done_count > 0:
                     print(f"  🏁 Episodes completed: {done_count}/{len(done_numpy)}")
+
+                    # 🎯 新增：从info中获取碰撞信息
+                if 'infos' in locals() and len(infos) > 0:  
+                    first_env_info = infos[0]
+                    if 'collisions' in first_env_info:
+                        collision_info = first_env_info['collisions']
+                        goal_info = first_env_info['goal']
+                        
+                        print(f"  💥 Collision Monitoring:")
+                        print(f"    Total Collisions: {collision_info['total_count']}")
+                        print(f"    Episode Collisions: {collision_info['collisions_this_episode']}")
+                        print(f"    Collision Rate: {collision_info['collision_rate']:.4f}")
+                        print(f"    Collision Penalty: {collision_info['collision_penalty']:.2f}")
+                        
+                        print(f"  🎯 Goal Monitoring:")
+                        print(f"    Distance: {goal_info['distance_to_goal']:.1f} pixels")
+                        print(f"    Goal Reached: {'✅' if goal_info['goal_reached'] else '❌'}")
+                        
+                        # 如果有奖励分解信息
+                        if 'reward_breakdown' in first_env_info:
+                            breakdown = first_env_info['reward_breakdown']
+                            print(f"  💰 Reward Breakdown:")
+                            for key, value in breakdown.items():
+                                print(f"    {key}: {value:.3f}")
             
             # 🎨 异步渲染
             if async_renderer and sync_env:

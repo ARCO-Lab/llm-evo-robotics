@@ -1,25 +1,25 @@
 obstacles:
-  # 锯齿形障碍物
+  # 锯齿形障碍物 - 移动到机器人可达范围内
+  - shape: segment
+    points: [[500, 500], [550, 550]]
+  - shape: segment
+    points: [[550, 550], [600, 500]]
+  - shape: segment
+    points: [[600, 500], [650, 550]]
+  - shape: segment
+    points: [[650, 550], [700, 500]]
+  
+  - shape: segment
+    points: [[500, 600], [550, 650]]
+  - shape: segment
+    points: [[550, 650], [600, 600]]
   - shape: segment
     points: [[600, 600], [650, 650]]
   - shape: segment
     points: [[650, 650], [700, 600]]
-  - shape: segment
-    points: [[700, 600], [750, 650]]
-  - shape: segment
-    points: [[750, 650], [800, 600]]
-  
-  - shape: segment
-    points: [[600, 700], [650, 750]]
-  - shape: segment
-    points: [[650, 750], [700, 700]]
-  - shape: segment
-    points: [[700, 700], [750, 750]]
-  - shape: segment
-    points: [[750, 750], [800, 700]]
 
 goal:
-  position: [650, 650]  # 修改目标位置到可达范围内
+  position: [600, 575]  # 目标也移动到障碍物中心附近
   radius: 10
 
 start:

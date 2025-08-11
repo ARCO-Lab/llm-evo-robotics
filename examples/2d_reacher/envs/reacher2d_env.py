@@ -196,19 +196,25 @@ class Reacher2DEnv(Env):
             for i in range(self.num_links):
                 for j in range(i + 2, self.num_links):  # 跳过相邻关节
                     try:
-                        if hasattr(self.space, 'add_collision_handler'):
-                            handler = self.space.add_collision_handler(i + 1, j + 1)
-                            handler.pre_solve = joint_collision_handler
+                        # 🔧 使用PyMunk 7.1.0的正确API和begin回调
+                        self.space.on_collision(
+                            collision_type_a=i + 1, 
+                            collision_type_b=j + 1,
+                            begin=joint_collision_handler  # 改为begin回调
+                        )
+                        print(f"✅ 设置关节{i+1}与关节{j+1}的碰撞检测")
                     except Exception as e:
                         print(f"⚠️ 设置关节碰撞处理器失败: {e}")
             
-            # 🎯 2. 新增：机器人与障碍物碰撞处理
+            # 🎯 2. 新增：机器人与障碍物碰撞处理 - 使用正确API和begin回调
             def robot_obstacle_collision_handler(arbiter, space, data):
                 """处理机器人与障碍物的碰撞"""
                 # 记录碰撞信息
                 if not hasattr(self, 'collision_count'):
                     self.collision_count = 0
                 self.collision_count += 1
+                
+                print(f"🚨 检测到机器人-障碍物碰撞! 总计: {self.collision_count}")
                 
                 # 可以选择：
                 # return True   # 允许碰撞（物理反弹）
@@ -220,10 +226,13 @@ class Reacher2DEnv(Env):
             for i in range(self.num_links):
                 robot_link_type = i + 1
                 try:
-                    if hasattr(self.space, 'add_collision_handler'):
-                        handler = self.space.add_collision_handler(robot_link_type, OBSTACLE_COLLISION_TYPE)
-                        handler.pre_solve = robot_obstacle_collision_handler
-                        print(f"✅ 设置机器人链接{i+1}与障碍物的碰撞检测")
+                    # 🔧 使用PyMunk 7.1.0的正确API和begin回调
+                    self.space.on_collision(
+                        collision_type_a=robot_link_type, 
+                        collision_type_b=OBSTACLE_COLLISION_TYPE,
+                        begin=robot_obstacle_collision_handler  # 改为begin回调
+                    )
+                    print(f"✅ 设置机器人链接{i+1}与障碍物的碰撞检测")
                 except Exception as e:
                     print(f"⚠️ 设置机器人-障碍物碰撞处理器失败: {e}")
                     
@@ -251,10 +260,16 @@ class Reacher2DEnv(Env):
         if hasattr(self, 'motors'):
             self.motors.clear()
 
+        # 🎯 重置episode级别的碰撞计数
+        if hasattr(self, 'collision_count'):
+            self.episode_start_collisions = self.collision_count
+        else:
+            self.episode_start_collisions = 0
+        self.step_counter = 0
         self._create_robot()
         self._create_obstacle()
         observation = self._get_observation()
-        info = {}
+        info = self._build_info_dict()
         if self.gym_api_version == "old":
             return observation
         else:
@@ -344,14 +359,81 @@ class Reacher2DEnv(Env):
         reward = self._compute_reward()
         terminated = False
         truncated = False
-        info = {}
+        info = self._build_info_dict()
 
         if self.gym_api_version == "old":
             done = terminated or truncated
             return observation, reward, done, info
         else:
             return observation, reward, terminated, truncated, info
-
+        
+    def _get_collision_rate(self):
+        """计算碰撞率"""
+        if hasattr(self, 'collision_count') and hasattr(self, 'step_counter'):
+            if self.step_counter > 0:
+                return float(self.collision_count) / float(self.step_counter)
+        return 0.0
+    
+    def _get_episode_collisions(self):
+        """获取本episode的碰撞次数"""
+        if not hasattr(self, 'episode_start_collisions'):
+            self.episode_start_collisions = getattr(self, 'collision_count', 0)
+        
+        current_total = getattr(self, 'collision_count', 0)
+        return current_total - self.episode_start_collisions
+    
+    def _get_collision_penalty(self):
+        """获取当前的碰撞惩罚值"""
+        if hasattr(self, 'collision_count'):
+            current_collisions = self.collision_count
+            if not hasattr(self, 'prev_collision_count'):
+                self.prev_collision_count = 0
+            
+            new_collisions = current_collisions - self.prev_collision_count
+            return -new_collisions * 10.0  # 每次新碰撞扣10分
+        return 0.0
+    
+    def _build_info_dict(self):
+        """构建包含丰富信息的info字典"""
+        info = {}
+        
+        # 🎯 碰撞相关信息
+        info['collisions'] = {
+            'total_count': getattr(self, 'collision_count', 0),
+            'collision_rate': self._get_collision_rate(),
+            'collisions_this_episode': self._get_episode_collisions(),
+            'collision_penalty': self._get_collision_penalty()
+        }
+        
+        # 🎯 目标相关信息
+        end_effector_pos = self._get_end_effector_position()
+        distance_to_goal = np.linalg.norm(np.array(end_effector_pos) - self.goal_pos)
+        
+        info['goal'] = {
+            'distance_to_goal': float(distance_to_goal),
+            'end_effector_position': end_effector_pos,
+            'goal_position': self.goal_pos.tolist(),
+            'goal_reached': distance_to_goal <= 50.0  # 使用相同的阈值
+        }
+        
+        # 🎯 机器人状态信息
+        info['robot'] = {
+            'joint_angles_deg': [math.degrees(body.angle) for body in self.bodies],
+            'joint_velocities': [body.angular_velocity for body in self.bodies],
+            'step_count': self.step_counter
+        }
+        
+        # 🎯 奖励分解信息（用于调试）
+        if hasattr(self, 'prev_distance'):
+            progress = self.prev_distance - distance_to_goal
+            info['reward_breakdown'] = {
+                'distance_reward': -distance_to_goal / 50.0,
+                'progress_reward': progress * 20.0,
+                'success_bonus': 100.0 if distance_to_goal <= 50.0 else 0.0,
+                'collision_penalty': self._get_collision_penalty()
+            }
+        
+        return info
     def _print_motor_status(self):
         """打印Motor和物理约束状态信息"""
         # 计算绝对角度和相对角度
@@ -447,13 +529,7 @@ class Reacher2DEnv(Env):
         total_reward = distance_reward + progress_reward + success_bonus + collision_penalty
         return total_reward
     
-    def get_collision_info(self):
-        """获取碰撞统计信息"""
-        return {
-            'total_collisions': getattr(self, 'collision_count', 0),
-            'collision_penalty': getattr(self, 'prev_collision_count', 0) * -10.0
-        }
-    
+
     def _load_config(self, config_path):
         if config_path is None:
             return {}
@@ -532,7 +608,7 @@ if __name__ == "__main__":
     obs= env.reset()  # 修复：使用正确的reset调用
     step_count = 0
     
-    while running and step_count < 30000:  # 增加到300步测试更严格的限制
+    while running and step_count < 3000:  # 增加到300步测试更严格的限制
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
