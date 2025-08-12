@@ -210,7 +210,7 @@ def main(args):
     num_joints = envs.action_space.shape[0]  # 这就是关节数量！
     print(f"Number of joints: {num_joints}")
     num_updates = 5
-    num_step = 50000  # 增加训练步数到20000，给模型更多学习时间
+    num_step = 50000  # 从2000增加到5000，给更多学习时间
     data_handler = DataHandler(num_joints, args.env_type)
 
 
@@ -258,11 +258,11 @@ def main(args):
                                 lr=1e-4,  # 降低学习率从3e-4到1e-4
                                 env_type=args.env_type)
     
-    # 🔧 增强exploration的SAC参数
-    sac.warmup_steps = 1000  # 从2000减少到1000，让训练更早开始
-    sac.alpha = 0.2  # 降低alpha从0.5到0.2，减少过度探索
+    # 🔧 重新优化SAC参数以平衡探索和利用
+    sac.warmup_steps = 1000   # 从500增加到1000，更充分的探索
+    sac.alpha = 0.2          # 从0.1增加到0.2，增加探索性
     if hasattr(sac, 'target_entropy'):
-        sac.target_entropy = -action_dim * 1.0  # 从-action_dim * 2.0改为-action_dim * 1.0
+        sac.target_entropy = -action_dim * 0.8  # 从0.5增加到0.8，鼓励更多样化的策略
     current_obs = envs.reset()
     current_gnn_embeds = single_gnn_embed.repeat(args.num_processes, 1, 1)  # [B, N, D]
     total_steps =0
@@ -272,7 +272,7 @@ def main(args):
     # 🏆 添加最佳模型保存相关变量
     best_success_rate = 0.0
     best_min_distance = float('inf')
-    goal_threshold = 50.0  # 调整目标距离阈值从20.0增加到50.0像素
+    goal_threshold = 35.0  # 从25.0调整到35.0像素，更容易达成成功
     consecutive_success_count = 0
     min_consecutive_successes = 3  # 连续成功次数要求
     model_save_path = os.path.join(args.save_dir, 'best_models')

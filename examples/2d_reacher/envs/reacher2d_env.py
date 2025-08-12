@@ -28,13 +28,17 @@ print(sys.path)
 class Reacher2DEnv(Env):
 
     
-    def __init__(self, num_links=3, link_lengths=None, render_mode=None, config_path=None):
+    def __init__(self, num_links=3, link_lengths=None, render_mode=None, config_path=None, curriculum_stage=0):
 
         super().__init__()
         self.config = self._load_config(config_path)
         print(f"self.config: {self.config}")
         self.anchor_point = self.config["start"]["position"]
         self.gym_api_version = "old" # old or new. new is gymnasium, old is gym
+        
+        # 🎯 课程学习参数
+        self.curriculum_stage = curriculum_stage
+        self.base_goal_pos = np.array(self.config["goal"]["position"]) if "goal" in self.config else np.array([600, 575])
 
         self.num_links = num_links  # 修复：使用传入的参数
         if link_lengths is None:
@@ -254,20 +258,38 @@ class Reacher2DEnv(Env):
         self.joints.clear()
         self.obstacles.clear()
         
-        # 🔧 清理角度限制约束和Motors
+        # 🔧 清理角度限制约束
         if hasattr(self, 'joint_limits'):
             self.joint_limits.clear()
+        
+        # 🔧 清理motors
         if hasattr(self, 'motors'):
             self.motors.clear()
 
-        # 🎯 重置episode级别的碰撞计数
-        if hasattr(self, 'collision_count'):
-            self.episode_start_collisions = self.collision_count
-        else:
-            self.episode_start_collisions = 0
-        self.step_counter = 0
         self._create_robot()
         self._create_obstacle()
+        
+        # 🎯 课程学习：根据阶段调整目标位置
+        if hasattr(self, 'curriculum_stage'):
+            if self.curriculum_stage == 0:
+                # 阶段0：目标很近，容易达到
+                self.goal_pos = self.base_goal_pos * 0.7 + np.array(self.anchor_point) * 0.3
+            elif self.curriculum_stage == 1:
+                # 阶段1：中等距离
+                self.goal_pos = self.base_goal_pos * 0.85 + np.array(self.anchor_point) * 0.15
+            else:
+                # 阶段2+：完整难度
+                self.goal_pos = self.base_goal_pos
+        
+        # 初始化计数器
+        self.step_counter = 0
+        if not hasattr(self, 'collision_count'):
+            self.collision_count = 0
+        if not hasattr(self, 'episode_start_collisions'):
+            self.episode_start_collisions = self.collision_count
+        if not hasattr(self, 'prev_collision_count'):
+            self.prev_collision_count = 0
+
         observation = self._get_observation()
         info = self._build_info_dict()
         if self.gym_api_version == "old":
@@ -427,10 +449,11 @@ class Reacher2DEnv(Env):
         if hasattr(self, 'prev_distance'):
             progress = self.prev_distance - distance_to_goal
             info['reward_breakdown'] = {
-                'distance_reward': -distance_to_goal / 50.0,
-                'progress_reward': progress * 20.0,
-                'success_bonus': 100.0 if distance_to_goal <= 50.0 else 0.0,
-                'collision_penalty': self._get_collision_penalty()
+                'distance_reward': -distance_to_goal / 30.0,
+                'progress_reward': progress * 50.0,
+                'success_bonus': 500.0 if distance_to_goal <= 10.0 else (300.0 if distance_to_goal <= 25.0 else (150.0 if distance_to_goal <= 50.0 else (50.0 if distance_to_goal <= 100.0 else 0.0))),
+                'collision_penalty': self._get_collision_penalty(),
+                'obstacle_avoidance': self._compute_obstacle_avoidance_reward()
             }
         
         return info
@@ -489,46 +512,217 @@ class Reacher2DEnv(Env):
         return [math.degrees(body.angle) for body in self.bodies]
 
     def _compute_reward(self):
-        """增强奖励函数，包含碰撞惩罚"""
+        """增强奖励函数，防止局部最优"""
         end_effector_pos = np.array(self._get_end_effector_position())
         distance_to_goal = np.linalg.norm(end_effector_pos - self.goal_pos)
         
-        # 距离奖励
-        distance_reward = -distance_to_goal / 50.0
+        # 🎯 增强距离奖励 - 距离越近奖励越大
+        distance_reward = -distance_to_goal / 40.0  # 从30.0改为40.0，稍微降低距离惩罚
         
-        # 进步奖励
+        # 🎯 非线性距离奖励 - 接近目标时奖励急剧增加
+        if distance_to_goal < 100:  # 在100像素内给额外奖励
+            distance_bonus = (100 - distance_to_goal) / 5.0  # 从10.0改为5.0，增强奖励
+            distance_reward += distance_bonus
+        
+        # 进步奖励 - 大幅增强
         if not hasattr(self, 'prev_distance'):
             self.prev_distance = distance_to_goal
         
         progress = self.prev_distance - distance_to_goal
-        progress_reward = progress * 20.0
+        progress_reward = progress * 100.0  # 从50.0增加到100.0，更强的进步激励
         
-        # 成功奖励
-        if distance_to_goal <= 50.0:
-            success_bonus = 100.0
-        else:
-            success_bonus = 0.0
+        # 🎯 成功奖励 - 大幅增加，让成功成为主要目标
+        success_bonus = 0.0
+        if distance_to_goal <= 10.0:  # 极近
+            success_bonus = 2000.0  # 从500.0增加到2000.0！
+        elif distance_to_goal <= 25.0:  # 目标阈值内  
+            success_bonus = 1000.0  # 从300.0增加到1000.0！
+        elif distance_to_goal <= 50.0:  # 较近
+            success_bonus = 500.0   # 从150.0增加到500.0！
+        elif distance_to_goal <= 100.0:  # 中等距离
+            success_bonus = 200.0   # 从50.0增加到200.0！
+        elif distance_to_goal <= 150.0:  # 新增：奖励中距离
+            success_bonus = 50.0
         
-        # 🎯 新增：碰撞惩罚
+        # 🎯 修复碰撞惩罚 - 降低到合理水平，鼓励探索
         collision_penalty = 0.0
-        if hasattr(self, 'collision_count'):
-            # 每次碰撞扣分
-            current_collisions = self.collision_count
-            if not hasattr(self, 'prev_collision_count'):
-                self.prev_collision_count = 0
-            
-            new_collisions = current_collisions - self.prev_collision_count
-            collision_penalty = -new_collisions * 10.0  # 每次新碰撞扣10分
-            self.prev_collision_count = current_collisions
-            
-            if new_collisions > 0:
-                print(f"⚠️ 检测到{new_collisions}次新碰撞，碰撞惩罚: {collision_penalty}")
+        current_collisions = getattr(self, 'collision_count', 0)
+        
+        # 初始化prev_collision_count
+        if not hasattr(self, 'prev_collision_count'):
+            self.prev_collision_count = 0
+        
+        # 计算当前step的新碰撞数量
+        new_collisions = current_collisions - self.prev_collision_count
+        if new_collisions > 0:
+            collision_penalty = -new_collisions * 30.0  # 从100.0降低到30.0，减少过度惩罚
+            print(f"⚠️ 检测到{new_collisions}次新碰撞，碰撞惩罚: {collision_penalty}")
+        
+        # 🎯 轻微的持续碰撞惩罚
+        if current_collisions > 0:
+            persistent_penalty = -3.0  # 从-10.0降低到-3.0，允许适度接触
+            collision_penalty += persistent_penalty
+        
+        # 更新碰撞计数
+        self.prev_collision_count = current_collisions
+        
+        # 🎯 停滞惩罚 - 防止在远距离摇摆
+        stagnation_penalty = 0.0
+        if distance_to_goal > 200:  # 距离太远时额外惩罚
+            stagnation_penalty = -(distance_to_goal - 200) / 20.0
+        
+        # 🎯 新增：障碍物距离奖励 - 鼓励避开障碍物
+        obstacle_avoidance_reward = self._compute_obstacle_avoidance_reward()
+        
+        # 🎯 新增：路径效率奖励 - 鼓励找到绕行路径
+        path_efficiency_reward = self._compute_path_efficiency_reward(end_effector_pos, distance_to_goal)
         
         self.prev_distance = distance_to_goal
         
-        total_reward = distance_reward + progress_reward + success_bonus + collision_penalty
+        total_reward = distance_reward + progress_reward + success_bonus + collision_penalty + stagnation_penalty + obstacle_avoidance_reward + path_efficiency_reward
+        
+        # 🔍 调试信息 - 确保碰撞惩罚被计算
+        if abs(collision_penalty) > 0.1:
+            print(f"💥 步骤{getattr(self, 'step_counter', 0)}: 碰撞惩罚={collision_penalty:.2f}, 总奖励={total_reward:.2f}")
+        
         return total_reward
     
+    def _compute_obstacle_avoidance_reward(self):
+        """计算障碍物避让奖励 - 鼓励机器人保持与障碍物的安全距离"""
+        if not hasattr(self, 'obstacles') or len(self.obstacles) == 0:
+            return 0.0
+        
+        # 获取所有机器人关节的位置
+        robot_positions = []
+        for body in self.bodies:
+            robot_positions.append(body.position)
+        
+        # 计算与所有障碍物的最短距离
+        min_distance_to_obstacles = float('inf')
+        
+        for obstacle in self.obstacles:
+            # 对于Segment障碍物，计算点到线段的距离
+            if hasattr(obstacle, 'a') and hasattr(obstacle, 'b'):
+                # 障碍物线段的两个端点
+                seg_start = np.array(obstacle.a)
+                seg_end = np.array(obstacle.b)
+                
+                # 计算每个机器人关节到这个线段的距离
+                for robot_pos in robot_positions:
+                    robot_pos = np.array(robot_pos)
+                    # 计算点到线段的距离
+                    dist = self._point_to_segment_distance(robot_pos, seg_start, seg_end)
+                    min_distance_to_obstacles = min(min_distance_to_obstacles, dist)
+        
+        # 如果没有找到有效距离，返回0
+        if min_distance_to_obstacles == float('inf'):
+            return 0.0
+        
+        # 🎯 更温和的障碍物避让策略
+        safe_distance = 40.0  # 从50.0降低到40.0像素，允许更近距离
+        
+        if min_distance_to_obstacles < safe_distance:
+            # 距离太近，给予温和惩罚
+            avoidance_reward = -(safe_distance - min_distance_to_obstacles) * 0.5  # 从1.0降低到0.5
+        else:
+            # 距离安全，给予小幅奖励
+            avoidance_reward = min(15.0, (min_distance_to_obstacles - safe_distance) * 0.15)  # 减少奖励
+        
+        return avoidance_reward
+    
+    def _point_to_segment_distance(self, point, seg_start, seg_end):
+        """计算点到线段的最短距离"""
+        # 向量化计算
+        seg_vec = seg_end - seg_start
+        point_vec = point - seg_start
+        
+        # 处理退化情况（线段长度为0）
+        seg_length_sq = np.dot(seg_vec, seg_vec)
+        if seg_length_sq == 0:
+            return np.linalg.norm(point_vec)
+        
+        # 计算投影参数t
+        t = np.dot(point_vec, seg_vec) / seg_length_sq
+        t = max(0, min(1, t))  # 限制在[0,1]范围内
+        
+        # 计算最近点
+        closest_point = seg_start + t * seg_vec
+        
+        # 返回距离
+        return np.linalg.norm(point - closest_point)
+    
+    def _compute_path_efficiency_reward(self, end_effector_pos, distance_to_goal):
+        """计算路径效率奖励 - 鼓励绕行而非后退"""
+        if not hasattr(self, 'prev_end_effector_pos'):
+            self.prev_end_effector_pos = end_effector_pos
+            return 0.0
+        
+        # 计算末端执行器的移动方向
+        movement_vector = np.array(end_effector_pos) - np.array(self.prev_end_effector_pos)
+        movement_distance = np.linalg.norm(movement_vector)
+        
+        if movement_distance < 1e-6:  # 几乎无移动
+            self.prev_end_effector_pos = end_effector_pos
+            return 0.0
+        
+        # 目标方向向量
+        goal_direction = np.array(self.goal_pos) - np.array(end_effector_pos)
+        goal_distance = np.linalg.norm(goal_direction)
+        
+        if goal_distance < 1e-6:  # 已到达目标
+            self.prev_end_effector_pos = end_effector_pos
+            return 0.0
+        
+        goal_direction_normalized = goal_direction / goal_distance
+        movement_direction_normalized = movement_vector / movement_distance
+        
+        # 计算移动方向与目标方向的角度相似度
+        dot_product = np.dot(movement_direction_normalized, goal_direction_normalized)
+        
+        # 🎯 检查是否在避开障碍物的同时仍朝向目标的大致方向
+        min_obstacle_distance = self._get_min_obstacle_distance()
+        
+        path_reward = 0.0
+        
+        if min_obstacle_distance < 50.0:  # 在障碍物附近
+            # 如果正在远离障碍物且大致朝向目标，给予奖励
+            if dot_product > 0.3:  # 至少30度以内朝向目标
+                path_reward = movement_distance * 0.5  # 奖励有效移动
+            elif dot_product > -0.5:  # 不是完全背离目标
+                path_reward = movement_distance * 0.2  # 小幅奖励侧向移动
+        else:  # 远离障碍物时
+            # 鼓励直接朝向目标
+            if dot_product > 0.7:  # 70度以内朝向目标
+                path_reward = movement_distance * 1.0
+        
+        self.prev_end_effector_pos = end_effector_pos
+        return path_reward
+    
+    def _get_min_obstacle_distance(self):
+        """获取到最近障碍物的距离"""
+        if not hasattr(self, 'bodies') or len(self.bodies) == 0:
+            return float('inf')
+        
+        # 获取所有机器人关节的位置
+        robot_positions = []
+        for body in self.bodies:
+            robot_positions.append(body.position)
+        
+        # 计算与所有障碍物的最短距离
+        min_distance = float('inf')
+        
+        for obstacle in getattr(self, 'obstacles', []):
+            if hasattr(obstacle, 'a') and hasattr(obstacle, 'b'):
+                seg_start = np.array(obstacle.a)
+                seg_end = np.array(obstacle.b)
+                
+                for robot_pos in robot_positions:
+                    robot_pos = np.array(robot_pos)
+                    dist = self._point_to_segment_distance(robot_pos, seg_start, seg_end)
+                    min_distance = min(min_distance, dist)
+        
+        return min_distance if min_distance != float('inf') else 100.0
+
 
     def _load_config(self, config_path):
         if config_path is None:
@@ -587,6 +781,14 @@ class Reacher2DEnv(Env):
         
         # 绘制目标点
         pygame.draw.circle(self.screen, (255, 0, 0), self.goal_pos.astype(int), 10)
+        
+        # 🎯 新增：绘制安全区域（可选调试）
+        if hasattr(self, 'bodies') and len(self.bodies) > 0:
+            # 绘制每个关节到障碍物的安全距离
+            for body in self.bodies:
+                pos = (int(body.position[0]), int(body.position[1]))
+                # 绘制安全半径（浅蓝色圆圈）
+                pygame.draw.circle(self.screen, (173, 216, 230), pos, 30, 1)
         
         self.space.debug_draw(self.draw_options)
         pygame.display.flip()
