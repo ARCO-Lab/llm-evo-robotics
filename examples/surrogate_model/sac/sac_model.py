@@ -183,8 +183,8 @@ class AttentionSACWithBuffer:
             # 🔧 关键修复：Action Scaling！
             # SAC输出[-1,+1]，需要缩放到环境的action space
             if self.env_type == 'reacher2d':
-                # Reacher2D环境使用±100的action space（修改为更小的范围）
-                action_scale = 100.0  # 从500.0改为100.0
+                # 🔧 进一步降低action scale以防止穿模
+                action_scale = 50.0  # 从100.0进一步降低到50.0，更安全的范围
                 scaled_action = tanh_action * action_scale
                 return scaled_action
             else:
@@ -231,6 +231,10 @@ class AttentionSACWithBuffer:
         # 更新Critic
         self.critic_optimizer.zero_grad()
         critic_loss.backward()
+        torch.nn.utils.clip_grad_norm_(
+        list(self.critic1.parameters()) + list(self.critic2.parameters()),
+        max_norm=1.0
+        )
         self.critic_optimizer.step()
         
         # === Actor Update ===
@@ -252,6 +256,10 @@ class AttentionSACWithBuffer:
         # 更新Actor
         self.actor_optimizer.zero_grad()
         actor_loss.backward()
+        torch.nn.utils.clip_grad_norm_(
+                self.actor.parameters(),
+                max_norm=1.0
+            )
         self.actor_optimizer.step()
         
         # === Alpha Update ===

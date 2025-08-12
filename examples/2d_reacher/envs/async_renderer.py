@@ -113,32 +113,217 @@ class AsyncRenderer:
                   f"丢帧率={stats.get('drop_rate', 0):.1f}%, "
                   f"平均FPS={stats.get('fps', 0):.1f}")
                   
+    # @staticmethod
+    # def _render_worker(render_queue, control_queue, env_params):
+    #     """渲染工作进程 - 在独立进程中运行"""
+    #     try:
+    #         # 🎮 初始化Pygame（在渲染进程中）
+    #         pygame.init()
+    #         screen = pygame.display.set_mode((1200, 1200))
+    #         pygame.display.set_caption("Reacher2D 异步渲染 - 按ESC退出")
+    #         clock = pygame.time.Clock()
+            
+    #         # 🎨 初始化绘制参数
+    #         WHITE = (255, 255, 255)
+    #         RED = (255, 0, 0)
+    #         BLACK = (0, 0, 0)
+    #         BLUE = (0, 0, 255)
+    #         GREEN = (0, 255, 0)
+    #         GRAY = (128, 128, 128)
+    #         ORANGE = (255, 165, 0)  # 障碍物颜色
+    #         PURPLE = (128, 0, 128)  # 锚点颜色
+            
+    #         print("🎨 渲染进程初始化完成")
+            
+    #         frame_count = 0
+    #         last_stats_time = time.time()
+    #         running = True
+    #         last_robot_state = None  # 保存最后一个状态用于连续渲染
+            
+    #         while running:
+    #             try:
+    #                 # 🎮 关键修复：处理Pygame事件
+    #                 for event in pygame.event.get():
+    #                     if event.type == pygame.QUIT:
+    #                         print("🔴 用户关闭窗口")
+    #                         running = False
+    #                         break
+    #                     elif event.type == pygame.KEYDOWN:
+    #                         if event.key == pygame.K_ESCAPE:
+    #                             print("🔴 用户按ESC退出")
+    #                             running = False
+    #                             break
+                    
+    #                 if not running:
+    #                     break
+                    
+    #                 # 🛑 检查控制信号
+    #                 try:
+    #                     control_signal = control_queue.get_nowait()
+    #                     if control_signal == 'STOP':
+    #                         print("🔴 收到停止信号")
+    #                         break
+    #                 except:
+    #                     pass
+                    
+    #                 # 🎞️ 获取渲染数据
+    #                 new_data = False
+    #                 try:
+    #                     robot_state = render_queue.get(timeout=0.016)  # 60FPS的超时
+    #                     last_robot_state = robot_state
+    #                     new_data = True
+    #                 except:
+    #                     # 没有新数据，使用最后一个状态继续渲染
+    #                     robot_state = last_robot_state
+                    
+    #                 # 🖼️ 渲染帧（即使没有新数据也要渲染，保持窗口响应）
+    #                 screen.fill(WHITE)
+                    
+    #                 if robot_state:
+    #                     # 🚧 绘制障碍物（在最底层）
+    #                     if 'obstacles' in robot_state:
+    #                         for obstacle in robot_state['obstacles']:
+    #                             if obstacle['type'] == 'segment':
+    #                                 points = obstacle['points']
+    #                                 p1 = (int(points[0][0]), int(points[0][1]))
+    #                                 p2 = (int(points[1][0]), int(points[1][1]))
+    #                                 radius = int(obstacle.get('radius', 3))
+                                    
+    #                                 # 绘制粗线表示障碍物
+    #                                 pygame.draw.line(screen, ORANGE, p1, p2, radius * 2)
+                                    
+    #                                 # 在端点绘制圆形
+    #                                 pygame.draw.circle(screen, ORANGE, p1, radius)
+    #                                 pygame.draw.circle(screen, ORANGE, p2, radius)
+                        
+    #                     # 🏠 绘制锚点
+    #                     if 'anchor_point' in robot_state:
+    #                         anchor = robot_state['anchor_point']
+    #                         pygame.draw.circle(screen, PURPLE, 
+    #                                          (int(anchor[0]), int(anchor[1])), 8)
+    #                         # 绘制锚点标识
+    #                         font = pygame.font.Font(None, 24)
+    #                         text = font.render("ANCHOR", True, PURPLE)
+    #                         screen.blit(text, (int(anchor[0]) + 10, int(anchor[1]) - 10))
+                        
+    #                     # 🎯 绘制目标点
+    #                     if 'goal_pos' in robot_state:
+    #                         goal_pos = robot_state['goal_pos']
+    #                         goal_radius = robot_state.get('goal_radius', 10)
+    #                         pygame.draw.circle(screen, RED, 
+    #                                          (int(goal_pos[0]), int(goal_pos[1])), int(goal_radius))
+    #                         # 绘制目标标识
+    #                         font = pygame.font.Font(None, 24)
+    #                         text = font.render("GOAL", True, RED)
+    #                         screen.blit(text, (int(goal_pos[0]) + 15, int(goal_pos[1]) - 10))
+                        
+    #                     # 🤖 绘制机器人links
+    #                     if 'body_positions' in robot_state:
+    #                         positions = robot_state['body_positions']
+    #                         link_lengths = env_params.get('link_lengths', [60] * len(positions))
+                            
+    #                         for i, (pos, length) in enumerate(zip(positions, link_lengths)):
+    #                             x, y, angle = pos
+                                
+    #                             # 计算link的两个端点
+    #                             end_x = x + length * np.cos(angle)
+    #                             end_y = y + length * np.sin(angle)
+                                
+    #                             # 绘制link（粗线）
+    #                             pygame.draw.line(screen, BLACK, 
+    #                                            (int(x), int(y)), (int(end_x), int(end_y)), 8)
+                                
+    #                             # 绘制关节（圆点）
+    #                             color = BLUE if i == 0 else GREEN
+    #                             pygame.draw.circle(screen, color, (int(x), int(y)), 6)
+                                
+    #                             # 绘制关节编号
+    #                             font = pygame.font.Font(None, 20)
+    #                             text = font.render(str(i), True, WHITE)
+    #                             text_rect = text.get_rect(center=(int(x), int(y)))
+    #                             screen.blit(text, text_rect)
+                        
+    #                     # 📊 绘制信息文本
+    #                     if 'step_count' in robot_state:
+    #                         font = pygame.font.Font(None, 36)
+    #                         text = font.render(f"Step: {robot_state['step_count']}", 
+    #                                          True, BLACK)
+    #                         screen.blit(text, (10, 10))
+                            
+    #                         # 显示数据状态
+    #                         status_text = "NEW DATA" if new_data else "REPEATING"
+    #                         status_color = GREEN if new_data else GRAY
+    #                         status_surface = font.render(status_text, True, status_color)
+    #                         screen.blit(status_surface, (10, 50))
+                            
+    #                         # 显示障碍物数量
+    #                         if 'obstacles' in robot_state:
+    #                             obstacle_count = len(robot_state['obstacles'])
+    #                             obstacle_text = f"Obstacles: {obstacle_count}"
+    #                             obstacle_surface = font.render(obstacle_text, True, ORANGE)
+    #                             screen.blit(obstacle_surface, (10, 90))
+    #                 else:
+    #                     # 没有数据时显示等待信息
+    #                     font = pygame.font.Font(None, 48)
+    #                     text = font.render("等待数据...", True, GRAY)
+    #                     text_rect = text.get_rect(center=(600, 600))
+    #                     screen.blit(text, text_rect)
+                    
+    #                 # 🔄 更新显示
+    #                 pygame.display.flip()
+    #                 clock.tick(60)  # 限制60FPS
+                    
+    #                 frame_count += 1
+                    
+    #                 # 📊 定期打印统计
+    #                 if frame_count % 300 == 0:  # 每5秒
+    #                     current_time = time.time()
+    #                     elapsed = current_time - last_stats_time
+    #                     fps = 300 / elapsed if elapsed > 0 else 0
+    #                     queue_size = render_queue.qsize() if hasattr(render_queue, 'qsize') else 'unknown'
+    #                     print(f"🎨 渲染进程: 帧数={frame_count}, FPS={fps:.1f}, 队列={queue_size}")
+    #                     last_stats_time = current_time
+                        
+    #             except Exception as e:
+    #                 print(f"❌ 渲染进程错误: {e}")
+    #                 import traceback
+    #                 traceback.print_exc()
+    #                 time.sleep(0.1)  # 短暂等待避免错误循环
+    #                 continue
+                    
+    #     except Exception as e:
+    #         print(f"❌ 渲染进程启动失败: {e}")
+    #         import traceback
+    #         traceback.print_exc()
+    #     finally:
+    #         try:
+    #             pygame.quit()
+    #             print("🎨 渲染进程已清理")
+    #         except:
+    #             pass
+
     @staticmethod
     def _render_worker(render_queue, control_queue, env_params):
-        """渲染工作进程 - 在独立进程中运行"""
+        """混合渲染：原生机器人 + 自定义信息 - 修复Link不动问题"""
         try:
-            # 🎮 初始化Pygame（在渲染进程中）
-            pygame.init()
-            screen = pygame.display.set_mode((1200, 1200))
-            pygame.display.set_caption("Reacher2D 异步渲染 - 按ESC退出")
-            clock = pygame.time.Clock()
+            # 🤖 创建Reacher2DEnv实例
+            from reacher2d_env import Reacher2DEnv
+            import numpy as np
             
-            # 🎨 初始化绘制参数
-            WHITE = (255, 255, 255)
-            RED = (255, 0, 0)
-            BLACK = (0, 0, 0)
-            BLUE = (0, 0, 255)
-            GREEN = (0, 255, 0)
-            GRAY = (128, 128, 128)
-            ORANGE = (255, 165, 0)  # 障碍物颜色
-            PURPLE = (128, 0, 128)  # 锚点颜色
+            render_env_params = env_params.copy()
+            render_env_params['render_mode'] = 'human'
+            render_env = Reacher2DEnv(**render_env_params)
             
-            print("🎨 渲染进程初始化完成")
+            # 获取pygame组件
+            screen = render_env.screen
+            clock = render_env.clock
+            
+            print("🎨 混合渲染进程初始化完成 - 修复Link同步问题")
             
             frame_count = 0
             last_stats_time = time.time()
             running = True
-            last_robot_state = None  # 保存最后一个状态用于连续渲染
+            last_robot_state = None
             
             while running:
                 try:
@@ -176,96 +361,95 @@ class AsyncRenderer:
                         # 没有新数据，使用最后一个状态继续渲染
                         robot_state = last_robot_state
                     
-                    # 🖼️ 渲染帧（即使没有新数据也要渲染，保持窗口响应）
-                    screen.fill(WHITE)
-                    
-                    if robot_state:
-                        # 🚧 绘制障碍物（在最底层）
-                        if 'obstacles' in robot_state:
-                            for obstacle in robot_state['obstacles']:
-                                if obstacle['type'] == 'segment':
-                                    points = obstacle['points']
-                                    p1 = (int(points[0][0]), int(points[0][1]))
-                                    p2 = (int(points[1][0]), int(points[1][1]))
-                                    radius = int(obstacle.get('radius', 3))
-                                    
-                                    # 绘制粗线表示障碍物
-                                    pygame.draw.line(screen, ORANGE, p1, p2, radius * 2)
-                                    
-                                    # 在端点绘制圆形
-                                    pygame.draw.circle(screen, ORANGE, p1, radius)
-                                    pygame.draw.circle(screen, ORANGE, p2, radius)
+                    # 🔑 关键修复：正确同步环境状态
+                    if robot_state and 'body_positions' in robot_state:
+                        positions = robot_state['body_positions']
                         
-                        # 🏠 绘制锚点
-                        if 'anchor_point' in robot_state:
-                            anchor = robot_state['anchor_point']
-                            pygame.draw.circle(screen, PURPLE, 
-                                             (int(anchor[0]), int(anchor[1])), 8)
-                            # 绘制锚点标识
-                            font = pygame.font.Font(None, 24)
-                            text = font.render("ANCHOR", True, PURPLE)
-                            screen.blit(text, (int(anchor[0]) + 10, int(anchor[1]) - 10))
+                        # 同步body位置和角度到渲染环境
+                        for i, (x, y, angle) in enumerate(positions):
+                            if i < len(render_env.bodies):
+                                body = render_env.bodies[i]
+                                # 设置新的位置和角度
+                                body.position = (x, y)
+                                body.angle = angle
+                                
+                                # 🔧 关键修复：手动更新body关联的所有shape
+                                for shape in body.shapes:
+                                    # 强制更新shape的缓存边界框和变换
+                                    shape.cache_bb()
                         
-                        # 🎯 绘制目标点
+                        # 🔧 另一种方法：执行一个微小的物理步进来更新所有形状
+                        # 保存当前速度
+                        velocities = []
+                        angular_velocities = []
+                        for body in render_env.bodies:
+                            velocities.append(body.velocity)
+                            angular_velocities.append(body.angular_velocity)
+                            # 暂时清零速度，避免位置漂移
+                            body.velocity = (0, 0)
+                            body.angular_velocity = 0
+                        
+                        # 执行微小物理步进以更新shape位置
+                        render_env.space.step(0.001)  # 非常小的时间步长
+                        
+                        # 恢复速度（保持静态显示）
+                        for i, body in enumerate(render_env.bodies):
+                            body.velocity = velocities[i]
+                            body.angular_velocity = angular_velocities[i]
+                        
+                        # 同步目标位置（如果有变化）
                         if 'goal_pos' in robot_state:
-                            goal_pos = robot_state['goal_pos']
-                            goal_radius = robot_state.get('goal_radius', 10)
-                            pygame.draw.circle(screen, RED, 
-                                             (int(goal_pos[0]), int(goal_pos[1])), int(goal_radius))
-                            # 绘制目标标识
-                            font = pygame.font.Font(None, 24)
-                            text = font.render("GOAL", True, RED)
-                            screen.blit(text, (int(goal_pos[0]) + 15, int(goal_pos[1]) - 10))
-                        
-                        # 🤖 绘制机器人links
-                        if 'body_positions' in robot_state:
-                            positions = robot_state['body_positions']
-                            link_lengths = env_params.get('link_lengths', [60] * len(positions))
-                            
-                            for i, (pos, length) in enumerate(zip(positions, link_lengths)):
-                                x, y, angle = pos
-                                
-                                # 计算link的两个端点
-                                end_x = x + length * np.cos(angle)
-                                end_y = y + length * np.sin(angle)
-                                
-                                # 绘制link（粗线）
-                                pygame.draw.line(screen, BLACK, 
-                                               (int(x), int(y)), (int(end_x), int(end_y)), 8)
-                                
-                                # 绘制关节（圆点）
-                                color = BLUE if i == 0 else GREEN
-                                pygame.draw.circle(screen, color, (int(x), int(y)), 6)
-                                
-                                # 绘制关节编号
-                                font = pygame.font.Font(None, 20)
-                                text = font.render(str(i), True, WHITE)
-                                text_rect = text.get_rect(center=(int(x), int(y)))
-                                screen.blit(text, text_rect)
-                        
-                        # 📊 绘制信息文本
+                            render_env.goal_pos = np.array(robot_state['goal_pos'])
+                    
+                    # 🎨 使用原生PyMunk渲染风格
+                    screen.fill((255, 255, 255))  # 白色背景
+                    
+                    # 绘制目标点（与原生风格一致）
+                    if hasattr(render_env, 'goal_pos') and render_env.goal_pos is not None:
+                        pygame.draw.circle(screen, (255, 0, 0), render_env.goal_pos.astype(int), 10)
+                    
+                    # 🎯 绘制安全区域（可选调试，与原生一致）
+                    if hasattr(render_env, 'bodies') and len(render_env.bodies) > 0:
+                        for body in render_env.bodies:
+                            pos = (int(body.position[0]), int(body.position[1]))
+                            # 绘制安全半径（浅蓝色圆圈）
+                            pygame.draw.circle(screen, (173, 216, 230), pos, 30, 1)
+                    
+                    # 🔑 关键：使用PyMunk原生debug_draw渲染机器人和障碍物
+                    render_env.space.debug_draw(render_env.draw_options)
+                    
+                    # 📊 添加自定义信息覆盖层（不影响原生渲染）
+                    if robot_state:
+                        # 显示步数
                         if 'step_count' in robot_state:
                             font = pygame.font.Font(None, 36)
-                            text = font.render(f"Step: {robot_state['step_count']}", 
-                                             True, BLACK)
+                            text = font.render(f"Step: {robot_state['step_count']}", True, (0, 0, 0))
                             screen.blit(text, (10, 10))
                             
                             # 显示数据状态
                             status_text = "NEW DATA" if new_data else "REPEATING"
-                            status_color = GREEN if new_data else GRAY
+                            status_color = (0, 255, 0) if new_data else (128, 128, 128)
                             status_surface = font.render(status_text, True, status_color)
                             screen.blit(status_surface, (10, 50))
                             
-                            # 显示障碍物数量
-                            if 'obstacles' in robot_state:
-                                obstacle_count = len(robot_state['obstacles'])
-                                obstacle_text = f"Obstacles: {obstacle_count}"
-                                obstacle_surface = font.render(obstacle_text, True, ORANGE)
-                                screen.blit(obstacle_surface, (10, 90))
+                            # 🔧 新增：显示同步状态调试信息
+                            if 'body_positions' in robot_state:
+                                positions = robot_state['body_positions']
+                                sync_text = f"Bodies synced: {len(positions)}"
+                                sync_surface = font.render(sync_text, True, (0, 0, 255))
+                                screen.blit(sync_surface, (10, 90))
+                                
+                                # 显示第一个body的状态作为调试
+                                if len(positions) > 0:
+                                    x, y, angle = positions[0]
+                                    pos_text = f"Body0: ({x:.1f}, {y:.1f}, {angle:.2f})"
+                                    pos_surface = pygame.font.Font(None, 24).render(pos_text, True, (128, 0, 128))
+                                    screen.blit(pos_surface, (10, 130))
+                    
                     else:
                         # 没有数据时显示等待信息
                         font = pygame.font.Font(None, 48)
-                        text = font.render("等待数据...", True, GRAY)
+                        text = font.render("等待数据...", True, (128, 128, 128))
                         text_rect = text.get_rect(center=(600, 600))
                         screen.blit(text, text_rect)
                     
@@ -281,7 +465,7 @@ class AsyncRenderer:
                         elapsed = current_time - last_stats_time
                         fps = 300 / elapsed if elapsed > 0 else 0
                         queue_size = render_queue.qsize() if hasattr(render_queue, 'qsize') else 'unknown'
-                        print(f"🎨 渲染进程: 帧数={frame_count}, FPS={fps:.1f}, 队列={queue_size}")
+                        print(f"🎨 混合渲染进程: 帧数={frame_count}, FPS={fps:.1f}, 队列={queue_size}")
                         last_stats_time = current_time
                         
                 except Exception as e:
@@ -297,8 +481,9 @@ class AsyncRenderer:
             traceback.print_exc()
         finally:
             try:
-                pygame.quit()
-                print("🎨 渲染进程已清理")
+                if 'render_env' in locals():
+                    render_env.close()
+                print("🎨 混合渲染进程已清理")
             except:
                 pass
 

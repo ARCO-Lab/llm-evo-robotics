@@ -31,6 +31,9 @@ gym.logger.set_level(40)
 # 直接导入，现在environments在路径中
 import environments
 
+# 🚀 NEW: 导入训练监控系统
+from training_logger import TrainingLogger, RealTimeMonitor
+
 # 直接导入模块，不使用rl.前缀
 from arguments import get_parser
 from utils import solve_argv_conflict
@@ -133,6 +136,23 @@ def main(args):
     device = torch.device('cpu')
 
     os.makedirs(args.save_dir, exist_ok = True)
+
+    # 🚀 NEW: 初始化训练监控系统
+    experiment_name = f"reacher2d_sac_{time.strftime('%Y%m%d_%H%M%S')}"
+    logger = TrainingLogger(
+        log_dir=os.path.join(args.save_dir, 'training_logs'),
+        experiment_name=experiment_name
+    )
+    
+    # 设置监控阈值
+    monitor = RealTimeMonitor(logger, alert_thresholds={
+        'critic_loss': {'max': 50.0, 'nan_check': True},
+        'actor_loss': {'max': 10.0, 'nan_check': True},
+        'alpha_loss': {'max': 5.0, 'nan_check': True},
+        'alpha': {'min': 0.01, 'max': 2.0, 'nan_check': True}
+    })
+    
+    print(f"📊 训练监控系统已初始化: {logger.experiment_dir}")
 
     training_log_path = os.path.join(args.save_dir, 'logs.txt')
     fp_log = open(training_log_path, 'w')
@@ -470,6 +490,11 @@ def main(args):
                         print(f"    Collision Rate: {collision_info['collision_rate']:.4f}")
                         print(f"    Collision Penalty: {collision_info['collision_penalty']:.2f}")
                         
+                        # 🎯 新增：关节碰撞信息显示
+                        if 'joint_collision_count' in collision_info:
+                            print(f"    Joint Collisions (Total): {collision_info['joint_collision_count']}")
+                            print(f"    Joint Collisions (Episode): {collision_info['joint_collisions_this_episode']}")
+                        
                         print(f"  🎯 Goal Monitoring:")
                         print(f"    Distance: {goal_info['distance_to_goal']:.1f} pixels")
                         print(f"    Goal Reached: {'✅' if goal_info['goal_reached'] else '❌'}")
@@ -534,6 +559,19 @@ def main(args):
                 
                 metrics = sac.update()
                 
+                # 🚀 NEW: 记录损失到监控系统
+                if metrics:
+                    enhanced_metrics = metrics.copy()
+                    enhanced_metrics.update({
+                        'step': step,
+                        'buffer_size': len(sac.memory),
+                        'learning_rate': sac.actor_optimizer.param_groups[0]['lr'],
+                        'warmup_progress': min(1.0, step / sac.warmup_steps)
+                    })
+                    
+                    logger.log_step(step, enhanced_metrics, episode=step//100)
+                    alerts = monitor.check_alerts(step, enhanced_metrics)
+                
                 if metrics and step % 100 == 0:
                     print(f"Step {step} (total_steps {total_steps}): "
                         f"Critic Loss: {metrics['critic_loss']:.4f}, "
@@ -562,6 +600,9 @@ def main(args):
             
             # 🏆 定期保存检查点模型（不管是否到达目标）
             if step % 1000 == 0 and step > 0:
+                # 🚀 NEW: 定期生成损失曲线
+                logger.plot_losses(recent_steps=2000, show=False)
+                
                 checkpoint_path = os.path.join(model_save_path, f'checkpoint_step_{step}.pth')
                 checkpoint_data = {
                     'step': step,
@@ -595,6 +636,11 @@ def main(args):
         print(f"  最佳成功率: {best_success_rate:.3f}")
         print(f"  最佳最小距离: {best_min_distance:.1f} pixels")
         print(f"  当前连续成功次数: {consecutive_success_count}")
+        
+        # 🚀 NEW: 生成完整的训练报告
+        logger.generate_report()
+        logger.plot_losses(show=False)
+        print(f"📊 完整训练日志已保存到: {logger.experiment_dir}")
         
         # 保存最终模型
         final_model_path = os.path.join(model_save_path, f'final_model_step_{step}.pth')

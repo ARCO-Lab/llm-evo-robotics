@@ -1,0 +1,5 @@
+{
+  "experiment_name": "sac_reacher2d_demo",
+  "start_time": "2025-08-11T23:23:57.632896",
+  "log_dir": "training_logs/sac_reacher2d_demo"
+}

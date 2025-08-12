@@ -261,8 +261,6 @@ class Reacher2DEnv(Env):
         # 🔧 清理角度限制约束
         if hasattr(self, 'joint_limits'):
             self.joint_limits.clear()
-        
-        # 🔧 清理motors
         if hasattr(self, 'motors'):
             self.motors.clear()
 
@@ -580,12 +578,12 @@ class Reacher2DEnv(Env):
         self.prev_distance = distance_to_goal
         
         total_reward = distance_reward + progress_reward + success_bonus + collision_penalty + stagnation_penalty + obstacle_avoidance_reward + path_efficiency_reward
-        
+        scaled_reward = total_reward / 100.0  # 将所有奖励除以100
         # 🔍 调试信息 - 确保碰撞惩罚被计算
         if abs(collision_penalty) > 0.1:
             print(f"💥 步骤{getattr(self, 'step_counter', 0)}: 碰撞惩罚={collision_penalty:.2f}, 总奖励={total_reward:.2f}")
         
-        return total_reward
+        return scaled_reward
     
     def _compute_obstacle_avoidance_reward(self):
         """计算障碍物避让奖励 - 鼓励机器人保持与障碍物的安全距离"""
