@@ -104,6 +104,86 @@ def save_best_model(sac, model_save_path, success_rate, min_distance, step):
     except Exception as e:
         print(f"❌ 保存模型失败: {e}")
         return False
+    
+
+def load_checkpoint(sac, checkpoint_path, device='cpu'):
+    """从检查点加载SAC模型"""
+    try:
+        print(f"🔄 Loading checkpoint from: {checkpoint_path}")
+        checkpoint = torch.load(checkpoint_path, map_location=device)
+        
+        # 打印checkpoint内容
+        print(f"📋 Checkpoint contains: {list(checkpoint.keys())}")
+        
+        # 加载各个网络的状态
+        if 'actor_state_dict' in checkpoint:
+            sac.actor.load_state_dict(checkpoint['actor_state_dict'])
+            print("✅ Actor loaded")
+        
+        if 'critic1_state_dict' in checkpoint:
+            sac.critic1.load_state_dict(checkpoint['critic1_state_dict'])
+            print("✅ Critic1 loaded")
+            
+        if 'critic2_state_dict' in checkpoint:
+            sac.critic2.load_state_dict(checkpoint['critic2_state_dict'])
+            print("✅ Critic2 loaded")
+        
+        # 加载target networks（如果存在）
+        if 'target_critic1_state_dict' in checkpoint:
+            sac.target_critic1.load_state_dict(checkpoint['target_critic1_state_dict'])
+            print("✅ Target Critic1 loaded")
+        else:
+            # 如果没有保存target networks，从main networks复制
+            sac.target_critic1.load_state_dict(sac.critic1.state_dict())
+            print("⚠️ Target Critic1 copied from Critic1")
+            
+        if 'target_critic2_state_dict' in checkpoint:
+            sac.target_critic2.load_state_dict(checkpoint['target_critic2_state_dict'])
+            print("✅ Target Critic2 loaded")
+        else:
+            sac.target_critic2.load_state_dict(sac.critic2.state_dict())
+            print("⚠️ Target Critic2 copied from Critic2")
+        
+        # 加载优化器状态（可选）
+        load_optimizers = True  # 设为False如果你想用新的学习率
+        if load_optimizers:
+            if 'actor_optimizer_state_dict' in checkpoint:
+                sac.actor_optimizer.load_state_dict(checkpoint['actor_optimizer_state_dict'])
+                print("✅ Actor optimizer loaded")
+            
+            if 'critic_optimizer_state_dict' in checkpoint:
+                sac.critic_optimizer.load_state_dict(checkpoint['critic_optimizer_state_dict'])
+                print("✅ Critic optimizer loaded")
+                
+            if 'alpha_optimizer_state_dict' in checkpoint:
+                sac.alpha_optimizer.load_state_dict(checkpoint['alpha_optimizer_state_dict'])
+                print("✅ Alpha optimizer loaded")
+        
+        # 加载alpha值
+        if 'alpha' in checkpoint:
+            if isinstance(checkpoint['alpha'], torch.Tensor):
+                sac.alpha = checkpoint['alpha'].item()
+            else:
+                sac.alpha = checkpoint['alpha']
+            print(f"✅ Alpha loaded: {sac.alpha}")
+            
+        if 'log_alpha' in checkpoint:
+            if isinstance(checkpoint['log_alpha'], torch.Tensor):
+                sac.log_alpha.data.fill_(checkpoint['log_alpha'].item())
+            else:
+                sac.log_alpha.data.fill_(checkpoint['log_alpha'])
+            print(f"✅ Log Alpha loaded: {sac.log_alpha.item()}")
+        
+        # 返回训练步数
+        start_step = checkpoint.get('step', 0)
+        print(f"✅ Checkpoint loaded successfully! Starting from step: {start_step}")
+        
+        return start_step
+        
+    except Exception as e:
+        print(f"❌ Failed to load checkpoint: {e}")
+        print("Training will start from scratch...")
+        return 0
 
 
 def main(args):
@@ -198,7 +278,7 @@ def main(args):
     num_joints = envs.action_space.shape[0]
     print(f"Number of joints: {num_joints}")
     num_updates = 5
-    num_step = 100000
+    num_step = 120000
     data_handler = DataHandler(num_joints, args.env_type)
 
     if args.env_type == 'reacher2d':
@@ -226,7 +306,7 @@ def main(args):
                                 env_type=args.env_type)
     
     sac.warmup_steps = 1000
-    sac.alpha = 0.2
+    sac.alpha = 0.15
     if hasattr(sac, 'target_entropy'):
         sac.target_entropy = -action_dim * 0.8
     current_obs = envs.reset()
