@@ -200,7 +200,7 @@ class AttentionSACWithBuffer:
             target_param.data.copy_(self.tau * param.data + (1 - self.tau) * target_param.data)
     
     def update(self):
-        """从memory buffer采样并更新网络"""
+        """从memory buffer采样并更新网络 - 增强数值稳定性"""
         if not self.memory.can_sample(self.batch_size):
             return None
             
@@ -208,32 +208,45 @@ class AttentionSACWithBuffer:
         batch = self.memory.sample(self.batch_size)
         joint_q, vertex_k, vertex_v, actions, rewards, next_joint_q, next_vertex_k, next_vertex_v, dones, vertex_mask = batch
         
+        # 🛡️ 奖励稳定性检查
+        rewards = torch.clamp(rewards, -10.0, 10.0)  # 严格限制奖励范围
+        
         # === Critic Update ===
         with torch.no_grad():
-            # 采样下一个状态的动作
             next_actions, next_log_probs, _ = self.actor.sample(next_joint_q, next_vertex_k, next_vertex_v, vertex_mask)
             
-            # 计算target Q值
             target_q1 = self.target_critic1(next_joint_q, next_vertex_k, next_vertex_v, 
-                                          vertex_mask=vertex_mask, action=next_actions)
+                                        vertex_mask=vertex_mask, action=next_actions)
             target_q2 = self.target_critic2(next_joint_q, next_vertex_k, next_vertex_v, 
-                                          vertex_mask=vertex_mask, action=next_actions)
+                                        vertex_mask=vertex_mask, action=next_actions)
             target_q = torch.min(target_q1, target_q2) - self.alpha * next_log_probs
             target_q = rewards + (1 - dones) * self.gamma * target_q
+            
+            # 🛡️ Target Q值稳定性检查
+            target_q = torch.clamp(target_q, -50.0, 50.0)
         
         # 当前Q值
         current_q1 = self.critic1(joint_q, vertex_k, vertex_v, vertex_mask=vertex_mask, action=actions)
         current_q2 = self.critic2(joint_q, vertex_k, vertex_v, vertex_mask=vertex_mask, action=actions)
         
-        # Critic损失
-        critic_loss = nn.MSELoss()(current_q1, target_q) + nn.MSELoss()(current_q2, target_q)
+        # 🛡️ 当前Q值稳定性检查
+        current_q1 = torch.clamp(current_q1, -50.0, 50.0)
+        current_q2 = torch.clamp(current_q2, -50.0, 50.0)
+        
+        # 使用Huber Loss代替MSE Loss，更稳定
+        critic_loss = nn.SmoothL1Loss()(current_q1, target_q) + nn.SmoothL1Loss()(current_q2, target_q)
+        
+        # 🛡️ Loss稳定性检查
+        if critic_loss > 10.0:
+            print(f"⚠️ 大Critic Loss: {critic_loss:.3f}, 跳过此次更新")
+            return None
         
         # 更新Critic
         self.critic_optimizer.zero_grad()
         critic_loss.backward()
         torch.nn.utils.clip_grad_norm_(
-        list(self.critic1.parameters()) + list(self.critic2.parameters()),
-        max_norm=1.0
+            list(self.critic1.parameters()) + list(self.critic2.parameters()),
+            max_norm=0.5  # 更严格的梯度裁剪
         )
         self.critic_optimizer.step()
         

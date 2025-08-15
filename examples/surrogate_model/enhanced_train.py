@@ -198,7 +198,7 @@ def main(args):
     num_joints = envs.action_space.shape[0]
     print(f"Number of joints: {num_joints}")
     num_updates = 5
-    num_step = 50000
+    num_step = 100000
     data_handler = DataHandler(num_joints, args.env_type)
 
     if args.env_type == 'reacher2d':

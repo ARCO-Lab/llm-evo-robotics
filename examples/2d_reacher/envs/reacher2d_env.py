@@ -510,80 +510,85 @@ class Reacher2DEnv(Env):
         return [math.degrees(body.angle) for body in self.bodies]
 
     def _compute_reward(self):
-        """增强奖励函数，防止局部最优"""
+        """超稳定奖励函数 - 防止数值爆炸"""
         end_effector_pos = np.array(self._get_end_effector_position())
         distance_to_goal = np.linalg.norm(end_effector_pos - self.goal_pos)
         
-        # 🎯 增强距离奖励 - 距离越近奖励越大
-        distance_reward = -distance_to_goal / 40.0  # 从30.0改为40.0，稍微降低距离惩罚
+        # === 1. 距离奖励 - 使用tanh防止极值 ===
+        distance_reward = -np.tanh(distance_to_goal / 100.0) * 2.0  # 范围: -2.0 到 0
         
-        # 🎯 非线性距离奖励 - 接近目标时奖励急剧增加
-        if distance_to_goal < 100:  # 在100像素内给额外奖励
-            distance_bonus = (100 - distance_to_goal) / 5.0  # 从10.0改为5.0，增强奖励
-            distance_reward += distance_bonus
-        
-        # 进步奖励 - 大幅增强
+        # === 2. 进步奖励 - 严格限制范围 ===
         if not hasattr(self, 'prev_distance'):
             self.prev_distance = distance_to_goal
         
         progress = self.prev_distance - distance_to_goal
-        progress_reward = progress * 100.0  # 从50.0增加到100.0，更强的进步激励
+        progress_reward = np.clip(progress * 5.0, -1.0, 1.0)  # 严格限制在[-1,1]
         
-        # 🎯 成功奖励 - 大幅增加，让成功成为主要目标
-        success_bonus = 0.0
-        if distance_to_goal <= 10.0:  # 极近
-            success_bonus = 2000.0  # 从500.0增加到2000.0！
-        elif distance_to_goal <= 25.0:  # 目标阈值内  
-            success_bonus = 1000.0  # 从300.0增加到1000.0！
-        elif distance_to_goal <= 50.0:  # 较近
-            success_bonus = 500.0   # 从150.0增加到500.0！
-        elif distance_to_goal <= 100.0:  # 中等距离
-            success_bonus = 200.0   # 从50.0增加到200.0！
-        elif distance_to_goal <= 150.0:  # 新增：奖励中距离
-            success_bonus = 50.0
+        # === 3. 成功奖励 - 使用连续函数而非阶跃 ===
+        if distance_to_goal <= 50.0:
+            # 使用平滑的指数衰减
+            success_bonus = 2.0 * np.exp(-distance_to_goal / 25.0)  # 范围: 0 到 2.0
+        else:
+            success_bonus = 0.0
         
-        # 🎯 修复碰撞惩罚 - 降低到合理水平，鼓励探索
+        # === 4. 碰撞惩罚 - 严格限制 ===
         collision_penalty = 0.0
         current_collisions = getattr(self, 'collision_count', 0)
         
-        # 初始化prev_collision_count
         if not hasattr(self, 'prev_collision_count'):
             self.prev_collision_count = 0
         
-        # 计算当前step的新碰撞数量
         new_collisions = current_collisions - self.prev_collision_count
         if new_collisions > 0:
-            collision_penalty = -new_collisions * 30.0  # 从100.0降低到30.0，减少过度惩罚
-            print(f"⚠️ 检测到{new_collisions}次新碰撞，碰撞惩罚: {collision_penalty}")
+            collision_penalty = -np.clip(new_collisions * 0.5, 0, 1.0)  # 最大-1.0
         
-        # 🎯 轻微的持续碰撞惩罚
         if current_collisions > 0:
-            persistent_penalty = -3.0  # 从-10.0降低到-3.0，允许适度接触
-            collision_penalty += persistent_penalty
+            collision_penalty += -0.1  # 轻微持续惩罚
         
-        # 更新碰撞计数
         self.prev_collision_count = current_collisions
         
-        # 🎯 停滞惩罚 - 防止在远距离摇摆
+        # === 5. 移动方向奖励 - 新增，鼓励有效移动 ===
+        direction_reward = 0.0
+        if hasattr(self, 'prev_end_effector_pos'):
+            movement = np.array(end_effector_pos) - np.array(self.prev_end_effector_pos)
+            movement_norm = np.linalg.norm(movement)
+            
+            if movement_norm > 1e-6 and distance_to_goal > 1e-6:
+                goal_direction = np.array(self.goal_pos) - np.array(end_effector_pos)
+                goal_direction_norm = np.linalg.norm(goal_direction)
+                
+                if goal_direction_norm > 1e-6:
+                    # 计算移动与目标方向的相似度
+                    cosine_sim = np.dot(movement, goal_direction) / (movement_norm * goal_direction_norm)
+                    direction_reward = np.clip(cosine_sim * 0.5, -0.5, 0.5)
+        
+        self.prev_end_effector_pos = end_effector_pos.copy()
+        
+        # === 6. 停滞惩罚 - 温和版本 ===
         stagnation_penalty = 0.0
-        if distance_to_goal > 200:  # 距离太远时额外惩罚
-            stagnation_penalty = -(distance_to_goal - 200) / 20.0
-        
-        # 🎯 新增：障碍物距离奖励 - 鼓励避开障碍物
-        obstacle_avoidance_reward = self._compute_obstacle_avoidance_reward()
-        
-        # 🎯 新增：路径效率奖励 - 鼓励找到绕行路径
-        path_efficiency_reward = self._compute_path_efficiency_reward(end_effector_pos, distance_to_goal)
+        if distance_to_goal > 300:
+            stagnation_penalty = -np.tanh((distance_to_goal - 300) / 100.0) * 0.5
         
         self.prev_distance = distance_to_goal
         
-        total_reward = distance_reward + progress_reward + success_bonus + collision_penalty + stagnation_penalty + obstacle_avoidance_reward + path_efficiency_reward
-        scaled_reward = total_reward / 100.0  # 将所有奖励除以100
-        # 🔍 调试信息 - 确保碰撞惩罚被计算
-        if abs(collision_penalty) > 0.1:
-            print(f"💥 步骤{getattr(self, 'step_counter', 0)}: 碰撞惩罚={collision_penalty:.2f}, 总奖励={total_reward:.2f}")
+        # === 7. 总奖励计算 - 每个组件都有明确的边界 ===
+        total_reward = (distance_reward +      # [-2.0, 0]
+                    progress_reward +       # [-1.0, 1.0] 
+                    success_bonus +         # [0, 2.0]
+                    collision_penalty +     # [-1.1, 0]
+                    direction_reward +      # [-0.5, 0.5]
+                    stagnation_penalty)     # [-0.5, 0]
         
-        return scaled_reward
+        # 总范围: 约 [-5.1, 3.5]，非常安全
+        
+        # === 8. 最终安全检查 ===
+        final_reward = np.clip(total_reward, -5.0, 5.0)
+        
+        # 调试输出 - 监控异常值
+        if abs(final_reward) > 3.0:
+            print(f"⚠️ 大奖励值: {final_reward:.3f} (distance: {distance_to_goal:.1f})")
+        
+        return final_reward
     
     def _compute_obstacle_avoidance_reward(self):
         """计算障碍物避让奖励 - 鼓励机器人保持与障碍物的安全距离"""
