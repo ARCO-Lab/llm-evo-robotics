@@ -19,12 +19,13 @@ import matplotlib.patches as mpatches
 from collections import defaultdict, deque
 from datetime import datetime
 import pickle
+import sys # Added for sys.version_info
 
 
 class TrainingLogger:
     """训练损失记录器"""
     
-    def __init__(self, log_dir="training_logs", experiment_name=None):
+    def __init__(self, log_dir="training_logs", experiment_name=None, hyperparams=None, env_config=None):
         self.log_dir = log_dir
         self.experiment_name = experiment_name or f"experiment_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         self.experiment_dir = os.path.join(log_dir, self.experiment_name)
@@ -39,15 +40,27 @@ class TrainingLogger:
         self.episode_history = []
         
         # 实时统计
-        self.recent_losses = defaultdict(list)  # 🔧 修复: 改为普通list，手动管理最大长度
-        self.max_recent_size = 100  # 🔧 添加: 最大保留数量
+        self.recent_losses = defaultdict(list)
+        self.max_recent_size = 100
         self.start_time = time.time()
         
-        # 配置信息
+        # 🚀 NEW: 增强的配置信息
         self.config = {
-            'experiment_name': self.experiment_name,
-            'start_time': datetime.now().isoformat(),
-            'log_dir': self.experiment_dir
+            'experiment_info': {
+                'experiment_name': self.experiment_name,
+                'start_time': datetime.now().isoformat(),
+                'log_dir': self.experiment_dir,
+                'python_version': f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
+                'platform': os.name
+            },
+            'hyperparams': hyperparams or {},
+            'env_config': env_config or {},
+            'training_metrics': {
+                'total_steps': 0,
+                'total_episodes': 0,
+                'training_time_hours': 0,
+                'avg_steps_per_second': 0
+            }
         }
         
         print(f"📊 TrainingLogger 初始化完成")
@@ -55,6 +68,21 @@ class TrainingLogger:
         print(f"   日志目录: {self.experiment_dir}")
         
         # 保存配置
+        self.save_config()
+    
+    def update_hyperparams(self, hyperparams):
+        """更新超参数信息"""
+        self.config['hyperparams'].update(hyperparams)
+        self.save_config()
+    
+    def update_env_config(self, env_config):
+        """更新环境配置信息"""
+        self.config['env_config'].update(env_config)
+        self.save_config()
+    
+    def update_training_metrics(self, metrics):
+        """更新训练指标"""
+        self.config['training_metrics'].update(metrics)
         self.save_config()
     
     def log_step(self, step, metrics, episode=None):
@@ -285,7 +313,7 @@ class TrainingLogger:
             json.dump(self.config, f, indent=2)
     
     def generate_report(self):
-        """生成训练报告"""
+        """生成详细的训练报告"""
         if not self.step_history:
             print("❌ 没有数据生成报告")
             return
@@ -294,16 +322,80 @@ class TrainingLogger:
         
         with open(report_path, 'w') as f:
             f.write(f"Training Report - {self.experiment_name}\n")
-            f.write("=" * 50 + "\n\n")
+            f.write("=" * 80 + "\n\n")
             
-            f.write(f"实验配置:\n")
-            f.write(f"  开始时间: {self.config['start_time']}\n")
-            f.write(f"  总训练步数: {self.step_history[-1]}\n")
-            f.write(f"  总训练时间: {self.time_history[-1]/3600:.2f} 小时\n")
-            f.write(f"  平均步数/秒: {self.step_history[-1]/self.time_history[-1]:.2f}\n\n")
+            # 🚀 NEW: 实验基本信息
+            f.write("📋 实验基本信息:\n")
+            exp_info = self.config.get('experiment_info', {})
+            f.write(f"  实验名称: {exp_info.get('experiment_name', 'N/A')}\n")
+            f.write(f"  开始时间: {exp_info.get('start_time', 'N/A')}\n")
+            f.write(f"  结束时间: {datetime.now().isoformat()}\n")
+            f.write(f"  Python版本: {exp_info.get('python_version', 'N/A')}\n")
+            f.write(f"  平台: {exp_info.get('platform', 'N/A')}\n")
+            f.write(f"  日志目录: {exp_info.get('log_dir', 'N/A')}\n\n")
             
-            f.write("损失统计:\n")
-            for metric_name in ['critic_loss', 'actor_loss', 'alpha_loss', 'alpha']:
+            # 🚀 NEW: 训练配置和超参数
+            f.write("⚙️ 训练超参数:\n")
+            hyperparams = self.config.get('hyperparams', {})
+            if hyperparams:
+                # SAC相关参数
+                sac_params = {k: v for k, v in hyperparams.items() if k.startswith('sac_') or k in ['lr', 'alpha', 'batch_size', 'buffer_capacity']}
+                if sac_params:
+                    f.write("  SAC算法参数:\n")
+                    for key, value in sac_params.items():
+                        f.write(f"    {key}: {value}\n")
+                
+                # 训练相关参数
+                train_params = {k: v for k, v in hyperparams.items() if k in ['warmup_steps', 'update_frequency', 'num_processes', 'seed']}
+                if train_params:
+                    f.write("  训练流程参数:\n")
+                    for key, value in train_params.items():
+                        f.write(f"    {key}: {value}\n")
+                
+                # 其他参数
+                other_params = {k: v for k, v in hyperparams.items() if k not in sac_params and k not in train_params}
+                if other_params:
+                    f.write("  其他参数:\n")
+                    for key, value in other_params.items():
+                        f.write(f"    {key}: {value}\n")
+            else:
+                f.write("  未记录超参数信息\n")
+            f.write("\n")
+            
+            # 🚀 NEW: 环境配置
+            f.write("🌍 环境配置:\n")
+            env_config = self.config.get('env_config', {})
+            if env_config:
+                for key, value in env_config.items():
+                    if isinstance(value, (list, tuple)):
+                        f.write(f"  {key}: {list(value)}\n")
+                    elif isinstance(value, dict):
+                        f.write(f"  {key}:\n")
+                        for sub_key, sub_value in value.items():
+                            f.write(f"    {sub_key}: {sub_value}\n")
+                    else:
+                        f.write(f"  {key}: {value}\n")
+            else:
+                f.write("  未记录环境配置信息\n")
+            f.write("\n")
+            
+            # 🚀 NEW: 训练统计概览
+            f.write("📊 训练统计概览:\n")
+            total_time_hours = self.time_history[-1] / 3600 if self.time_history else 0
+            f.write(f"  总训练步数: {self.step_history[-1] if self.step_history else 0}\n")
+            f.write(f"  总训练时间: {total_time_hours:.2f} 小时\n")
+            f.write(f"  平均训练速度: {self.step_history[-1]/self.time_history[-1]:.2f} 步/秒\n")
+            
+            if self.episode_history:
+                f.write(f"  总Episode数: {max(self.episode_history) if self.episode_history else 0}\n")
+                f.write(f"  平均Episode长度: {self.step_history[-1]/max(self.episode_history):.1f} 步\n")
+            f.write("\n")
+            
+            # 🚀 ENHANCED: 损失统计分析
+            f.write("📈 训练损失分析:\n")
+            loss_metrics = ['critic_loss', 'actor_loss', 'alpha_loss', 'alpha']
+            
+            for metric_name in loss_metrics:
                 if metric_name in self.loss_history:
                     values = self.loss_history[metric_name]
                     f.write(f"  {metric_name}:\n")
@@ -311,9 +403,56 @@ class TrainingLogger:
                     f.write(f"    平均值: {np.mean(values):.6f}\n")
                     f.write(f"    标准差: {np.std(values):.6f}\n")
                     f.write(f"    最小值: {np.min(values):.6f}\n")
-                    f.write(f"    最大值: {np.max(values):.6f}\n\n")
+                    f.write(f"    最大值: {np.max(values):.6f}\n")
+                    
+                    # 趋势分析
+                    if len(values) > 100:
+                        recent_values = values[-100:]
+                        early_values = values[:100]
+                        trend = np.mean(recent_values) - np.mean(early_values)
+                        f.write(f"    趋势(近期vs早期): {trend:+.6f}\n")
+                    f.write("\n")
+            
+            # 🚀 NEW: Q值统计
+            q_metrics = ['q1_mean', 'q2_mean', 'buffer_size', 'learning_rate']
+            f.write("🎯 训练细节统计:\n")
+            for metric_name in q_metrics:
+                if metric_name in self.loss_history:
+                    values = self.loss_history[metric_name]
+                    f.write(f"  {metric_name}:\n")
+                    f.write(f"    最终值: {values[-1]:.6f}\n")
+                    f.write(f"    平均值: {np.mean(values):.6f}\n")
+                    if metric_name in ['q1_mean', 'q2_mean']:
+                        f.write(f"    最小值: {np.min(values):.6f}\n")
+                        f.write(f"    最大值: {np.max(values):.6f}\n")
+                    f.write("\n")
+            
+            # 🚀 NEW: 训练建议
+            f.write("💡 训练分析建议:\n")
+            if 'critic_loss' in self.loss_history:
+                final_critic_loss = self.loss_history['critic_loss'][-1]
+                if final_critic_loss < 1.0:
+                    f.write("  ✅ Critic Loss表现优秀 (< 1.0)\n")
+                elif final_critic_loss < 2.0:
+                    f.write("  👍 Critic Loss表现良好 (< 2.0)\n")
+                elif final_critic_loss < 5.0:
+                    f.write("  ⚠️ Critic Loss较高 (< 5.0)，建议检查奖励函数\n")
+                else:
+                    f.write("  ❌ Critic Loss过高 (>= 5.0)，需要调整超参数或奖励函数\n")
+            
+            if 'actor_loss' in self.loss_history:
+                final_actor_loss = self.loss_history['actor_loss'][-1]
+                if final_actor_loss < -2.0:
+                    f.write("  ✅ Actor Loss表现优秀 (< -2.0)\n")
+                elif final_actor_loss < 0:
+                    f.write("  👍 Actor Loss表现良好 (< 0)\n")
+                else:
+                    f.write("  ⚠️ Actor Loss为正值，策略可能需要改进\n")
+            
+            f.write("\n")
+            f.write("=" * 80 + "\n")
         
-        print(f"📋 训练报告已保存到: {report_path}")
+        print(f"📋 详细训练报告已保存到: {report_path}")
         return report_path
     
     @classmethod

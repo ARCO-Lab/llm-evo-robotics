@@ -23,16 +23,17 @@ sys.path.append(base_dir)
 sys.path.insert(0, os.path.join(base_dir, 'examples/2d_reacher'))
 sys.path.insert(0, os.path.join(base_dir, 'examples/2d_reacher/envs'))
 sys.path.insert(0, os.path.join(base_dir, 'examples/2d_reacher/configs'))
-print(sys.path)
+import logging
 
 class Reacher2DEnv(Env):
 
     
-    def __init__(self, num_links=3, link_lengths=None, render_mode=None, config_path=None, curriculum_stage=0):
+    def __init__(self, num_links=3, link_lengths=None, render_mode=None, config_path=None, curriculum_stage=0, debug_level='SILENT'):
 
         super().__init__()
+        self._set_logging(debug_level)
         self.config = self._load_config(config_path)
-        print(f"self.config: {self.config}")
+        self.logger.info(f"self.config: {self.config}")
         self.anchor_point = self.config["start"]["position"]
         self.gym_api_version = "old" # old or new. new is gymnasium, old is gym
         
@@ -51,7 +52,7 @@ class Reacher2DEnv(Env):
         
         self.render_mode = render_mode
         # self.goal_pos = np.array([250.0, 250.0])
-        self.dt = 1/60.0  # 增加时间步长精度
+        self.dt = 1/120.0  # 增加时间步长精度
         self.max_torque = 100  # 增加最大扭矩
 
         # 定义Gymnasium必需的action_space和observation_space
@@ -62,6 +63,9 @@ class Reacher2DEnv(Env):
         self.space.gravity = (0.0, 981.0)
         # 减少全局阻尼
         self.space.damping = 0.999  # 🔧 增加阻尼让角度限制更有效
+        self.space.collisions_slop = 0.1
+        self.space.collision_bias = (1-0.1) ** 60
+        self.space.sleep_time_threshold = 0.5
         self.obstacles = []
         self.bodies = []
         self.joints = []
@@ -76,6 +80,44 @@ class Reacher2DEnv(Env):
 
         if self.render_mode:
             self._init_rendering()
+
+    def _set_logging(self, debug_level='INFO'):
+
+        self.logger = logging.getLogger(f"Reacher2DEnv_{id(self)}")
+
+        if not self.logger.handlers:
+
+            level_map = {
+
+                'DEBUG': logging.DEBUG,
+                'INFO': logging.INFO,
+                'WARNING': logging.WARNING,
+                'ERROR': logging.ERROR,
+                'CRITICAL': logging.CRITICAL,
+                 'SILENT': logging.CRITICAL + 10
+            }
+
+            env_level = os.getenv('REACHER_LOG_LEVEL',  debug_level).upper()
+            log_level = level_map.get(env_level, logging.INFO)
+
+            self.logger.setLevel(log_level)
+
+            if env_level != 'SILENT' and log_level <= logging.CRITICAL:
+
+                console_handler = logging.StreamHandler()
+                console_handler.setLevel(log_level)
+
+                formatter = logging.Formatter('%(levelname)s [Reacher2D]: %(message)s')
+                console_handler.setFormatter(formatter)
+                self.logger.addHandler(console_handler)
+
+            self.log_level = self.logger.level
+            self.is_debug = self.log_level <= logging.DEBUG
+            self.is_info = self.log_level <= logging.INFO
+            self.is_warning = self.log_level <= logging.WARNING
+
+            self.is_silent = env_level == 'SILENT'
+
 
     def _init_rendering(self):
         """初始化渲染相关组件"""
@@ -206,9 +248,9 @@ class Reacher2DEnv(Env):
                             collision_type_b=j + 1,
                             begin=joint_collision_handler  # 改为begin回调
                         )
-                        print(f"✅ 设置关节{i+1}与关节{j+1}的碰撞检测")
+                        self.logger.debug(f"✅ 设置关节{i+1}与关节{j+1}的碰撞检测")
                     except Exception as e:
-                        print(f"⚠️ 设置关节碰撞处理器失败: {e}")
+                        self.logger.warning(f"⚠️ 设置关节碰撞处理器失败: {e}")
             
             # 🎯 2. 新增：机器人与障碍物碰撞处理 - 使用正确API和begin回调
             def robot_obstacle_collision_handler(arbiter, space, data):
@@ -218,7 +260,7 @@ class Reacher2DEnv(Env):
                     self.collision_count = 0
                 self.collision_count += 1
                 
-                print(f"🚨 检测到机器人-障碍物碰撞! 总计: {self.collision_count}")
+                self.logger.debug(f"🚨 检测到机器人-障碍物碰撞! 总计: {self.collision_count}")
                 
                 # 可以选择：
                 # return True   # 允许碰撞（物理反弹）
@@ -236,12 +278,12 @@ class Reacher2DEnv(Env):
                         collision_type_b=OBSTACLE_COLLISION_TYPE,
                         begin=robot_obstacle_collision_handler  # 改为begin回调
                     )
-                    print(f"✅ 设置机器人链接{i+1}与障碍物的碰撞检测")
+                    self.logger.debug(f"✅ 设置机器人链接{i+1}与障碍物的碰撞检测")
                 except Exception as e:
-                    print(f"⚠️ 设置机器人-障碍物碰撞处理器失败: {e}")
+                    self.logger.warning(f"⚠️ 设置机器人-障碍物碰撞处理器失败: {e}")
                     
         except Exception as e:
-            print(f"⚠️ 碰撞处理器设置跳过: {e}")
+            self.logger.warning(f"⚠️ 碰撞处理器设置跳过: {e}")
 
     def _apply_damping(self, body, gravity, damping, dt):
         """应用轻微的阻尼力"""
@@ -475,18 +517,18 @@ class Reacher2DEnv(Env):
                     relative_angle += 360
                 relative_angles.append(relative_angle)
         
-        print(f"步骤 {self.step_counter:4d} - 绝对角度: {[f'{a:7.1f}°' for a in absolute_angles]}")
-        print(f"              相对角度: {[f'{a:7.1f}°' for a in relative_angles]}")
+        self.logger.debug(f"步骤 {self.step_counter:4d} - 绝对角度: {[f'{a:7.1f}°' for a in absolute_angles]}")
+        self.logger.debug(f"              相对角度: {[f'{a:7.1f}°' for a in relative_angles]}")
         
         # 打印Motor状态
         motor_rates = [motor.rate for motor in self.motors]
-        print(f"    Motor角速度: {[f'{r:6.2f}' for r in motor_rates]} rad/s")
+        self.logger.debug(f"    Motor角速度: {[f'{r:6.2f}' for r in motor_rates]} rad/s")
         
         # 检查约束是否还存在
         active_constraints = [c for c in self.joint_limits if c is not None]
         constraints_count = len([c for c in self.space.constraints if hasattr(c, 'min')])
         motors_count = len([c for c in self.space.constraints if isinstance(c, pymunk.SimpleMotor)])
-        print(f"    约束数量: {constraints_count}/{len(active_constraints)} 角度限制, {motors_count}/{len(self.motors)} Motors")
+        self.logger.debug(f"    约束数量: {constraints_count}/{len(active_constraints)} 角度限制, {motors_count}/{len(self.motors)} Motors")
         
         # 检查相对角度是否超出限制
         limit_degrees = [None, (-120, 120), (-120, 120), (-120, 120), (-120, 120)]  # 基座无限制
@@ -498,40 +540,149 @@ class Reacher2DEnv(Env):
                     violations.append(f"关节{i+1}相对角度超限: {rel_angle:.1f}°")
         
         if violations:
-            print(f"    ⚠️  角度超限: {', '.join(violations)} (物理约束应该防止这种情况)")
+            self.logger.warning(f"    ⚠️  角度超限: {', '.join(violations)} (物理约束应该防止这种情况)")
         else:
             if len(active_constraints) > 0:
-                print(f"    ✅ 所有受限关节相对角度在范围内 (基座关节无限制)")
-            else:
-                print(f"    ✅ 所有关节正常运行")
+                self.logger.debug(f"    ✅ 所有受限关节相对角度在范围内 (基座关节无限制)")
+            else:   
+                self.logger.debug(f"    ✅ 所有关节正常运行")
 
     def get_joint_angles(self):
         """获取所有关节的当前角度（度数）"""
         return [math.degrees(body.angle) for body in self.bodies]
 
+    # def _compute_reward(self):
+    #     """超稳定奖励函数 - 防止数值爆炸"""
+    #     end_effector_pos = np.array(self._get_end_effector_position())
+    #     distance_to_goal = np.linalg.norm(end_effector_pos - self.goal_pos)
+        
+    #     # === 1. 距离奖励 - 使用tanh防止极值 ===
+    #     distance_reward = -np.tanh(distance_to_goal / 100.0) * 2.0  # 范围: -2.0 到 0
+        
+    #     # === 2. 进步奖励 - 严格限制范围 ===
+    #     if not hasattr(self, 'prev_distance'):
+    #         self.prev_distance = distance_to_goal
+        
+    #     progress = self.prev_distance - distance_to_goal
+    #     progress_reward = np.clip(progress * 5.0, -1.0, 1.0)  # 严格限制在[-1,1]
+        
+    #     # === 3. 成功奖励 - 使用连续函数而非阶跃 ===
+    #     if distance_to_goal <= 50.0:
+    #         # 使用平滑的指数衰减
+    #         success_bonus = 2.0 * np.exp(-distance_to_goal / 25.0)  # 范围: 0 到 2.0
+    #     else:
+    #         success_bonus = 0.0
+        
+    #     # === 4. 碰撞惩罚 - 严格限制 ===
+    #     collision_penalty = 0.0
+    #     current_collisions = getattr(self, 'collision_count', 0)
+        
+    #     if not hasattr(self, 'prev_collision_count'):
+    #         self.prev_collision_count = 0
+        
+    #     new_collisions = current_collisions - self.prev_collision_count
+    #     if new_collisions > 0:
+    #         collision_penalty = -np.clip(new_collisions * 0.5, 0, 1.0)  # 最大-1.0
+        
+    #     if current_collisions > 0:
+    #         collision_penalty += -0.1  # 轻微持续惩罚
+        
+    #     self.prev_collision_count = current_collisions
+        
+    #     # === 5. 移动方向奖励 - 新增，鼓励有效移动 ===
+    #     direction_reward = 0.0
+    #     if hasattr(self, 'prev_end_effector_pos'):
+    #         movement = np.array(end_effector_pos) - np.array(self.prev_end_effector_pos)
+    #         movement_norm = np.linalg.norm(movement)
+            
+    #         if movement_norm > 1e-6 and distance_to_goal > 1e-6:
+    #             goal_direction = np.array(self.goal_pos) - np.array(end_effector_pos)
+    #             goal_direction_norm = np.linalg.norm(goal_direction)
+                
+    #             if goal_direction_norm > 1e-6:
+    #                 # 计算移动与目标方向的相似度
+    #                 cosine_sim = np.dot(movement, goal_direction) / (movement_norm * goal_direction_norm)
+    #                 direction_reward = np.clip(cosine_sim * 0.5, -0.5, 0.5)
+        
+    #     self.prev_end_effector_pos = end_effector_pos.copy()
+        
+    #     # === 6. 停滞惩罚 - 温和版本 ===
+    #     stagnation_penalty = 0.0
+    #     if distance_to_goal > 300:
+    #         stagnation_penalty = -np.tanh((distance_to_goal - 300) / 100.0) * 0.5
+        
+    #     self.prev_distance = distance_to_goal
+        
+    #     # === 7. 总奖励计算 - 每个组件都有明确的边界 ===
+    #     total_reward = (distance_reward +      # [-2.0, 0]
+    #                 progress_reward +       # [-1.0, 1.0] 
+    #                 success_bonus +         # [0, 2.0]
+    #                 collision_penalty +     # [-1.1, 0]
+    #                 direction_reward +      # [-0.5, 0.5]
+    #                 stagnation_penalty)     # [-0.5, 0]
+        
+    #     # 总范围: 约 [-5.1, 3.5]，非常安全
+        
+    #     # === 8. 最终安全检查 ===
+    #     final_reward = np.clip(total_reward, -5.0, 5.0)
+        
+    #     # 调试输出 - 监控异常值
+    #     if abs(final_reward) > 3.0:
+    #         self.logger.warning(f"⚠️ 大奖励值: {final_reward:.3f} (distance: {distance_to_goal:.1f})")
+        
+    #     return final_reward
+
+
     def _compute_reward(self):
-        """超稳定奖励函数 - 防止数值爆炸"""
+        """修复版奖励函数 - 适度的奖励幅度"""
         end_effector_pos = np.array(self._get_end_effector_position())
         distance_to_goal = np.linalg.norm(end_effector_pos - self.goal_pos)
         
-        # === 1. 距离奖励 - 使用tanh防止极值 ===
-        distance_reward = -np.tanh(distance_to_goal / 100.0) * 2.0  # 范围: -2.0 到 0
+        # === 1. 适度的距离奖励 - 线性但范围控制 ===
+        max_distance = 400.0  # 预期最大距离
+        distance_reward = -distance_to_goal / max_distance * 3.0  # 范围: -3.0 到 0 (降低了)
         
-        # === 2. 进步奖励 - 严格限制范围 ===
+        # === 2. 适度的分级成功奖励 ===
+        success_bonus = 0.0
+        if distance_to_goal <= 35.0:  # 完全成功
+            success_bonus = 5.0  # 从50.0降低到5.0
+        elif distance_to_goal <= 70.0:  # 接近成功
+            success_bonus = 2.0  # 从20.0降低到2.0
+        elif distance_to_goal <= 100.0:  # 部分成功
+            success_bonus = 1.0  # 从10.0降低到1.0
+        elif distance_to_goal <= 150.0:  # 有进展
+            success_bonus = 0.5  # 从5.0降低到0.5
+        
+        # === 3. 适度的进步奖励 ===
         if not hasattr(self, 'prev_distance'):
             self.prev_distance = distance_to_goal
         
         progress = self.prev_distance - distance_to_goal
-        progress_reward = np.clip(progress * 5.0, -1.0, 1.0)  # 严格限制在[-1,1]
+        progress_reward = progress * 5.0  # 从20.0降低到5.0
+        progress_reward = np.clip(progress_reward, -2.0, 2.0)  # 更严格的限制
         
-        # === 3. 成功奖励 - 使用连续函数而非阶跃 ===
-        if distance_to_goal <= 50.0:
-            # 使用平滑的指数衰减
-            success_bonus = 2.0 * np.exp(-distance_to_goal / 25.0)  # 范围: 0 到 2.0
-        else:
-            success_bonus = 0.0
+        # === 4. 适度的方向奖励 ===
+        direction_reward = 0.0
+        if hasattr(self, 'prev_end_effector_pos'):
+            movement = np.array(end_effector_pos) - np.array(self.prev_end_effector_pos)
+            movement_norm = np.linalg.norm(movement)
+            
+            if movement_norm > 1e-6:
+                goal_direction = np.array(self.goal_pos) - np.array(end_effector_pos)
+                goal_direction_norm = np.linalg.norm(goal_direction)
+                
+                if goal_direction_norm > 1e-6:
+                    cosine_sim = np.dot(movement, goal_direction) / (movement_norm * goal_direction_norm)
+                    direction_reward = cosine_sim * 0.5  # 从2.0降低到0.5
         
-        # === 4. 碰撞惩罚 - 严格限制 ===
+        self.prev_end_effector_pos = end_effector_pos.copy()
+        
+        # === 5. 适度的停滞惩罚 ===
+        stagnation_penalty = 0.0
+        if distance_to_goal > 200:
+            stagnation_penalty = -0.5  # 从-2.0降低到-0.5
+        
+        # === 6. 适度的碰撞惩罚 ===
         collision_penalty = 0.0
         current_collisions = getattr(self, 'collision_count', 0)
         
@@ -540,53 +691,39 @@ class Reacher2DEnv(Env):
         
         new_collisions = current_collisions - self.prev_collision_count
         if new_collisions > 0:
-            collision_penalty = -np.clip(new_collisions * 0.5, 0, 1.0)  # 最大-1.0
+            collision_penalty = -np.clip(new_collisions * 0.5, 0, 1.0)  # 降低惩罚
         
         if current_collisions > 0:
-            collision_penalty += -0.1  # 轻微持续惩罚
+            collision_penalty += -0.1  # 持续接触惩罚
         
         self.prev_collision_count = current_collisions
         
-        # === 5. 移动方向奖励 - 新增，鼓励有效移动 ===
-        direction_reward = 0.0
-        if hasattr(self, 'prev_end_effector_pos'):
-            movement = np.array(end_effector_pos) - np.array(self.prev_end_effector_pos)
-            movement_norm = np.linalg.norm(movement)
-            
-            if movement_norm > 1e-6 and distance_to_goal > 1e-6:
-                goal_direction = np.array(self.goal_pos) - np.array(end_effector_pos)
-                goal_direction_norm = np.linalg.norm(goal_direction)
-                
-                if goal_direction_norm > 1e-6:
-                    # 计算移动与目标方向的相似度
-                    cosine_sim = np.dot(movement, goal_direction) / (movement_norm * goal_direction_norm)
-                    direction_reward = np.clip(cosine_sim * 0.5, -0.5, 0.5)
-        
-        self.prev_end_effector_pos = end_effector_pos.copy()
-        
-        # === 6. 停滞惩罚 - 温和版本 ===
-        stagnation_penalty = 0.0
-        if distance_to_goal > 300:
-            stagnation_penalty = -np.tanh((distance_to_goal - 300) / 100.0) * 0.5
-        
         self.prev_distance = distance_to_goal
         
-        # === 7. 总奖励计算 - 每个组件都有明确的边界 ===
-        total_reward = (distance_reward +      # [-2.0, 0]
-                    progress_reward +       # [-1.0, 1.0] 
-                    success_bonus +         # [0, 2.0]
-                    collision_penalty +     # [-1.1, 0]
+        # === 7. 总奖励 ===
+        total_reward = (distance_reward +      # [-3.0, 0]
+                    progress_reward +       # [-2.0, 2.0] 
+                    success_bonus +         # [0, 5.0]
                     direction_reward +      # [-0.5, 0.5]
-                    stagnation_penalty)     # [-0.5, 0]
+                    stagnation_penalty +    # [-0.5, 0]
+                    collision_penalty)      # [-1.1, 0]
         
-        # 总范围: 约 [-5.1, 3.5]，非常安全
+        # 新的总范围: [-7.1, 7.5] ← 比之前小很多
         
-        # === 8. 最终安全检查 ===
-        final_reward = np.clip(total_reward, -5.0, 5.0)
+        # === 8. 最终缩放 ===
+        final_reward = total_reward * 0.5  # 再整体缩放50%
+        # 最终范围: [-3.55, 3.75] ← 非常安全的范围
         
-        # 调试输出 - 监控异常值
-        if abs(final_reward) > 3.0:
-            print(f"⚠️ 大奖励值: {final_reward:.3f} (distance: {distance_to_goal:.1f})")
+        # === 9. 调试输出 - 每100步输出一次奖励分解 ===
+        if hasattr(self, 'step_counter') and self.step_counter % 100 == 0:
+            self.logger.info(f"🎯 Step {self.step_counter} 奖励分解:")
+            self.logger.info(f"   距离奖励: {distance_reward:.2f} (距离: {distance_to_goal:.1f})")
+            self.logger.info(f"   进步奖励: {progress_reward:.2f}")
+            self.logger.info(f"   成功奖励: {success_bonus:.2f}")
+            self.logger.info(f"   方向奖励: {direction_reward:.2f}")
+            self.logger.info(f"   停滞惩罚: {stagnation_penalty:.2f}")
+            self.logger.info(f"   碰撞惩罚: {collision_penalty:.2f}")
+            self.logger.info(f"   最终奖励: {final_reward:.2f}")
         
         return final_reward
     
@@ -738,16 +875,16 @@ class Reacher2DEnv(Env):
             # 将相对路径转换为基于脚本目录的绝对路径
             config_path = os.path.normpath(os.path.join(script_dir, "..", config_path))
         
-        print(f"尝试加载配置文件: {config_path}")  # 调试用
-        
+        self.logger.debug(f"尝试加载配置文件: {config_path}")  # 调试用
+
         try:
             with open(config_path, 'r') as f:
                 return yaml.safe_load(f)
         except FileNotFoundError:
-            print(f"错误：配置文件 {config_path} 不存在")
+            self.logger.error(f"错误：配置文件 {config_path} 不存在")
             return {}
         except Exception as e:
-            print(f"错误：加载配置文件失败: {e}")
+            self.logger.error(f"错误：加载配置文件失败: {e}")
             return {}
 
 
@@ -762,9 +899,10 @@ class Reacher2DEnv(Env):
             if obs["shape"] == "segment":
                 p1 = tuple(obs["points"][0])
                 p2 = tuple(obs["points"][1])
-                shape = pymunk.Segment(self.space.static_body, p1, p2, 3.0)
+                shape = pymunk.Segment(self.space.static_body, p1, p2, radius=5.0)
                 shape.friction = 1.0
                 shape.color = (0,0,0,255)
+                shape.density = 1000
                 
                 # 🎯 关键添加：设置障碍物碰撞类型
                 shape.collision_type = OBSTACLE_COLLISION_TYPE
@@ -827,15 +965,15 @@ if __name__ == "__main__":
     env.close()
     
     # 📊 最终总结
-    print("\n" + "="*60)
-    print("🎯 增强角度限制测试总结:")
-    print(f"✅ 测试步数: {step_count}")
-    print(f"✅ 约束数量: {len(env.joint_limits)}")
-    print(f"✅ 最终关节角度: {env.get_joint_angles()}")
-    print(f"✅ 改进的角度限制系统:")
-    print(f"   - 移除了SimpleMotor (避免冲突)")
-    print(f"   - 增强了RotaryLimitJoint约束力")
-    print(f"   - 添加了双重角度强制检查")
-    print(f"   - 增加了关节间碰撞检测")
-    print(f"   - 使用更严格的角度限制")
-    print("="*60)
+    env.logger.info("\n" + "="*60)    
+    env.logger.info("🎯 增强角度限制测试总结:")
+    env.logger.info(f"✅ 测试步数: {step_count}")
+    env.logger.info(f"✅ 约束数量: {len(env.joint_limits)}")
+    env.logger.info(f"✅ 最终关节角度: {env.get_joint_angles()}")
+    env.logger.info(f"✅ 改进的角度限制系统:")
+    env.logger.info(f"   - 移除了SimpleMotor (避免冲突)")
+    env.logger.info(f"   - 增强了RotaryLimitJoint约束力")
+    env.logger.info(f"   - 添加了双重角度强制检查")
+    env.logger.info(f"   - 增加了关节间碰撞检测")
+    env.logger.info(f"   - 使用更严格的角度限制")
+    env.logger.info("="*60)   
