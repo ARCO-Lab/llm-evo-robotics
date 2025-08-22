@@ -402,9 +402,21 @@ def main(args):
     if args.env_name == 'reacher2d':
         smart_print("use reacher2d env")
 
+        if hasattr(args, 'num_joints') and hasattr(args, 'link_lengths'):
+            # 使用MAP-Elites传入的配置
+            num_links = args.num_joints
+            link_lengths = args.link_lengths
+            smart_print(f"🤖 使用MAP-Elites配置: {num_links}关节, 长度={link_lengths}")
+        else:
+            # 使用默认配置
+            num_links = 4
+            link_lengths = [80, 80, 80, 60]
+            smart_print(f"🤖 使用默认配置: {num_links}关节, 长度={link_lengths}")
+
+
         env_params = {
-            'num_links': 4,
-            'link_lengths': [80, 80, 80, 60],
+            'num_links': num_links,
+            'link_lengths': link_lengths,
             'render_mode': 'human',
             'config_path': "/home/xli149/Documents/repos/RoboGrammar/examples/2d_reacher/configs/reacher_with_zigzag_obstacles.yaml"
         }
@@ -649,7 +661,9 @@ def main(args):
                 
                 for proc_id in range(min(args.num_processes, 2)):
                     action_values = action_numpy[proc_id]
-                    smart_print(f"  Process {proc_id}: Actions = [{action_values[0]:+6.2f}, {action_values[1]:+6.2f}, {action_values[2]:+6.2f}, {action_values[3]:+6.2f}]")
+                    # smart_print(f"  Process {proc_id}: Actions = [{action_values[0]:+6.2f}, {action_values[1]:+6.2f}, {action_values[2]:+6.2f}, {action_values[3]:+6.2f}]")
+                    action_str = ', '.join([f"{val:+6.2f}" for val in action_values])
+                    smart_print(f"  Process {proc_id}: Actions = [{action_str}]")
                     smart_print(f"    Max action: {np.max(np.abs(action_values)):6.2f}, Mean abs: {np.mean(np.abs(action_values)):6.2f}")
 
             next_obs, reward, done, infos = envs.step(action_batch)

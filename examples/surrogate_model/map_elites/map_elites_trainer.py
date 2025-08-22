@@ -8,21 +8,28 @@ from training_adapter import MAPElitesTrainingAdapter
 
 
 class MAPElitesEvolutionTrainer:
-    """MAP-Elites进化训练器"""
+    """MAP-Elites进化训练器 - 支持可视化配置"""
     
     def __init__(self, base_args, num_initial_random: int = 20, 
-                 training_steps_per_individual: int = 3000):
+                 training_steps_per_individual: int = 3000,
+                 enable_rendering: bool = False,    # 🆕 是否启用渲染
+                 silent_mode: bool = True):         # 🆕 是否静默模式
         
         # 初始化组件
         self.archive = MAPElitesArchive()
         self.mutator = RobotMutator()
-        self.adapter = MAPElitesTrainingAdapter(base_args)
+        self.adapter = MAPElitesTrainingAdapter(
+            base_args, 
+            enable_rendering=enable_rendering,  # 🆕 传递渲染设置
+            silent_mode=silent_mode            # 🆕 传递静默设置
+        )
         
-        # 参数
         self.num_initial_random = num_initial_random
         self.training_steps_per_individual = training_steps_per_individual
         
         print("🧬 MAP-Elites进化训练器已初始化")
+        print(f"🎯 选择策略: 基于reward比例选择")
+        print(f"🎨 可视化: {'启用' if enable_rendering else '禁用'}")
     
     def run_evolution(self, num_generations: int = 50, individuals_per_generation: int = 10):
         """运行MAP-Elites进化"""

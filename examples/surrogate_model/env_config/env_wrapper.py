@@ -138,10 +138,17 @@ def make_reacher2d_env(env_params, seed, rank, log_dir=None, allow_early_resets=
         from reacher2d_env import Reacher2DEnv
         
         # 创建环境
+        # env = Reacher2DEnv(
+        #     num_links=env_params.get('num_links', 5),
+        #     link_lengths=env_params.get('link_lengths', [80, 50, 30, 20, 10]),
+        #     render_mode=env_params.get('render_mode', "human"),  # 训练环境不渲染
+        #     config_path=env_params.get('config_path', None)
+        # )
+
         env = Reacher2DEnv(
-            num_links=env_params.get('num_links', 5),
-            link_lengths=env_params.get('link_lengths', [80, 50, 30, 20, 10]),
-            render_mode=env_params.get('render_mode', "human"),  # 训练环境不渲染
+            num_links=env_params['num_links'],        # 🔧 移除默认值
+            link_lengths=env_params['link_lengths'],  # 🔧 移除默认值
+            render_mode=env_params.get('render_mode', "human"),
             config_path=env_params.get('config_path', None)
         )
         

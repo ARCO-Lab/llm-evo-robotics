@@ -1,0 +1,107 @@
+{
+  "config": {
+    "experiment_info": {
+      "experiment_name": "reacher2d_sac_20250821_200131",
+      "start_time": "2025-08-21T20:01:31.285978",
+      "log_dir": "./test_link_passing/training_logs/reacher2d_sac_20250821_200131",
+      "python_version": "3.10.12",
+      "platform": "posix"
+    },
+    "hyperparams": {
+      "learning_rate": 0.0001,
+      "alpha": 0.2,
+      "warmup_steps": 1000,
+      "target_entropy_factor": 0.8,
+      "batch_size": 64,
+      "buffer_capacity": 10000,
+      "gamma": 0.99,
+      "seed": 42,
+      "num_processes": 2,
+      "update_frequency": 1,
+      "total_steps": 120000,
+      "optimizer": "Adam",
+      "network_architecture": {
+        "attn_model_dims": "128-130-130-4",
+        "action_dim": 4,
+        "critic_hidden_layers": "\u5f85\u786e\u5b9a",
+        "actor_hidden_layers": "\u5f85\u786e\u5b9a"
+      }
+    },
+    "env_config": {
+      "env_name": "reacher2d",
+      "env_type": "reacher2d",
+      "num_links": 4,
+      "link_lengths": [
+        80.0,
+        70.0,
+        60.0,
+        50.0
+      ],
+      "config_path": "/home/xli149/Documents/repos/RoboGrammar/examples/2d_reacher/configs/reacher_with_zigzag_obstacles.yaml",
+      "render_mode": "human",
+      "reward_function": "\u8ddd\u79bb+\u8fdb\u5ea6+\u6210\u529f+\u78b0\u649e+\u65b9\u5411\u5956\u52b1",
+      "physics_engine": "PyMunk",
+      "goal_threshold": 35.0,
+      "obstacle_type": "zigzag",
+      "action_space": "continuous",
+      "observation_space": "joint_angles_and_positions",
+      "action_dim": 4
+    },
+    "training_metrics": {
+      "total_steps": 0,
+      "total_episodes": 0,
+      "training_time_hours": 0,
+      "avg_steps_per_second": 0
+    }
+  },
+  "steps": [
+    1000
+  ],
+  "times": [
+    1.9039051532745361
+  ],
+  "episodes": [
+    10
+  ],
+  "metrics": {
+    "critic_loss": [
+      5.748190463021601
+    ],
+    "actor_loss": [
+      -0.4512766493927258
+    ],
+    "alpha_loss": [
+      -0.0
+    ],
+    "alpha": [
+      0.9999000050000044
+    ],
+    "q1_mean": [
+      -0.7999605121026394
+    ],
+    "q2_mean": [
+      0.6319900520486528
+    ],
+    "buffer_size": [
+      2002.0
+    ],
+    "entropy_term": [
+      -0.5292473612854866
+    ],
+    "q_term": [
+      -0.0779707118927607
+    ],
+    "log_probs_mean": [
+      -2.6462368064274324
+    ],
+    "step": [
+      1000.0
+    ],
+    "learning_rate": [
+      0.0001
+    ],
+    "warmup_progress": [
+      1.0
+    ]
+  }
+}

@@ -20,10 +20,12 @@ except ImportError:
 
 
 class MAPElitesTrainingAdapter:
-    """MAP-Elites与SAC训练的适配器 - 真正使用enhanced_train.py"""
+    """MAP-Elites与SAC训练的适配器 - 优化版"""
     
     def __init__(self, base_args, base_save_dir: str = "./map_elites_experiments", 
-                 use_real_training: bool = True):
+                 use_real_training: bool = True,
+                 enable_rendering: bool = False,  # 🆕 控制是否显示可视化
+                 silent_mode: bool = True):       # 🆕 控制是否静默
         self.base_args = base_args
         self.base_save_dir = base_save_dir
         self.use_real_training = use_real_training and REAL_TRAINING_AVAILABLE
@@ -33,15 +35,20 @@ class MAPElitesTrainingAdapter:
         # 特征提取器
         self.feature_extractor = FeatureExtractor()
         
-        # 真实训练接口
+        # 🔧 优化：可配置的训练接口
         if self.use_real_training:
-            self.training_interface = MAPElitesTrainingInterface(silent_mode=True)
-            print("🔧 MAP-Elites训练适配器已初始化 (使用enhanced_train.py)")
+            self.training_interface = MAPElitesTrainingInterface(
+                silent_mode=silent_mode,
+                enable_rendering=enable_rendering
+            )
+            print(f"🔧 MAP-Elites训练适配器已初始化 (使用enhanced_train.py)")
+            print(f"   🎨 渲染: {'启用' if enable_rendering else '禁用'}")
+            print(f"   🔇 静默: {'启用' if silent_mode else '禁用'}")
         else:
             print("🔧 MAP-Elites训练适配器已初始化 (使用模拟训练)")
     
     def evaluate_individual(self, individual: Individual, training_steps: int = 5000) -> Individual:
-        """评估单个个体"""
+        """评估单个个体 - 增强版"""
         print(f"\n🧬 评估个体 {individual.individual_id}")
         print(f"🤖 基因型: num_links={individual.genotype.num_links}, "
               f"link_lengths={[f'{x:.1f}' for x in individual.genotype.link_lengths]}")
@@ -51,12 +58,20 @@ class MAPElitesTrainingAdapter:
         training_args = self._genotype_to_training_args(individual.genotype, training_steps)
         
         # 2. 运行训练
+        start_time = time.time()
         if self.use_real_training:
             print(f"   🎯 使用enhanced_train.py进行真实训练 ({training_steps} steps)")
-            training_metrics = self.training_interface.train_individual(training_args)
+            try:
+                training_metrics = self.training_interface.train_individual(training_args)
+            except Exception as e:
+                print(f"   ❌ 真实训练失败: {e}")
+                print(f"   🔄 回退到模拟训练")
+                training_metrics = self._run_simulated_training(training_args)
         else:
             print(f"   🎲 使用模拟训练 ({training_steps} steps)")
             training_metrics = self._run_simulated_training(training_args)
+        
+        training_time = time.time() - start_time
         
         # 3. 提取表型特征
         robot_config = {
@@ -70,7 +85,7 @@ class MAPElitesTrainingAdapter:
         individual.phenotype = phenotype
         individual.fitness = phenotype.avg_reward  # 使用平均奖励作为适应度
         
-        print(f"✅ 评估完成: 适应度={individual.fitness:.2f}, 成功率={phenotype.success_rate:.2f}")
+        print(f"✅ 评估完成: 适应度={individual.fitness:.2f}, 成功率={phenotype.success_rate:.2f}, 耗时={training_time:.1f}s")
         
         return individual
     

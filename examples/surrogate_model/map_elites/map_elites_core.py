@@ -160,20 +160,63 @@ class MAPElitesArchive:
         return False
     
     def get_random_elite(self) -> Optional[Individual]:
-        """随机选择一个精英个体"""
+        """选择精英个体 - 现在使用基于适应度的比例选择"""
+        # 🔧 直接调用新的选择方法
+        return self.get_fitness_proportionate_elite()
+
+    def get_fitness_proportionate_elite(self) -> Optional[Individual]:
+        """🎯 基于适应度(reward)比例的选择"""
         if not self.archive:
             return None
         
-        # 修复：正确处理字典键的随机选择
+        individuals = list(self.archive.values())
+        if not individuals:
+            return None
+        
+        # 获取所有个体的适应度(reward)
+        fitness_values = [ind.fitness for ind in individuals]
+        
+        # 处理负值：平移使所有值为正
+        min_fitness = min(fitness_values)
+        if min_fitness < 0:
+            adjusted_fitness = [f - min_fitness + 1.0 for f in fitness_values]
+        else:
+            adjusted_fitness = [f + 0.1 for f in fitness_values]  # 避免零值
+        
+        # 计算选择概率 (基于reward大小)
+        total_fitness = sum(adjusted_fitness)
+        if total_fitness == 0:
+            # 🔧 修复递归问题：回退到均匀选择
+            return self.get_uniform_random_elite()
+        
+        probabilities = [f / total_fitness for f in adjusted_fitness]
+        
+        r = np.random.random()
+        cumsum = 0.0
+        for i, prob in enumerate(probabilities):
+            cumsum += prob
+            if r <= cumsum:
+                selected = individuals[i]
+                # 🔧 减少输出频率，只在debug模式下显示
+                if np.random.random() < 0.1:  # 只有10%的概率打印
+                    print(f"🎯 基于reward选择: reward={selected.fitness:.2f}, 概率={prob:.3f}")
+                return selected
+        
+        return individuals[-1]
+
+    def get_uniform_random_elite(self) -> Optional[Individual]:
+        """原始的均匀随机选择 (备用)"""
+        if not self.archive:
+            return None
+        
         coords_list = list(self.archive.keys())
         if not coords_list:
             return None
         
-        # 使用random.choice而不是np.random.choice来处理元组
         import random
         selected_coords = random.choice(coords_list)
         return self.archive[selected_coords]
-    
+        
     def get_best_individual(self) -> Optional[Individual]:
         """获取最佳个体"""
         if not self.archive:
