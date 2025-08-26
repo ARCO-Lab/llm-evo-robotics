@@ -283,7 +283,12 @@ class AttentionSACWithBuffer:
         self.alpha_optimizer.step()
         
         self.alpha = self.log_alpha.exp()
-        
+        # 🔒 Alpha下限约束
+        # min_alpha = getattr(self, 'min_alpha', 0.01)
+        # if self.alpha < min_alpha:
+        #     self.alpha = torch.tensor(min_alpha, device=self.alpha.device)  # 保持tensor类型
+        #     self.log_alpha.data.fill_(torch.log(torch.tensor(min_alpha)).item())
+        #     print(f"⚠️ Alpha达到下限 {min_alpha}，已限制")
         # 软更新target networks
         self.soft_update_targets()
         

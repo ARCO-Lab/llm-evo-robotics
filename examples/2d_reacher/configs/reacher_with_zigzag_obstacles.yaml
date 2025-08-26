@@ -23,5 +23,5 @@ goal:
   radius: 10
 
 start:
-  position: [350, 550]  # 保持起始位置不变
+  position: [300, 550]  # 保持起始位置不变
   angle: 0

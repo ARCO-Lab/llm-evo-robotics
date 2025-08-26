@@ -114,13 +114,39 @@ class MAPElitesEvolutionTrainer:
     def _print_generation_stats(self, generation: int):
         """打印代际统计信息"""
         stats = self.archive.get_statistics()
-        print(f"📊 第{generation}代统计:")
+        
+        # 🆕 添加详细的种群信息
+        print(f"\n🧬 第{generation}代详细分析:")
+        print(f"📊 基础统计:")
         print(f"   存档大小: {stats['size']}")
         print(f"   覆盖率: {stats['coverage']:.3f}")
         print(f"   最佳适应度: {stats['best_fitness']:.2f}")
         print(f"   平均适应度: {stats['avg_fitness']:.2f}")
         print(f"   改善率: {stats['improvement_rate']:.3f}")
-    
+        
+        # 🆕 添加个体详情
+        if self.archive.archive:
+            individuals = list(self.archive.archive.values())
+            print(f"🤖 形态多样性:")
+            
+            # 关节数统计
+            joint_counts = {}
+            for ind in individuals:
+                joints = ind.genotype.num_links
+                joint_counts[joints] = joint_counts.get(joints, 0) + 1
+            
+            for joints, count in sorted(joint_counts.items()):
+                percentage = count / len(individuals) * 100
+                print(f"   {joints}关节: {count}个 ({percentage:.1f}%)")
+            
+            # 前5名个体
+            sorted_individuals = sorted(individuals, key=lambda x: x.fitness, reverse=True)
+            print(f"🏆 前5名个体:")
+            for i, ind in enumerate(sorted_individuals[:5]):
+                print(f"   #{i+1}: 适应度={ind.fitness:.2f}, "
+                    f"{ind.genotype.num_links}关节, "
+                    f"lr={ind.genotype.lr:.2e}")
+        
     def _print_final_results(self):
         """打印最终结果"""
         stats = self.archive.get_statistics()

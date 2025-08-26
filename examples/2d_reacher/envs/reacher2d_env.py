@@ -40,6 +40,9 @@ class Reacher2DEnv(Env):
         # 🎯 课程学习参数
         self.curriculum_stage = curriculum_stage
         self.base_goal_pos = np.array(self.config["goal"]["position"]) if "goal" in self.config else np.array([600, 575])
+        print(f"🔍 [__init__] base_goal_pos from config: {self.base_goal_pos}")
+        print(f"🔍 [__init__] anchor_point: {self.anchor_point}")
+        print(f"🔍 [__init__] curriculum_stage: {curriculum_stage}")
 
         self.num_links = num_links  # 修复：使用传入的参数
         if link_lengths is None:
@@ -155,7 +158,7 @@ class Reacher2DEnv(Env):
             
             # 🔧 设置初始位置（让机器人自然垂直下垂）
             body.position = current_pos
-            body.angle = math.pi/4  # 改为45°避开边界
+            body.angle = math.pi/2  # 改为45°避开边界
             
             # 🔧 创建形状 - 增加半径让碰撞更明显
             shape = pymunk.Segment(body, (0, 0), (length, 0), 8)  # 半径从5增加到8
@@ -308,19 +311,50 @@ class Reacher2DEnv(Env):
 
         self._create_robot()
         self._create_obstacle()
+
+        print(f"\n🔍 [reset] 开始 - 检查goal设置:")
+        print(f"  config中的goal: {self.config.get('goal', {}).get('position', 'NOT FOUND')}")
+        print(f"  base_goal_pos: {self.base_goal_pos}")
+        print(f"  当前goal_pos: {getattr(self, 'goal_pos', 'NOT SET YET')}")
         
         # 🎯 课程学习：根据阶段调整目标位置
-        if hasattr(self, 'curriculum_stage'):
-            if self.curriculum_stage == 0:
-                # 阶段0：目标很近，容易达到
-                self.goal_pos = self.base_goal_pos * 0.7 + np.array(self.anchor_point) * 0.3
-            elif self.curriculum_stage == 1:
-                # 阶段1：中等距离
-                self.goal_pos = self.base_goal_pos * 0.85 + np.array(self.anchor_point) * 0.15
-            else:
-                # 阶段2+：完整难度
-                self.goal_pos = self.base_goal_pos
-        
+        # if hasattr(self, 'curriculum_stage'):
+        #     if self.curriculum_stage == 0:
+        #         # 阶段0：目标很近，容易达到
+        #         self.goal_pos = self.base_goal_pos * 0.7 + np.array(self.anchor_point) * 0.3
+        #     elif self.curriculum_stage == 1:
+        #         # 阶段1：中等距离
+        #         self.goal_pos = self.base_goal_pos * 0.85 + np.array(self.anchor_point) * 0.15
+        #     else:
+        #         # 阶段2+：完整难度
+        #         self.goal_pos = self.base_goal_pos
+
+        if "goal" in self.config:
+            self.goal_pos = np.array(self.config["goal"]["position"])
+            print(f"🎯 [reset] 设置goal_pos from config: {self.goal_pos}")
+        else:
+            self.goal_pos = np.array([150, 575])  # 后备目标
+            print(f"🎯 [reset] 设置goal_pos 后备默认值: {self.goal_pos}")
+
+        print(f"🔍 [reset] 最终goal_pos: {self.goal_pos}")
+
+
+        # 🔍 添加机器人状态调试
+        if self.bodies:
+            print(f"🤖 [reset] 机器人状态调试:")
+            print(f"  机器人link数量: {len(self.bodies)}")
+            print(f"  Link长度配置: {self.link_lengths}")
+            for i, body in enumerate(self.bodies):
+                print(f"  Link {i}: position={body.position}, angle={math.degrees(body.angle):.1f}°")
+            
+            end_pos = self._get_end_effector_position()
+            print(f"  末端执行器位置: {end_pos}")
+            print(f"  起始位置 -> 末端位置: {self.anchor_point} -> {end_pos}")
+            
+            distance = np.linalg.norm(np.array(end_pos) - self.goal_pos)
+            print(f"  到目标距离: {distance:.1f} pixels")
+            print(f"  需要移动方向: {np.array(self.goal_pos) - np.array(end_pos)}")
+                
         # 初始化计数器
         self.step_counter = 0
         if not hasattr(self, 'collision_count'):
@@ -359,39 +393,75 @@ class Reacher2DEnv(Env):
         obs.append(distance)  # 到目标的距离
         
         return np.array(obs, dtype=np.float32)
-
     def _get_end_effector_position(self):
-        """计算末端执行器的位置"""
+        """调试版本 - 对比多种计算方法"""
         if not self.bodies:
             return [0.0, 0.0]
         
-        # 从第一个link的位置开始
-        pos = np.array(self.bodies[0].position)
-        current_angle = 0.0
-        
+        # 方法A：从anchor_point逐步构建
+        pos_A = np.array(self.anchor_point, dtype=float)
         for i, body in enumerate(self.bodies):
-            # 累积角度
+            length = self.link_lengths[i]
+            link_vector = np.array([
+                length * np.cos(body.angle),
+                length * np.sin(body.angle)
+            ])
+            pos_A += link_vector
+        
+        # 方法B：基于最后一个body的末端
+        last_body = self.bodies[-1]
+        last_length = self.link_lengths[-1]
+        body_center = np.array(last_body.position)
+        body_angle = last_body.angle
+        end_offset = np.array([
+            last_length/2 * np.cos(body_angle),
+            last_length/2 * np.sin(body_angle)
+        ])
+        pos_B = body_center + end_offset
+        
+        # 方法C：你的原始方法
+        pos_C = np.array(self.bodies[0].position)
+        current_angle = 0.0
+        for i, body in enumerate(self.bodies):
             current_angle += body.angle
             length = self.link_lengths[i]
-            
-            # 计算这个link末端的位置
             if i == 0:
-                # 第一个link从其起始位置延伸
-                pos = np.array(self.bodies[0].position) + np.array([
+                pos_C = np.array(self.bodies[0].position) + np.array([
                     length * np.cos(current_angle), 
                     length * np.sin(current_angle)
                 ])
             else:
-                # 后续link从前一个link的末端延伸
-                pos += np.array([
+                pos_C += np.array([
                     length * np.cos(current_angle), 
                     length * np.sin(current_angle)
                 ])
         
-        return pos.tolist()
+        # 打印对比（只在step 0, 50, 100...时打印）
+        step_count = getattr(self, '_debug_step_count', 0)
+        if step_count % 50 == 0:
+            print(f"🔍 End Effector 位置对比 (Step {step_count}):")
+            print(f"  方法A (anchor+逐步): {pos_A}")
+            print(f"  方法B (最后body末端): {pos_B}")
+            print(f"  方法C (原始累积): {pos_C}")
+            print(f"  A-B差异: {np.linalg.norm(pos_A - pos_B):.1f}")
+            print(f"  A-C差异: {np.linalg.norm(pos_A - pos_C):.1f}")
+            print(f"  B-C差异: {np.linalg.norm(pos_B - pos_C):.1f}")
+        
+        self._debug_step_count = step_count + 1
+        
+        # 返回最可能正确的方法A
+        return pos_A.tolist()
     
     
     def step(self, actions):
+
+        # 在step方法开始添加
+        if hasattr(self, 'step_counter') and self.step_counter % 50 == 0:
+            print(f"🎯 [step] Step {self.step_counter}:")
+            print(f"  输入动作: {actions}")
+            print(f"  最大扭矩限制: {self.max_torque}")
+            print(f"  动作空间: {self.action_space}")
+        
         """使用Motor控制 + 物理约束，结合真实性和安全性"""
         actions = np.clip(actions, -self.max_torque, self.max_torque)
         
@@ -416,10 +486,14 @@ class Reacher2DEnv(Env):
         
         if self.step_counter % 20 == 0:  # 每20步打印一次
             self._print_motor_status()
-        
+
+
+        end_effector_pos = self._get_end_effector_position()
+        distance_to_goal = np.linalg.norm(np.array(end_effector_pos) - self.goal_pos)
+        terminated = distance_to_goal <= 35.0
+
         observation = self._get_observation()
         reward = self._compute_reward()
-        terminated = False
         truncated = False
         info = self._build_info_dict()
 
@@ -633,99 +707,162 @@ class Reacher2DEnv(Env):
     #     return final_reward
 
 
+    # def _compute_reward(self):
+    #     """修复版奖励函数 - 适度的奖励幅度"""
+    #     end_effector_pos = np.array(self._get_end_effector_position())
+    #     distance_to_goal = np.linalg.norm(end_effector_pos - self.goal_pos)
+        
+    #     # === 1. 适度的距离奖励 - 线性但范围控制 ===
+    #     max_distance = 400.0  # 预期最大距离
+    #     distance_reward = -distance_to_goal / max_distance * 3.0  # 范围: -3.0 到 0 (降低了)
+        
+    #     # === 2. 适度的分级成功奖励 ===
+    #     success_bonus = 0.0
+    #     if distance_to_goal <= 35.0:  # 完全成功
+    #         success_bonus = 5.0  # 从50.0降低到5.0
+    #     elif distance_to_goal <= 70.0:  # 接近成功
+    #         success_bonus = 2.0  # 从20.0降低到2.0
+    #     elif distance_to_goal <= 100.0:  # 部分成功
+    #         success_bonus = 1.0  # 从10.0降低到1.0
+    #     elif distance_to_goal <= 150.0:  # 有进展
+    #         success_bonus = 0.5  # 从5.0降低到0.5
+        
+    #     # === 3. 适度的进步奖励 ===
+    #     if not hasattr(self, 'prev_distance'):
+    #         self.prev_distance = distance_to_goal
+        
+    #     progress = self.prev_distance - distance_to_goal
+    #     progress_reward = progress * 5.0  # 从20.0降低到5.0
+    #     progress_reward = np.clip(progress_reward, -2.0, 2.0)  # 更严格的限制
+        
+    #     # === 4. 适度的方向奖励 ===
+    #     direction_reward = 0.0
+    #     if hasattr(self, 'prev_end_effector_pos'):
+    #         movement = np.array(end_effector_pos) - np.array(self.prev_end_effector_pos)
+    #         movement_norm = np.linalg.norm(movement)
+            
+    #         if movement_norm > 1e-6:
+    #             goal_direction = np.array(self.goal_pos) - np.array(end_effector_pos)
+    #             goal_direction_norm = np.linalg.norm(goal_direction)
+                
+    #             if goal_direction_norm > 1e-6:
+    #                 cosine_sim = np.dot(movement, goal_direction) / (movement_norm * goal_direction_norm)
+    #                 direction_reward = cosine_sim * 0.5  # 从2.0降低到0.5
+        
+    #     self.prev_end_effector_pos = end_effector_pos.copy()
+        
+    #     # === 5. 适度的停滞惩罚 ===
+    #     stagnation_penalty = 0.0
+    #     if distance_to_goal > 200:
+    #         stagnation_penalty = -0.5  # 从-2.0降低到-0.5
+        
+    #     # === 6. 适度的碰撞惩罚 ===
+    #     collision_penalty = 0.0
+    #     current_collisions = getattr(self, 'collision_count', 0)
+        
+    #     if not hasattr(self, 'prev_collision_count'):
+    #         self.prev_collision_count = 0
+        
+    #     new_collisions = current_collisions - self.prev_collision_count
+    #     if new_collisions > 0:
+    #         collision_penalty = -np.clip(new_collisions * 0.5, 0, 1.0)  # 降低惩罚
+        
+    #     if current_collisions > 0:
+    #         collision_penalty += -0.1  # 持续接触惩罚
+        
+    #     self.prev_collision_count = current_collisions
+        
+    #     self.prev_distance = distance_to_goal
+        
+    #     # === 7. 总奖励 ===
+    #     total_reward = (distance_reward +      # [-3.0, 0]
+    #                 progress_reward +       # [-2.0, 2.0] 
+    #                 success_bonus +         # [0, 5.0]
+    #                 direction_reward +      # [-0.5, 0.5]
+    #                 stagnation_penalty +    # [-0.5, 0]
+    #                 collision_penalty)      # [-1.1, 0]
+        
+    #     # 新的总范围: [-7.1, 7.5] ← 比之前小很多
+        
+    #     # === 8. 最终缩放 ===
+    #     final_reward = total_reward * 0.5  # 再整体缩放50%
+    #     # 最终范围: [-3.55, 3.75] ← 非常安全的范围
+        
+    #     # === 9. 调试输出 - 每100步输出一次奖励分解 ===
+    #     if hasattr(self, 'step_counter') and self.step_counter % 100 == 0:
+    #         self.logger.info(f"🎯 Step {self.step_counter} 奖励分解:")
+    #         self.logger.info(f"   距离奖励: {distance_reward:.2f} (距离: {distance_to_goal:.1f})")
+    #         self.logger.info(f"   进步奖励: {progress_reward:.2f}")
+    #         self.logger.info(f"   成功奖励: {success_bonus:.2f}")
+    #         self.logger.info(f"   方向奖励: {direction_reward:.2f}")
+    #         self.logger.info(f"   停滞惩罚: {stagnation_penalty:.2f}")
+    #         self.logger.info(f"   碰撞惩罚: {collision_penalty:.2f}")
+    #         self.logger.info(f"   最终奖励: {final_reward:.2f}")
+
+    #     # 在_compute_reward的最后添加
+    #     if hasattr(self, 'step_counter') and self.step_counter % 50 == 0:
+    #         print(f"💰 [reward] Step {self.step_counter}: 奖励={final_reward:.3f}")
+    #         print(f"  距离: {distance_to_goal:.1f}, 距离奖励: {distance_reward:.3f}")
+    #         print(f"  进步: {progress:.1f}, 进步奖励: {progress_reward:.3f}")
+    #         print(f"  成功奖励: {success_bonus:.3f}")
+        
+    #     return final_reward
+
     def _compute_reward(self):
-        """修复版奖励函数 - 适度的奖励幅度"""
+        """简化版奖励函数 - 包含碰撞惩罚"""
         end_effector_pos = np.array(self._get_end_effector_position())
         distance_to_goal = np.linalg.norm(end_effector_pos - self.goal_pos)
         
-        # === 1. 适度的距离奖励 - 线性但范围控制 ===
-        max_distance = 400.0  # 预期最大距离
-        distance_reward = -distance_to_goal / max_distance * 3.0  # 范围: -3.0 到 0 (降低了)
+        # 🔧 极简化的奖励设计
+        # 1. 距离奖励（主要信号）
+        max_distance = 300.0  # 合理的最大距离
+        distance_reward = -distance_to_goal / max_distance  # 范围: [-1, 0]
         
-        # === 2. 适度的分级成功奖励 ===
-        success_bonus = 0.0
-        if distance_to_goal <= 35.0:  # 完全成功
-            success_bonus = 5.0  # 从50.0降低到5.0
-        elif distance_to_goal <= 70.0:  # 接近成功
-            success_bonus = 2.0  # 从20.0降低到2.0
-        elif distance_to_goal <= 100.0:  # 部分成功
-            success_bonus = 1.0  # 从10.0降低到1.0
-        elif distance_to_goal <= 150.0:  # 有进展
-            success_bonus = 0.5  # 从5.0降低到0.5
+        # 2. 成功奖励（明确的目标）
+        if distance_to_goal <= 35.0:
+            success_reward = 5.0  # 简单的+1奖励
+        else:
+            success_reward = 0.0
         
-        # === 3. 适度的进步奖励 ===
+        # 3. 简单的进度奖励
         if not hasattr(self, 'prev_distance'):
             self.prev_distance = distance_to_goal
         
         progress = self.prev_distance - distance_to_goal
-        progress_reward = progress * 5.0  # 从20.0降低到5.0
-        progress_reward = np.clip(progress_reward, -2.0, 2.0)  # 更严格的限制
-        
-        # === 4. 适度的方向奖励 ===
-        direction_reward = 0.0
-        if hasattr(self, 'prev_end_effector_pos'):
-            movement = np.array(end_effector_pos) - np.array(self.prev_end_effector_pos)
-            movement_norm = np.linalg.norm(movement)
-            
-            if movement_norm > 1e-6:
-                goal_direction = np.array(self.goal_pos) - np.array(end_effector_pos)
-                goal_direction_norm = np.linalg.norm(goal_direction)
-                
-                if goal_direction_norm > 1e-6:
-                    cosine_sim = np.dot(movement, goal_direction) / (movement_norm * goal_direction_norm)
-                    direction_reward = cosine_sim * 0.5  # 从2.0降低到0.5
-        
-        self.prev_end_effector_pos = end_effector_pos.copy()
-        
-        # === 5. 适度的停滞惩罚 ===
-        stagnation_penalty = 0.0
-        if distance_to_goal > 200:
-            stagnation_penalty = -0.5  # 从-2.0降低到-0.5
-        
-        # === 6. 适度的碰撞惩罚 ===
-        collision_penalty = 0.0
-        current_collisions = getattr(self, 'collision_count', 0)
-        
-        if not hasattr(self, 'prev_collision_count'):
-            self.prev_collision_count = 0
-        
-        new_collisions = current_collisions - self.prev_collision_count
-        if new_collisions > 0:
-            collision_penalty = -np.clip(new_collisions * 0.5, 0, 1.0)  # 降低惩罚
-        
-        if current_collisions > 0:
-            collision_penalty += -0.1  # 持续接触惩罚
-        
-        self.prev_collision_count = current_collisions
+        progress_reward = np.clip(progress * 2.0, -0.5, 0.5)  # 限制范围
         
         self.prev_distance = distance_to_goal
         
-        # === 7. 总奖励 ===
-        total_reward = (distance_reward +      # [-3.0, 0]
-                    progress_reward +       # [-2.0, 2.0] 
-                    success_bonus +         # [0, 5.0]
-                    direction_reward +      # [-0.5, 0.5]
-                    stagnation_penalty +    # [-0.5, 0]
-                    collision_penalty)      # [-1.1, 0]
+        # 🚨 4. 添加碰撞惩罚
+        collision_penalty = self._get_collision_penalty()
+        # 但要确保更新prev_collision_count
+        if hasattr(self, 'collision_count'):
+            if not hasattr(self, 'prev_collision_count'):
+                self.prev_collision_count = 0
+            self.prev_collision_count = self.collision_count
         
-        # 新的总范围: [-7.1, 7.5] ← 比之前小很多
+        # 🔧 调整总奖励范围: 考虑碰撞惩罚
+        # 距离奖励: [-1, 0]
+        # 成功奖励: [0, 1] 
+        # 进度奖励: [-0.5, 0.5]
+        # 碰撞惩罚: [-10 * 新碰撞次数, 0]
+        total_reward = distance_reward + success_reward + progress_reward + collision_penalty
         
-        # === 8. 最终缩放 ===
-        final_reward = total_reward * 0.5  # 再整体缩放50%
-        # 最终范围: [-3.55, 3.75] ← 非常安全的范围
+        # 🔧 为了防止碰撞惩罚过大，适当缩放
+        if collision_penalty < 0:
+            # 如果有碰撞惩罚，缩放到合理范围
+            collision_penalty = np.clip(collision_penalty, -2.0, 0.0)  # 最多扣2分
+            total_reward = distance_reward + success_reward + progress_reward + collision_penalty
         
-        # === 9. 调试输出 - 每100步输出一次奖励分解 ===
-        if hasattr(self, 'step_counter') and self.step_counter % 100 == 0:
-            self.logger.info(f"🎯 Step {self.step_counter} 奖励分解:")
-            self.logger.info(f"   距离奖励: {distance_reward:.2f} (距离: {distance_to_goal:.1f})")
-            self.logger.info(f"   进步奖励: {progress_reward:.2f}")
-            self.logger.info(f"   成功奖励: {success_bonus:.2f}")
-            self.logger.info(f"   方向奖励: {direction_reward:.2f}")
-            self.logger.info(f"   停滞惩罚: {stagnation_penalty:.2f}")
-            self.logger.info(f"   碰撞惩罚: {collision_penalty:.2f}")
-            self.logger.info(f"   最终奖励: {final_reward:.2f}")
+        # 调试输出
+        if hasattr(self, 'step_counter') and self.step_counter % 50 == 0:
+            print(f"💰 [reward] Step {self.step_counter}: 奖励={total_reward:.3f}")
+            print(f"  距离: {distance_to_goal:.1f}, 距离奖励: {distance_reward:.3f}")
+            print(f"  进步奖励: {progress_reward:.3f}, 成功奖励: {success_reward:.3f}")
+            if collision_penalty != 0:
+                print(f"  🚨 碰撞惩罚: {collision_penalty:.3f} (碰撞次数: {getattr(self, 'collision_count', 0)})")
         
-        return final_reward
+        return total_reward
     
     def _compute_obstacle_avoidance_reward(self):
         """计算障碍物避让奖励 - 鼓励机器人保持与障碍物的安全距离"""
@@ -911,8 +1048,12 @@ class Reacher2DEnv(Env):
                 self.obstacles.append(shape)
 
         if "goal" in self.config:
+            print(f"🔍 [_create_obstacle] 准备设置goal_pos: {self.config['goal']['position']}")
             self.goal_pos = np.array(self.config["goal"]["position"])
             self.goal_radius = self.config["goal"]["radius"]
+            print(f"🎯 [_create_obstacle] 已设置goal_pos: {self.goal_pos}")
+        else:
+            print(f"❌ [_create_obstacle] config中没有goal配置")
 
     def render(self):
         if not self.render_mode:
@@ -922,7 +1063,27 @@ class Reacher2DEnv(Env):
         
         # 绘制目标点
         pygame.draw.circle(self.screen, (255, 0, 0), self.goal_pos.astype(int), 10)
-        
+
+
+        end_effector_pos = self._get_end_effector_position()
+        print(f"🔍 [render] end_effector_pos: {end_effector_pos}")
+        if end_effector_pos:
+            # 绘制红色圆点标记end_effector位置
+            pos_int = (int(end_effector_pos[0]), int(end_effector_pos[1]))
+            pygame.draw.circle(self.screen, (255, 0, 0), pos_int, 8)  # 红色圆点，半径8
+            
+            # 绘制一个白色边框让红点更显眼
+            pygame.draw.circle(self.screen, (255, 255, 255), pos_int, 8, 2)  # 白色边框
+            
+            # 🔍 【调试】在红点旁边显示坐标
+            if hasattr(pygame, 'font') and pygame.font.get_init():
+                font = pygame.font.Font(None, 24)
+                coord_text = f"End: ({end_effector_pos[0]:.0f},{end_effector_pos[1]:.0f})"
+                text_surface = font.render(coord_text, True, (0, 0, 0))
+                # 在红点上方显示坐标文字
+                text_pos = (pos_int[0] - 40, pos_int[1] - 25)
+                self.screen.blit(text_surface, text_pos)
+            
         # 🎯 新增：绘制安全区域（可选调试）
         if hasattr(self, 'bodies') and len(self.bodies) > 0:
             # 绘制每个关节到障碍物的安全距离

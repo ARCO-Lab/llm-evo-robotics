@@ -532,11 +532,16 @@ def main(args):
     
     
     sac.warmup_steps = args.warmup_steps
-    sac.alpha = args.alpha
+    # sac.alpha = args.alpha
+    sac.alpha = torch.tensor(0.1)
+
     if hasattr(sac, 'target_entropy'):
         sac.target_entropy = -action_dim * args.target_entropy_factor
 
 
+    sac.min_alpha = 0.05  # 设置下限为0.05
+    print(f"🔒 Alpha衰减下限设置为: {sac.min_alpha}")
+    
     experiment_name = f"reacher2d_sac_{time.strftime('%Y%m%d_%H%M%S')}"
     logger = TrainingLogger(
         log_dir=os.path.join(args.save_dir, 'training_logs'),
@@ -628,6 +633,9 @@ def main(args):
     else:
         print(f"Expected warmup completion at step: {sac.warmup_steps}")
 
+    training_completed = False
+    early_termination_reason = ""
+
     try:
         for step in range(start_step, num_step):
             
@@ -656,6 +664,9 @@ def main(args):
 
             # 🔍 Action监控
             if step % 50 == 0 or step < 20:
+                if hasattr(envs, 'envs') and len(envs.envs) > 0:
+                    env_goal = getattr(envs.envs[0], 'goal_pos', 'NOT FOUND')
+                    print(f"🎯 [训练] Step {step} - 环境goal_pos: {env_goal}")
                 smart_print(f"\n🎯 Step {step} Action Analysis:")
                 action_numpy = action_batch.cpu().numpy() if hasattr(action_batch, 'cpu') else action_batch.numpy()
                 
@@ -697,19 +708,117 @@ def main(args):
                 is_done = done[proc_id].item() if torch.is_tensor(done[proc_id]) else bool(done[proc_id])
                 if is_done:
                     print(f"Episode {step} finished with reward {episode_rewards[proc_id]:.2f}")
+
+                    # 🔧 从infos中获取环境状态信息
+                    if len(infos) > proc_id and isinstance(infos[proc_id], dict):
+                        info = infos[proc_id]
+                        
+                        # 检查goal相关信息
+                        if 'goal' in info:
+                            goal_info = info['goal']
+                            distance = goal_info.get('distance_to_goal', float('inf'))
+                            goal_reached = goal_info.get('goal_reached', False)
+                            
+                            print(f"  🎯 距离目标: {distance:.1f} pixels")
+                            
+                            if goal_reached or distance <= 35.0:
+                                print(f"🎉 成功到达目标! 距离: {distance:.1f}")
+                                consecutive_success_count += 1
+                                
+                                # 计算成功率
+                                if hasattr(envs, 'episode_count'):
+                                    envs.episode_count += 1
+                                else:
+                                    envs.episode_count = 1
+                                
+                                success_rate = consecutive_success_count / max(envs.episode_count, 1)
+                                
+                                # 🏆 保存成功模型
+                                if success_rate > best_success_rate or distance < best_min_distance:
+                                    best_success_rate = max(success_rate, best_success_rate)
+                                    best_min_distance = min(distance, best_min_distance)
+                                    save_best_model(sac, model_save_path, success_rate, distance, step)
+                                
+                                # 🎯 检查是否应该停止训练
+                                if consecutive_success_count >= min_consecutive_successes:
+                                    print(f"🏁 连续成功{consecutive_success_count}次，训练达到目标!")
+                                    print(f"   成功率: {success_rate:.3f}")
+                                    print(f"   最小距离: {best_min_distance:.1f}")
+                                    
+                                    # 保存最终成功模型
+                                    final_model_path = os.path.join(model_save_path, f'final_successful_model_step_{step}.pth')
+                                    final_model_data = {
+                                        'step': step,
+                                        'final_success_rate': success_rate,
+                                        'final_min_distance': best_min_distance,
+                                        'consecutive_successes': consecutive_success_count,
+                                        'training_completed': True,
+                                        'reason': 'Reached target consecutive successes',
+                                        'actor_state_dict': sac.actor.state_dict(),
+                                        'critic1_state_dict': sac.critic1.state_dict(),
+                                        'critic2_state_dict': sac.critic2.state_dict(),
+                                    }
+                                    torch.save(final_model_data, final_model_path)
+                                    print(f"💾 保存最终成功模型: {final_model_path}")
+                                    
+                                    # 可以选择是否退出训练
+                                    if step > 5000:  # 至少训练5000步后才允许提前退出
+                                        print("🎯 提前结束训练 - 已达到训练目标")
+                                        training_completed = True
+                                        early_termination_reason = f"连续成功{consecutive_success_count}次，达到训练目标"
+                                        break  # 这会退出当前for循环，但不会退出整个训练循环
+                            else:
+                                # 重置连续成功计数
+                                consecutive_success_count = 0
+                        
+                        # 可选：显示其他有用信息
+                        if 'robot' in info:
+                            robot_info = info['robot']
+                            print(f"  🤖 步骤: {robot_info.get('step_count', 0)}")
                     
                     # 🚀 NEW: 记录episode指标
                     episode_metrics = {
                         'reward': episode_rewards[proc_id],
-                        'length': step  # 简化版本，实际应该记录episode长度
+                        'length': step,
+                        'distance_to_goal': distance if 'distance' in locals() else float('inf'),
+                        'goal_reached': goal_reached if 'goal_reached' in locals() else False
                     }
-                    logger.log_episode(step // 100, episode_metrics)  # 近似episode数
+                    logger.log_episode(step // 100, episode_metrics)
                     
                     episode_rewards[proc_id] = 0.0
                     
                     if hasattr(envs, 'reset_one'):
                         current_obs[proc_id] = envs.reset_one(proc_id)
                         current_gnn_embeds[proc_id] = single_gnn_embed
+            if step % 100 == 0:  # 每100步检查一次
+                    # 计算最近的成功率
+                recent_successes = 0
+                recent_episodes = 0
+                
+                # 这里需要维护一个滑动窗口的成功记录
+                if hasattr(envs, 'recent_success_history'):
+                    recent_successes = sum(envs.recent_success_history[-100:])  # 最近100步
+                    recent_episodes = len(envs.recent_success_history[-100:])
+                    recent_success_rate = recent_successes / max(recent_episodes, 1)
+                    
+                    # 如果最近成功率很高，可以考虑暂停训练
+                    if recent_success_rate >= 0.8 and step > 10000:  # 至少训练10000步
+                        print(f"�� 最近100步成功率: {recent_success_rate:.3f} >= 0.8")
+                        print(f"   建议暂停训练，保存当前模型")
+                        
+                        # 保存最终模型
+                        final_model_path = os.path.join(model_save_path, f'final_successful_model_step_{step}.pth')
+                        final_model_data = {
+                            'step': step,
+                            'final_success_rate': recent_success_rate,
+                            'training_completed': True,
+                            'reason': 'High success rate achieved',
+                            'actor_state_dict': sac.actor.state_dict(),
+                            'critic1_state_dict': sac.critic1.state_dict(),
+                            'critic2_state_dict': sac.critic2.state_dict(),
+                        }
+                        torch.save(final_model_data, final_model_path)
+                        print(f"💾 保存成功模型: {final_model_path}")
 
             # 🚀 NEW: 训练更新和损失记录
             if (step >= sac.warmup_steps and 
@@ -770,6 +879,9 @@ def main(args):
                 smart_print(f"💾 保存检查点模型: {checkpoint_path}")
             
             total_steps += args.num_processes
+            if training_completed:
+                print(f"🏁 训练提前终止: {early_termination_reason}")
+                break
 
     except Exception as e:
         smart_print(f"🔴 训练过程中发生错误: {e}")

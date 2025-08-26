@@ -417,6 +417,27 @@ class AsyncRenderer:
                     
                     # 🔑 关键：使用PyMunk原生debug_draw渲染机器人和障碍物
                     render_env.space.debug_draw(render_env.draw_options)
+
+                    # 🔴 【新增】绘制end_effector位置红点
+                    end_effector_pos = render_env._get_end_effector_position()
+                    if end_effector_pos:
+                        pos_int = (int(end_effector_pos[0]), int(end_effector_pos[1]))
+                        pygame.draw.circle(screen, (255, 0, 0), pos_int, 8)  # 红色圆点
+                        pygame.draw.circle(screen, (255, 255, 255), pos_int, 8, 2)  # 白色边框
+                        
+                        # 显示坐标
+                        font = pygame.font.Font(None, 24)
+                        coord_text = f"End: ({end_effector_pos[0]:.0f},{end_effector_pos[1]:.0f})"
+                        text_surface = font.render(coord_text, True, (0, 0, 0))
+                        text_pos = (pos_int[0] - 40, pos_int[1] - 25)
+                        screen.blit(text_surface, text_pos)
+                        
+                        # 显示距离
+                        if hasattr(render_env, 'goal_pos'):
+                            distance = np.linalg.norm(np.array(end_effector_pos) - render_env.goal_pos)
+                            dist_text = f"Dist: {distance:.1f}"
+                            dist_surface = font.render(dist_text, True, (0, 0, 0))
+                            screen.blit(dist_surface, (pos_int[0] - 30, pos_int[1] + 15))
                     
                     # 📊 添加自定义信息覆盖层（不影响原生渲染）
                     if robot_state:
