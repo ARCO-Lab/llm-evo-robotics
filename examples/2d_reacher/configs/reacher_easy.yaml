@@ -1,0 +1,8 @@
+start:
+  position: [300, 550]
+
+goal:
+  position: [400, 600]  # 距离约111px，在3关节reach范围内
+  radius: 35
+
+obstacles: []  # 没有障碍物，简化任务

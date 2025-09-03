@@ -1,0 +1,326 @@
+#!/usr/bin/env python3
+"""
+路标点导航系统
+实现智能路标点导航，提升机器人学习效率
+"""
+
+import numpy as np
+import math
+from typing import List, Tuple, Optional
+from dataclasses import dataclass
+
+@dataclass
+class Waypoint:
+    """路标点数据结构"""
+    position: np.ndarray
+    radius: float = 30.0  # 到达判定半径
+    reward: float = 10.0  # 到达奖励
+    visited: bool = False
+    visit_time: Optional[int] = None
+
+class WaypointNavigator:
+    """路标点导航器"""
+    
+    def __init__(self, start_pos: np.ndarray, goal_pos: np.ndarray, obstacles: List = None):
+        """
+        初始化路标点导航器
+        
+        Args:
+            start_pos: 起点位置
+            goal_pos: 终点位置  
+            obstacles: 障碍物列表（可选）
+        """
+        self.start_pos = np.array(start_pos)
+        self.goal_pos = np.array(goal_pos)
+        self.obstacles = obstacles or []
+        
+        # 路标点系统状态
+        self.waypoints: List[Waypoint] = []
+        self.current_waypoint_idx = 0
+        self.total_reward = 0.0
+        self.step_count = 0
+        self.completion_bonus = 50.0
+        
+        # 生成路标点
+        self._generate_waypoints()
+        
+        print(f"🗺️ WaypointNavigator 初始化完成")
+        print(f"   起点: {self.start_pos}")
+        print(f"   终点: {self.goal_pos}")
+        print(f"   总路标数: {len(self.waypoints)}")
+    
+    def _generate_waypoints(self):
+        """生成路标点路径"""
+        
+        # 策略：绕行路径（避开障碍物）
+        waypoint_positions = self._calculate_bypass_path()
+        
+        # 创建路标点对象
+        for i, pos in enumerate(waypoint_positions):
+            # 最后一个是终点，奖励更高
+            reward = self.completion_bonus if i == len(waypoint_positions) - 1 else 10.0
+            radius = 35.0 if i == len(waypoint_positions) - 1 else 30.0
+            
+            waypoint = Waypoint(
+                position=np.array(pos),
+                radius=radius,
+                reward=reward,
+                visited=False
+            )
+            self.waypoints.append(waypoint)
+            
+            print(f"   路标{i}: {pos} (半径:{radius}, 奖励:{reward})")
+    
+    def _calculate_bypass_path(self) -> List[Tuple[float, float]]:
+        """计算绕行路径"""
+        
+        # 基于当前配置的优化路径
+        # 起点: [500, 620], 终点: [600, 550]
+        
+        path = [
+            tuple(self.start_pos),           # 起点
+            (450, 620),                      # 左移，远离障碍物
+            (450, 550),                      # 上移到目标Y坐标
+            (550, 550),                      # 右移，接近目标X坐标
+            tuple(self.goal_pos),            # 终点
+        ]
+        
+        # 可选：使用A*算法优化路径
+        # path = self._astar_path_planning()
+        
+        return path
+    
+    def _astar_path_planning(self) -> List[Tuple[float, float]]:
+        """A*路径规划算法（简化版）"""
+        
+        # 这里可以实现完整的A*算法
+        # 当前使用简化的直接路径规划
+        
+        # 将路径分成多个小段
+        num_segments = 4
+        path = []
+        
+        for i in range(num_segments + 1):
+            t = i / num_segments
+            # 线性插值
+            x = self.start_pos[0] + t * (self.goal_pos[0] - self.start_pos[0])
+            y = self.start_pos[1] + t * (self.goal_pos[1] - self.start_pos[1])
+            
+            # 避障调整
+            if self._is_near_obstacles([x, y]):
+                x -= 50  # 向左偏移避开障碍物
+            
+            path.append((x, y))
+        
+        return path
+    
+    def _is_near_obstacles(self, pos: List[float], safe_distance: float = 50.0) -> bool:
+        """检查位置是否靠近障碍物"""
+        
+        # 简化的障碍物检测
+        # 基于配置文件中的锯齿形障碍物
+        obstacle_zones = [
+            {"center": [575, 525], "radius": 100},  # 锯齿形障碍物区域
+            {"center": [575, 625], "radius": 100},
+        ]
+        
+        for zone in obstacle_zones:
+            distance = np.linalg.norm(np.array(pos) - np.array(zone["center"]))
+            if distance < zone["radius"] + safe_distance:
+                return True
+        
+        return False
+    
+    def get_current_target(self) -> np.ndarray:
+        """获取当前目标位置"""
+        if self.current_waypoint_idx < len(self.waypoints):
+            return self.waypoints[self.current_waypoint_idx].position
+        return self.goal_pos
+    
+    def update(self, current_pos: np.ndarray) -> Tuple[float, dict]:
+        """
+        更新导航状态并计算奖励
+        
+        Args:
+            current_pos: 当前位置
+            
+        Returns:
+            (reward, info): 奖励值和信息字典
+        """
+        self.step_count += 1
+        total_reward = 0.0
+        info = {
+            "waypoint_reached": False,
+            "current_waypoint": self.current_waypoint_idx,
+            "total_waypoints": len(self.waypoints),
+            "completion_progress": 0.0,
+            "waypoint_reward": 0.0,
+            "distance_to_waypoint": 0.0,
+        }
+        
+        if self.current_waypoint_idx >= len(self.waypoints):
+            # 所有路标点已完成
+            info["completion_progress"] = 1.0
+            return 0.0, info
+        
+        current_waypoint = self.waypoints[self.current_waypoint_idx]
+        distance_to_waypoint = np.linalg.norm(current_pos - current_waypoint.position)
+        info["distance_to_waypoint"] = distance_to_waypoint
+        
+        # 检查是否到达当前路标点
+        if distance_to_waypoint <= current_waypoint.radius and not current_waypoint.visited:
+            # 到达路标点！
+            current_waypoint.visited = True
+            current_waypoint.visit_time = self.step_count
+            
+            waypoint_reward = current_waypoint.reward
+            total_reward += waypoint_reward
+            self.total_reward += waypoint_reward
+            
+            info["waypoint_reached"] = True
+            info["waypoint_reward"] = waypoint_reward
+            
+            print(f"🎯 到达路标点 {self.current_waypoint_idx}! 位置: {current_waypoint.position}, 奖励: +{waypoint_reward}")
+            
+            # 切换到下一个路标点
+            self.current_waypoint_idx += 1
+            
+            if self.current_waypoint_idx >= len(self.waypoints):
+                print(f"🏆 所有路标点完成! 总奖励: {self.total_reward}")
+                info["completion_progress"] = 1.0
+        
+        # 计算进度
+        info["completion_progress"] = self.current_waypoint_idx / len(self.waypoints)
+        
+        # 距离奖励（接近当前路标点）
+        if self.current_waypoint_idx < len(self.waypoints):
+            # 给予接近当前路标点的小幅奖励
+            max_distance = 200.0  # 最大有效距离
+            approach_reward = max(0, (max_distance - distance_to_waypoint) / max_distance * 0.5)
+            total_reward += approach_reward
+        
+        return total_reward, info
+    
+    def reset(self):
+        """重置导航器状态"""
+        self.current_waypoint_idx = 0
+        self.total_reward = 0.0
+        self.step_count = 0
+        
+        for waypoint in self.waypoints:
+            waypoint.visited = False
+            waypoint.visit_time = None
+        
+        print(f"🔄 WaypointNavigator 已重置")
+    
+    def get_progress_info(self) -> dict:
+        """获取进度信息"""
+        completed = sum(1 for wp in self.waypoints if wp.visited)
+        total = len(self.waypoints)
+        
+        return {
+            "completed_waypoints": completed,
+            "total_waypoints": total,
+            "progress_percentage": (completed / total) * 100.0,
+            "current_target": self.get_current_target().tolist(),
+            "total_reward_earned": self.total_reward,
+        }
+    
+    def visualize_path(self, save_path: str = None):
+        """可视化路径（可选功能）"""
+        try:
+            import matplotlib.pyplot as plt
+            
+            fig, ax = plt.subplots(figsize=(10, 8))
+            
+            # 绘制路标点
+            for i, wp in enumerate(self.waypoints):
+                color = 'green' if wp.visited else 'blue'
+                marker = 'o' if i < len(self.waypoints) - 1 else 's'  # 最后一个用方形
+                
+                ax.scatter(wp.position[0], wp.position[1], 
+                          c=color, s=100, marker=marker, alpha=0.7)
+                ax.annotate(f'W{i}', (wp.position[0], wp.position[1]), 
+                           xytext=(5, 5), textcoords='offset points')
+                
+                # 绘制到达半径
+                circle = plt.Circle(wp.position, wp.radius, fill=False, alpha=0.3)
+                ax.add_patch(circle)
+            
+            # 绘制路径连线
+            positions = [wp.position for wp in self.waypoints]
+            x_coords = [pos[0] for pos in positions]
+            y_coords = [pos[1] for pos in positions]
+            ax.plot(x_coords, y_coords, 'b--', alpha=0.5, linewidth=2)
+            
+            # 标记起点和终点
+            ax.scatter(self.start_pos[0], self.start_pos[1], 
+                      c='red', s=150, marker='^', label='Start')
+            ax.scatter(self.goal_pos[0], self.goal_pos[1], 
+                      c='gold', s=150, marker='*', label='Goal')
+            
+            ax.set_xlabel('X Position')
+            ax.set_ylabel('Y Position')
+            ax.set_title('Waypoint Navigation Path')
+            ax.legend()
+            ax.grid(True, alpha=0.3)
+            ax.set_aspect('equal')
+            
+            if save_path:
+                plt.savefig(save_path, dpi=300, bbox_inches='tight')
+                print(f"📊 路径图已保存到: {save_path}")
+            else:
+                plt.show()
+                
+        except ImportError:
+            print("⚠️ matplotlib未安装，无法可视化路径")
+
+def test_waypoint_navigator():
+    """测试路标点导航器"""
+    
+    print("🧪 测试 WaypointNavigator")
+    print("="*50)
+    
+    # 使用当前配置
+    start = [500, 620]
+    goal = [600, 550]
+    
+    navigator = WaypointNavigator(start, goal)
+    
+    # 模拟机器人移动
+    current_pos = np.array(start, dtype=float)
+    
+    for step in range(50):
+        # 模拟向当前目标移动
+        target = navigator.get_current_target()
+        direction = target - current_pos
+        distance = np.linalg.norm(direction)
+        
+        if distance > 0:
+            # 每步移动10像素
+            move_distance = min(10.0, distance)
+            current_pos += (direction / distance) * move_distance
+        
+        # 更新导航器
+        reward, info = navigator.update(current_pos)
+        
+        if step % 10 == 0 or info["waypoint_reached"]:
+            print(f"步骤 {step}: 位置 {current_pos.astype(int)}, "
+                  f"目标 {target.astype(int)}, 奖励 {reward:.2f}")
+            
+            if info["waypoint_reached"]:
+                print(f"  🎯 到达路标点! 进度: {info['completion_progress']*100:.1f}%")
+        
+        # 检查是否完成
+        if info["completion_progress"] >= 1.0:
+            print(f"🏆 导航完成! 总步数: {step+1}")
+            break
+    
+    # 显示最终状态
+    progress = navigator.get_progress_info()
+    print(f"\n📊 最终进度:")
+    for key, value in progress.items():
+        print(f"   {key}: {value}")
+
+if __name__ == "__main__":
+    test_waypoint_navigator()

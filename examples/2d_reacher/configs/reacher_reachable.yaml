@@ -1,0 +1,13 @@
+
+start:
+  position: [300, 550]
+
+goal:
+  position: [450, 580]  # 更近的目标
+  radius: 35
+
+obstacles:
+  - shape: segment
+    points: [[200, 500], [250, 500]]
+  - shape: segment  
+    points: [[500, 600], [550, 600]]

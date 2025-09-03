@@ -309,10 +309,24 @@ class AsyncRenderer:
             # 🤖 创建Reacher2DEnv实例
             from reacher2d_env import Reacher2DEnv
             import numpy as np
+            import sys
+            import os
+            
+            # 🔄 禁用路标点系统导入
+            # base_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../')
+            # sys.path.insert(0, os.path.join(base_dir, 'examples/surrogate_model'))
+            # from waypoint_navigator import WaypointNavigator
             
             render_env_params = env_params.copy()
             render_env_params['render_mode'] = 'human'
             render_env = Reacher2DEnv(**render_env_params)
+            
+            # 🔄 禁用路标点系统初始化
+            # start_pos = render_env.anchor_point
+            # goal_pos = render_env.goal_pos
+            # waypoint_navigator = WaypointNavigator(start_pos, goal_pos)
+            # print(f"🗺️ 异步渲染器：路标点系统已初始化，路标数: {len(waypoint_navigator.waypoints)}")
+            waypoint_navigator = None  # 禁用路标点系统
             
             # 获取pygame组件
             screen = render_env.screen
@@ -386,16 +400,16 @@ class AsyncRenderer:
                             velocities.append(body.velocity)
                             angular_velocities.append(body.angular_velocity)
                             # 暂时清零速度，避免位置漂移
-                            body.velocity = (0, 0)
-                            body.angular_velocity = 0
+                            # body.velocity = (0, 0)
+                            # body.angular_velocity = 0
                         
                         # 执行微小物理步进以更新shape位置
-                        render_env.space.step(0.001)  # 非常小的时间步长
+                        # render_env.space.step(0.001)  # 非常小的时间步长
                         
                         # 恢复速度（保持静态显示）
-                        for i, body in enumerate(render_env.bodies):
-                            body.velocity = velocities[i]
-                            body.angular_velocity = angular_velocities[i]
+                        # for i, body in enumerate(render_env.bodies):
+                            # body.velocity = velocities[i]
+                            # body.angular_velocity = angular_velocities[i]
                         
                         # 同步目标位置（如果有变化）
                         if 'goal_pos' in robot_state:
@@ -404,9 +418,11 @@ class AsyncRenderer:
                     # 🎨 使用原生PyMunk渲染风格
                     screen.fill((255, 255, 255))  # 白色背景
                     
-                    # 绘制目标点（与原生风格一致）
+                    # 绘制目标点（修改为绿色大圆圈）
                     if hasattr(render_env, 'goal_pos') and render_env.goal_pos is not None:
-                        pygame.draw.circle(screen, (255, 0, 0), render_env.goal_pos.astype(int), 10)
+                        goal_pos_int = render_env.goal_pos.astype(int)
+                        pygame.draw.circle(screen, (0, 255, 0), goal_pos_int, 15)  # 绿色大圆
+                        pygame.draw.circle(screen, (0, 0, 0), goal_pos_int, 15, 3)  # 黑色边框
                     
                     # 🎯 绘制安全区域（可选调试，与原生一致）
                     if hasattr(render_env, 'bodies') and len(render_env.bodies) > 0:
@@ -417,12 +433,23 @@ class AsyncRenderer:
                     
                     # 🔑 关键：使用PyMunk原生debug_draw渲染机器人和障碍物
                     render_env.space.debug_draw(render_env.draw_options)
+                    
+                    # 🗺️ 绘制路标点系统
+                    if waypoint_navigator:
+                        # 获取当前末端执行器位置来更新路标点状态
+                        end_effector_pos = render_env._get_end_effector_position()
+                        if end_effector_pos:
+                            # 更新路标点导航器状态（但不关心奖励）
+                            waypoint_navigator.update(np.array(end_effector_pos))
+                        
+                        # 绘制路标点
+                        _draw_waypoints_async(screen, waypoint_navigator)
 
-                    # 🔴 【新增】绘制end_effector位置红点
+                    # 🔵 【修改】绘制end_effector位置蓝点
                     end_effector_pos = render_env._get_end_effector_position()
                     if end_effector_pos:
                         pos_int = (int(end_effector_pos[0]), int(end_effector_pos[1]))
-                        pygame.draw.circle(screen, (255, 0, 0), pos_int, 8)  # 红色圆点
+                        pygame.draw.circle(screen, (0, 0, 255), pos_int, 8)  # 蓝色圆点
                         pygame.draw.circle(screen, (255, 255, 255), pos_int, 8, 2)  # 白色边框
                         
                         # 显示坐标
@@ -486,7 +513,7 @@ class AsyncRenderer:
                         elapsed = current_time - last_stats_time
                         fps = 300 / elapsed if elapsed > 0 else 0
                         queue_size = render_queue.qsize() if hasattr(render_queue, 'qsize') else 'unknown'
-                        print(f"🎨 混合渲染进程: 帧数={frame_count}, FPS={fps:.1f}, 队列={queue_size}")
+                        # print(f"🎨 混合渲染进程: 帧数={frame_count}, FPS={fps:.1f}, 队列={queue_size}")
                         last_stats_time = current_time
                         
                 except Exception as e:
@@ -649,4 +676,143 @@ if __name__ == "__main__":
         env.close()
         renderer.stop()
         print("🎉 异步渲染测试完成！")
+
+
+def _draw_waypoints_async(screen, waypoint_navigator):
+    """在异步渲染器中绘制路标点系统"""
+    import pygame
+    import numpy as np
+    import math
+    
+    current_time = pygame.time.get_ticks()
+    
+    # 绘制路径线段
+    waypoints = waypoint_navigator.waypoints
+    for i in range(len(waypoints) - 1):
+        start_pos = waypoints[i].position.astype(int)
+        end_pos = waypoints[i + 1].position.astype(int)
+        
+        # 根据路标点状态设置路径颜色
+        if i < waypoint_navigator.current_waypoint_idx:
+            # 已完成的路径 - 绿色实线
+            pygame.draw.line(screen, (0, 200, 0), start_pos, end_pos, 4)
+        elif i == waypoint_navigator.current_waypoint_idx:
+            # 当前路径 - 黄色虚线
+            _draw_dashed_line_async(screen, start_pos, end_pos, (255, 215, 0), 4, 10)
+        else:
+            # 未来路径 - 灰色虚线
+            _draw_dashed_line_async(screen, start_pos, end_pos, (150, 150, 150), 2, 15)
+    
+    # 绘制路标点
+    for i, waypoint in enumerate(waypoints):
+        pos = waypoint.position.astype(int)
+        
+        if waypoint.visited:
+            # 已访问 - 绿色实心圆
+            pygame.draw.circle(screen, (0, 200, 0), pos, int(waypoint.radius), 0)
+            pygame.draw.circle(screen, (0, 100, 0), pos, int(waypoint.radius), 3)
+        elif i == waypoint_navigator.current_waypoint_idx:
+            # 当前目标 - 黄色闪烁圆
+            flash_alpha = int(127 + 127 * math.sin(current_time * 0.01))
+            color = (255, 215, 0, flash_alpha)
+            # 创建一个表面来处理alpha
+            surf = pygame.Surface((int(waypoint.radius * 2), int(waypoint.radius * 2)), pygame.SRCALPHA)
+            pygame.draw.circle(surf, color, (int(waypoint.radius), int(waypoint.radius)), int(waypoint.radius))
+            screen.blit(surf, (pos[0] - int(waypoint.radius), pos[1] - int(waypoint.radius)))
+            
+            # 外边框
+            pygame.draw.circle(screen, (200, 150, 0), pos, int(waypoint.radius), 3)
+        else:
+            # 未访问 - 蓝色虚线圆
+            _draw_dashed_circle_async(screen, pos, int(waypoint.radius), (100, 150, 255), 2, 15)
+        
+        # 绘制路标点编号
+        font = pygame.font.Font(None, 24)
+        text = font.render(str(i), True, (0, 0, 0))
+        text_rect = text.get_rect(center=pos)
+        screen.blit(text, text_rect)
+    
+    # 绘制进度信息面板
+    _draw_progress_panel_async(screen, waypoint_navigator)
+
+
+def _draw_dashed_line_async(screen, start, end, color, width, dash_length):
+    """绘制虚线"""
+    import pygame
+    import numpy as np
+    
+    start = np.array(start)
+    end = np.array(end)
+    distance = np.linalg.norm(end - start)
+    direction = (end - start) / distance if distance > 0 else np.array([0, 0])
+    
+    current_pos = start
+    drawn_distance = 0
+    
+    while drawn_distance < distance:
+        remaining = distance - drawn_distance
+        current_dash = min(dash_length, remaining)
+        
+        dash_end = current_pos + direction * current_dash
+        pygame.draw.line(screen, color, current_pos.astype(int), dash_end.astype(int), width)
+        
+        current_pos = dash_end + direction * dash_length  # 跳过间隙
+        drawn_distance += current_dash + dash_length
+
+
+def _draw_dashed_circle_async(screen, center, radius, color, width, dash_length):
+    """绘制虚线圆"""
+    import pygame
+    import math
+    
+    circumference = 2 * math.pi * radius
+    num_dashes = int(circumference / (dash_length * 2))
+    
+    for i in range(num_dashes):
+        start_angle = i * 2 * math.pi / num_dashes
+        end_angle = start_angle + math.pi / num_dashes
+        
+        start_x = center[0] + radius * math.cos(start_angle)
+        start_y = center[1] + radius * math.sin(start_angle)
+        end_x = center[0] + radius * math.cos(end_angle)
+        end_y = center[1] + radius * math.sin(end_angle)
+        
+        pygame.draw.line(screen, color, (int(start_x), int(start_y)), (int(end_x), int(end_y)), width)
+
+
+def _draw_progress_panel_async(screen, waypoint_navigator):
+    """绘制进度信息面板"""
+    import pygame
+    
+    # 面板背景
+    panel_rect = pygame.Rect(10, 150, 250, 120)
+    pygame.draw.rect(screen, (240, 240, 240, 200), panel_rect)
+    pygame.draw.rect(screen, (100, 100, 100), panel_rect, 2)
+    
+    # 标题
+    font_title = pygame.font.Font(None, 28)
+    title_text = font_title.render("路标导航", True, (0, 0, 0))
+    screen.blit(title_text, (panel_rect.x + 10, panel_rect.y + 5))
+    
+    # 进度信息
+    font = pygame.font.Font(None, 22)
+    y_offset = 35
+    
+    # 当前路标
+    current_text = f"当前路标: {waypoint_navigator.current_waypoint_idx}/{len(waypoint_navigator.waypoints)-1}"
+    text_surface = font.render(current_text, True, (0, 0, 0))
+    screen.blit(text_surface, (panel_rect.x + 10, panel_rect.y + y_offset))
+    y_offset += 25
+    
+    # 完成进度
+    progress = waypoint_navigator.current_waypoint_idx / len(waypoint_navigator.waypoints)
+    progress_text = f"完成进度: {progress*100:.1f}%"
+    text_surface = font.render(progress_text, True, (0, 0, 0))
+    screen.blit(text_surface, (panel_rect.x + 10, panel_rect.y + y_offset))
+    y_offset += 25
+    
+    # 总奖励
+    reward_text = f"路标奖励: {waypoint_navigator.total_reward:.1f}"
+    text_surface = font.render(reward_text, True, (0, 0, 0))
+    screen.blit(text_surface, (panel_rect.x + 10, panel_rect.y + y_offset))
 

@@ -163,7 +163,7 @@ class TrainingLogger:
         print(f"   运行时间: {self.time_history[-1]/3600:.2f} 小时")
         
         # 主要损失指标
-        main_metrics = ['critic_loss', 'actor_loss', 'alpha_loss', 'alpha']
+        main_metrics = ['critic_loss', 'actor_loss', 'alpha_loss', 'alpha', 'lr']
         for metric in main_metrics:
             stats = self.get_recent_stats(metric)
             if stats:
@@ -545,8 +545,8 @@ def demo_usage():
         alerts = monitor.check_alerts(step, metrics)
         
         # 定期打印统计
-        if step % 200 == 0 and step > 0:
-            logger.print_current_stats(step, detailed=True)
+        # if step % 200 == 0 and step > 0:
+        #     logger.print_current_stats(step, detailed=True)
         
         # 定期保存和绘图
         if step % 500 == 0 and step > 0:

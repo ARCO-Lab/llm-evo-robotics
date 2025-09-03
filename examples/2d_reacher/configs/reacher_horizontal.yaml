@@ -1,0 +1,12 @@
+start:
+  position: [300, 550]
+
+goal:
+  position: [480, 550]  # 水平右侧180px，正好在3*80=240px的reach内
+  radius: 35
+
+obstacles: []  # 简化任务
+
+# 添加初始角度配置让机器人水平伸展
+robot:
+  initial_angles: [0, 0, 0]  # 水平伸展而非垂直

@@ -17,6 +17,10 @@ sys.path.insert(0, os.path.join(base_dir, 'examples/rl/common'))
 sys.path.insert(0, os.path.join(base_dir, 'examples/rl/environments'))
 sys.path.append(os.path.join(base_dir, 'examples/rl'))
 
+# 🔄 禁用路标点系统导入
+# sys.path.insert(0, os.path.join(base_dir, 'examples/surrogate_model'))
+# from waypoint_navigator import WaypointNavigator
+
 import numpy as np
 import time
 from collections import deque
@@ -418,7 +422,7 @@ def main(args):
             'num_links': num_links,
             'link_lengths': link_lengths,
             'render_mode': 'human',
-            'config_path': "/home/xli149/Documents/repos/RoboGrammar/examples/2d_reacher/configs/reacher_with_zigzag_obstacles.yaml"
+            'config_path': "/home/xli149/Documents/repos/test_robo/examples/2d_reacher/configs/reacher_with_zigzag_obstacles.yaml"
         }
         smart_print(f"num links: {env_params['num_links']}")
         smart_print(f"link lengths: {env_params['link_lengths']}")
@@ -446,7 +450,7 @@ def main(args):
             smart_print("🚀 多进程模式：启用异步渲染")
             
             train_env_params = env_params.copy()
-            train_env_params['render_mode'] = None
+            train_env_params['render_mode'] = None  # 训练环境不渲染
             
             envs = make_reacher2d_vec_envs(
                 env_params=train_env_params,
@@ -458,16 +462,19 @@ def main(args):
                 allow_early_resets=False,
             )
             
+            # ✅ 恢复异步渲染器
             async_renderer = AsyncRenderer(env_params)
             async_renderer.start()
             
             sync_env = Reacher2DEnv(**train_env_params)
+            
+            smart_print(f"🔄 使用基础奖励函数，无waypoint系统")
             smart_print(f"✅ 异步渲染器已启动 (PID: {async_renderer.render_process.pid})")
             
         else:   
             smart_print("🏃 单进程模式：直接渲染")
             envs = make_reacher2d_vec_envs(
-                env_params=env_params,
+                env_params=env_params,  # 使用原始env_params，包含渲染
                 seed=args.seed,
                 num_processes=args.num_processes,
                 gamma=args.gamma,
@@ -475,6 +482,7 @@ def main(args):
                 device=device,
                 allow_early_resets=False
             )
+            async_renderer = None
 
         smart_print("✅ 环境创建成功")
         args.env_type = 'reacher2d'
@@ -825,6 +833,7 @@ def main(args):
                 step % args.update_frequency == 0 and 
                 sac.memory.can_sample(sac.batch_size)):
                 
+                
                 metrics = sac.update()
                 
                 if metrics:
@@ -842,13 +851,14 @@ def main(args):
                     
                     if step % 100 == 0:
                         print(f"Step {step} (total_steps {total_steps}): "
+                            f"Learning Rate: {metrics['lr']:.6f}, "
                             f"Critic Loss: {metrics['critic_loss']:.4f}, "
                             f"Actor Loss: {metrics['actor_loss']:.4f}, "
                             f"Alpha: {metrics['alpha']:.4f}, "
                             f"Buffer Size: {len(sac.memory)}")
                         
                         # 🚀 NEW: 使用新的统计打印
-                        logger.print_current_stats(step, detailed=(step % 500 == 0))
+                        # logger.print_current_stats(step, detailed=(step % 500 == 0))
                         
                         if 'entropy_term' in metrics:
                             smart_print(f"  Actor Loss 组件分析:")
@@ -939,7 +949,7 @@ def test_trained_model(model_path, num_episodes=10, render=True):
         'num_links': 4,
         'link_lengths': [80, 80, 80, 60],
         'render_mode': 'human' if render else None,
-        'config_path': "/home/xli149/Documents/repos/RoboGrammar/examples/2d_reacher/configs/reacher_with_zigzag_obstacles.yaml",
+        'config_path': "/home/xli149/Documents/repos/test_robo/examples/2d_reacher/configs/reacher_with_zigzag_obstacles.yaml",
         'debug_level': 'SILENT'
     }
     
@@ -1004,7 +1014,7 @@ def test_trained_model(model_path, num_episodes=10, render=True):
         obs = env.reset()
         episode_reward = 0
         step_count = 0
-        max_steps = 500  # 限制最大步数
+        max_steps = 2500  # 🎯 减少episode长度，增加episode数量获得更多样化训练
         min_distance_this_episode = float('inf')
         episode_success = False
         

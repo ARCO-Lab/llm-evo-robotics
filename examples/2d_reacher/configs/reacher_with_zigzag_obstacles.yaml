@@ -19,9 +19,9 @@ obstacles:
     points: [[650, 650], [700, 600]]
 
 goal:
-  position: [600, 575]  # 目标也移动到障碍物中心附近
+  position: [600, 550]  # 目标在锚点位置 - 距离0px，最容易达到
   radius: 10
 
 start:
-  position: [300, 550]  # 保持起始位置不变
+  position: [500, 620]  # 保持起始位置不变
   angle: 0

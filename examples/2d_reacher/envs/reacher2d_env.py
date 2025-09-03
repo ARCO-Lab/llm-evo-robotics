@@ -66,7 +66,7 @@ class Reacher2DEnv(Env):
         self.space.gravity = (0.0, 981.0)
         # 减少全局阻尼
         self.space.damping = 0.999  # 🔧 增加阻尼让角度限制更有效
-        self.space.collisions_slop = 0.1
+        self.space.collision_slop = 0.5
         self.space.collision_bias = (1-0.1) ** 60
         self.space.sleep_time_threshold = 0.5
         self.obstacles = []
@@ -152,7 +152,7 @@ class Reacher2DEnv(Env):
         
         for i in range(self.num_links):
             length = self.link_lengths[i]
-            mass = density * length * 10  # 🔧 增加质量
+            mass = density * length * 5  # 🔧 增加质量
             moment = pymunk.moment_for_segment(mass, (0, 0), (length, 0), 8)  # 🔧 增加半径
             body = pymunk.Body(mass, moment)
             
@@ -164,6 +164,7 @@ class Reacher2DEnv(Env):
             shape = pymunk.Segment(body, (0, 0), (length, 0), 8)  # 半径从5增加到8
             shape.friction = 0.8  # 🔧 增加摩擦力
             shape.collision_type = i + 1  # 🔧 为每个link设置不同的碰撞类型
+            shape.collision_slop = 0.01  # 🔧 设置碰撞容差，与space一致
             
             self.space.add(body, shape)
             self.bodies.append(body)
@@ -364,6 +365,9 @@ class Reacher2DEnv(Env):
         if not hasattr(self, 'prev_collision_count'):
             self.prev_collision_count = 0
 
+        # 🔄 禁用路标点系统
+        # self._reset_waypoint_system()
+
         observation = self._get_observation()
         info = self._build_info_dict()
         if self.gym_api_version == "old":
@@ -438,14 +442,14 @@ class Reacher2DEnv(Env):
         
         # 打印对比（只在step 0, 50, 100...时打印）
         step_count = getattr(self, '_debug_step_count', 0)
-        if step_count % 50 == 0:
-            print(f"🔍 End Effector 位置对比 (Step {step_count}):")
-            print(f"  方法A (anchor+逐步): {pos_A}")
-            print(f"  方法B (最后body末端): {pos_B}")
-            print(f"  方法C (原始累积): {pos_C}")
-            print(f"  A-B差异: {np.linalg.norm(pos_A - pos_B):.1f}")
-            print(f"  A-C差异: {np.linalg.norm(pos_A - pos_C):.1f}")
-            print(f"  B-C差异: {np.linalg.norm(pos_B - pos_C):.1f}")
+        # if step_count % 50 == 0:
+        #     print(f"🔍 End Effector 位置对比 (Step {step_count}):")
+        #     print(f"  方法A (anchor+逐步): {pos_A}")
+        #     print(f"  方法B (最后body末端): {pos_B}")
+        #     print(f"  方法C (原始累积): {pos_C}")
+        #     print(f"  A-B差异: {np.linalg.norm(pos_A - pos_B):.1f}")
+        #     print(f"  A-C差异: {np.linalg.norm(pos_A - pos_C):.1f}")
+        #     print(f"  B-C差异: {np.linalg.norm(pos_B - pos_C):.1f}")
         
         self._debug_step_count = step_count + 1
         
@@ -456,11 +460,11 @@ class Reacher2DEnv(Env):
     def step(self, actions):
 
         # 在step方法开始添加
-        if hasattr(self, 'step_counter') and self.step_counter % 50 == 0:
-            print(f"🎯 [step] Step {self.step_counter}:")
-            print(f"  输入动作: {actions}")
-            print(f"  最大扭矩限制: {self.max_torque}")
-            print(f"  动作空间: {self.action_space}")
+        # if hasattr(self, 'step_counter') and self.step_counter % 50 == 0:
+        #     print(f"🎯 [step] Step {self.step_counter}:")
+        #     print(f"  输入动作: {actions}")
+        #     print(f"  最大扭矩限制: {self.max_torque}")
+        #     print(f"  动作空间: {self.action_space}")
         
         """使用Motor控制 + 物理约束，结合真实性和安全性"""
         actions = np.clip(actions, -self.max_torque, self.max_torque)
@@ -528,6 +532,36 @@ class Reacher2DEnv(Env):
             new_collisions = current_collisions - self.prev_collision_count
             return -new_collisions * 10.0  # 每次新碰撞扣10分
         return 0.0
+    
+    def _get_joint_distance_penalty(self):
+        """计算关节间距离惩罚 - 防止关节过度靠近"""
+        if not hasattr(self, 'bodies') or len(self.bodies) < 2:
+            return 0.0
+        
+        penalty = 0.0
+        min_safe_distance = 25.0  # 关节间最小安全距离（像素）
+        max_penalty_per_pair = 0.2  # 每对关节的最大惩罚
+        
+        # 检查所有关节对
+        for i in range(len(self.bodies)):
+            for j in range(i + 2, len(self.bodies)):  # 跳过相邻关节，只检查间隔关节
+                pos_i = np.array(self.bodies[i].position)
+                pos_j = np.array(self.bodies[j].position)
+                distance = np.linalg.norm(pos_i - pos_j)
+                
+                if distance < min_safe_distance:
+                    # 距离越近，惩罚越大
+                    violation = min_safe_distance - distance
+                    pair_penalty = (violation / min_safe_distance) * max_penalty_per_pair
+                    penalty += pair_penalty
+                    
+                    # 调试信息（仅在严重违规时输出）
+                    if hasattr(self, 'step_counter') and self.step_counter % 200 == 0 and violation > 10:
+                        print(f"⚠️ 关节{i}-{j}过近: {distance:.1f}px (安全距离:{min_safe_distance}px), 惩罚:{pair_penalty:.3f}")
+        
+        # 限制总惩罚范围
+        penalty = np.clip(penalty, 0.0, 1.0)
+        return -penalty  # 返回负值作为惩罚
     
     def _build_info_dict(self):
         """构建包含丰富信息的info字典"""
@@ -809,14 +843,97 @@ class Reacher2DEnv(Env):
     #     return final_reward
 
     def _compute_reward(self):
-        """简化版奖励函数 - 包含碰撞惩罚"""
+        """基础奖励函数 - 简单稳定的奖励机制"""
+        # 🔄 禁用路标点系统，使用基础奖励保证训练稳定性
+        return self._compute_reward_basic()
+    
+    def _compute_reward_with_waypoints(self):
+        """带路标点的奖励函数 - 稳定版"""
+        end_effector_pos = np.array(self._get_end_effector_position())
+        
+        # === 1. 路标点导航奖励（平滑化）===
+        waypoint_reward, waypoint_info = self.waypoint_navigator.update(end_effector_pos)
+        
+        # 🛡️ 平滑路标点奖励 - 避免突然跳跃
+        if waypoint_reward > 5.0:  # 如果是大的即时奖励
+            waypoint_reward = np.clip(waypoint_reward * 0.2, 0, 3.0)  # 降低到合理范围
+        
+        # === 2. 基础距离奖励（到当前目标的距离）===
+        current_target = self.waypoint_navigator.get_current_target()
+        distance_to_target = np.linalg.norm(end_effector_pos - current_target)
+        
+        # 使用较小的距离权重
+        max_distance = 200.0
+        distance_weight = 0.5  # 固定较小权重，保持稳定
+        distance_reward = -distance_to_target / max_distance * distance_weight
+        
+        # === 3. 进度奖励 ===
+        if not hasattr(self, 'prev_waypoint_distance'):
+            self.prev_waypoint_distance = distance_to_target
+        
+        progress = self.prev_waypoint_distance - distance_to_target
+        progress_reward = np.clip(progress * 1.0, -0.5, 0.5)  # 减小进度奖励幅度
+        self.prev_waypoint_distance = distance_to_target
+        
+        # === 4. 完成度奖励 ===
+        completion_progress = waypoint_info.get('completion_progress', 0.0)
+        completion_bonus = completion_progress * 1.0  # 减小完成度奖励
+        
+        # === 5. 碰撞惩罚（保持原有） ===
+        collision_penalty = self._get_collision_penalty()
+        
+        # === 6. 关节间距离惩罚 ===
+        joint_distance_penalty = self._get_joint_distance_penalty()
+        
+        # === 7. 总奖励计算 (稳定版) ===
+        total_reward = (
+            waypoint_reward +       # [0, 3] 路标点奖励 (平滑后)
+            distance_reward +       # [-0.65, 0] 距离惩罚
+            progress_reward +       # [-0.5, 0.5] 进度奖励
+            completion_bonus +      # [0, 1] 完成度奖励
+            collision_penalty +     # [-2, 0] 碰撞惩罚
+            joint_distance_penalty  # [-1, 0] 关节间距离惩罚
+        )
+        
+        # 🛡️ 最终奖励稳定性保证
+        total_reward = np.clip(total_reward, -5.0, 5.0)
+        
+        # === 8. 调试信息 ===
+        if hasattr(self, 'step_counter') and self.step_counter % 100 == 0:
+            print(f"💰 [waypoint_reward] Step {self.step_counter}:")
+            print(f"   路标奖励: {waypoint_reward:.2f}")
+            print(f"   距离奖励: {distance_reward:.2f} (距离: {distance_to_target:.1f}, 权重: {distance_weight:.2f})")
+            print(f"   进度奖励: {progress_reward:.2f}")
+            print(f"   完成奖励: {completion_bonus:.2f}")
+            print(f"   碰撞惩罚: {collision_penalty:.2f}")
+            print(f"   关节惩罚: {joint_distance_penalty:.2f}")
+            print(f"   总奖励: {total_reward:.2f}")
+            print(f"   当前目标: {current_target}")
+            print(f"   完成进度: {completion_progress*100:.1f}%")
+        
+        return total_reward
+    
+    def _compute_reward_basic(self):
+        """基础奖励函数 - 包含碰撞惩罚"""
         end_effector_pos = np.array(self._get_end_effector_position())
         distance_to_goal = np.linalg.norm(end_effector_pos - self.goal_pos)
         
-        # 🔧 极简化的奖励设计
-        # 1. 距离奖励（主要信号）
-        max_distance = 300.0  # 合理的最大距离
-        distance_reward = -distance_to_goal / max_distance  # 范围: [-1, 0]
+        # 🔧 强化的距离奖励设计 (无waypoint时更重要)
+        # 1. 分段式距离奖励（主要信号）
+        max_distance = 300.0  
+        
+        # 分段式奖励：近距离给更高权重
+        if distance_to_goal <= 50.0:
+            # 很近：高权重，鼓励精确到达
+            distance_weight = 4.0
+        elif distance_to_goal <= 150.0:
+            # 中等距离：中等权重
+            distance_weight = 3.0
+        else:
+            # 远距离：基础权重
+            distance_weight = 2.0
+        
+        distance_reward = -distance_to_goal / max_distance * distance_weight  # 范围: [-2.67, 0]
         
         # 2. 成功奖励（明确的目标）
         if distance_to_goal <= 35.0:
@@ -824,13 +941,21 @@ class Reacher2DEnv(Env):
         else:
             success_reward = 0.0
         
-        # 3. 简单的进度奖励
+        # 3. 增强的进度奖励
         if not hasattr(self, 'prev_distance'):
             self.prev_distance = distance_to_goal
         
         progress = self.prev_distance - distance_to_goal
-        progress_reward = np.clip(progress * 2.0, -0.5, 0.5)  # 限制范围
         
+        # 根据当前距离调整进度奖励权重
+        if distance_to_goal <= 50.0:
+            progress_weight = 5.0  # 近距离时进步更重要
+        elif distance_to_goal <= 150.0:
+            progress_weight = 3.0  # 中距离时正常权重
+        else:
+            progress_weight = 2.0  # 远距离时较低权重
+            
+        progress_reward = np.clip(progress * progress_weight, -1.0, 1.0)
         self.prev_distance = distance_to_goal
         
         # 🚨 4. 添加碰撞惩罚
@@ -841,28 +966,162 @@ class Reacher2DEnv(Env):
                 self.prev_collision_count = 0
             self.prev_collision_count = self.collision_count
         
-        # 🔧 调整总奖励范围: 考虑碰撞惩罚
-        # 距离奖励: [-1, 0]
-        # 成功奖励: [0, 1] 
-        # 进度奖励: [-0.5, 0.5]
-        # 碰撞惩罚: [-10 * 新碰撞次数, 0]
+        # 🔧 增强版总奖励范围计算
+        # 距离奖励: [-2.67, 0] (分段权重)
+        # 成功奖励: [0, 5.0] 
+        # 进度奖励: [-1.0, 1.0] (分段权重)
+        # 碰撞惩罚: [-2.0, 0] (限制范围)
+        
+        # 先限制碰撞惩罚范围
+        collision_penalty = np.clip(collision_penalty, -2.0, 0.0)
+        
         total_reward = distance_reward + success_reward + progress_reward + collision_penalty
         
-        # 🔧 为了防止碰撞惩罚过大，适当缩放
-        if collision_penalty < 0:
-            # 如果有碰撞惩罚，缩放到合理范围
-            collision_penalty = np.clip(collision_penalty, -2.0, 0.0)  # 最多扣2分
-            total_reward = distance_reward + success_reward + progress_reward + collision_penalty
+        # 🛡️ 总奖励稳定性保护
+        total_reward = np.clip(total_reward, -6.0, 8.0)  # 适应新的奖励范围
         
         # 调试输出
-        if hasattr(self, 'step_counter') and self.step_counter % 50 == 0:
-            print(f"💰 [reward] Step {self.step_counter}: 奖励={total_reward:.3f}")
-            print(f"  距离: {distance_to_goal:.1f}, 距离奖励: {distance_reward:.3f}")
-            print(f"  进步奖励: {progress_reward:.3f}, 成功奖励: {success_reward:.3f}")
-            if collision_penalty != 0:
-                print(f"  🚨 碰撞惩罚: {collision_penalty:.3f} (碰撞次数: {getattr(self, 'collision_count', 0)})")
+        # if hasattr(self, 'step_counter') and self.step_counter % 50 == 0:
+        #     print(f"💰 [reward] Step {self.step_counter}: 奖励={total_reward:.3f}")
+        #     print(f"  距离: {distance_to_goal:.1f}, 距离奖励: {distance_reward:.3f}")
+        #     print(f"  进步奖励: {progress_reward:.3f}, 成功奖励: {success_reward:.3f}")
+        #     if collision_penalty != 0:
+        #         print(f"  🚨 碰撞惩罚: {collision_penalty:.3f} (碰撞次数: {getattr(self, 'collision_count', 0)})")
         
         return total_reward
+
+
+    # def _compute_reward(self, debug_mode=True):    
+    #     """
+    #     距离为最大权重；在此基础上额外提升“横向距离”的权重：
+    #     - distance_term: 以欧氏距离为主导（负值，越近越接近0）
+    #     - x_term: 对 |dx| 施加额外线性惩罚（负值，越靠近目标x越接近0）
+    #     其它项（方向/通道/避障/碰撞/时间）仅做轻量调味，不盖过距离。
+    #     """
+    #     import math
+    #     import numpy as np
+    #     eps = 1e-6
+
+    #     # --- 末端与目标 ---
+    #     ee = np.array(self._get_end_effector_position(), dtype=float)
+    #     goal = np.array(getattr(self, "goal_pos", [600.0, 575.0]), dtype=float)
+    #     ee_x, ee_y = float(ee[0]), float(ee[1])
+    #     gx, gy = float(goal[0]), float(goal[1])
+
+    #     dx = abs(ee_x - gx)
+    #     dy = abs(ee_y - gy)
+    #     d = float(math.hypot(dx, dy) + eps)
+
+    #     # --- 参考尺度 & 主导项（欧氏距离）---
+    #     reach = float(sum(getattr(self, "link_lengths", [60]*self.num_links)))
+    #     dist_ref = max(300.0, reach)                     # 欧氏距离归一化基准
+    #     w_dist = 4.0                                     # 主导权重
+    #     distance_term = - w_dist * (d / dist_ref)        # d→0 时 → 0；d大 → 负
+
+    #     # --- 横向距离额外权重（新） ---
+    #     x_ref = max(200.0, 0.5 * reach)                  # 横向归一化基准
+    #     w_x = 0.5                                        # ⬅️ 提高/降低横向权重就调这里
+    #     # x_term = - w_x * (dx / x_ref)                    # dx→0 时 → 0；dx大 → 负
+    #     x_term = 0                  # dx→0 时 → 0；dx大 → 负
+
+
+    #     # --- 方向轻量奖励（避免就地抖动，极小权重）---
+    #     if not hasattr(self, "prev_end_effector_pos"):
+    #         self.prev_end_effector_pos = ee.copy()
+    #     v = ee - self.prev_end_effector_pos
+    #     v_norm = float(np.linalg.norm(v) + eps)
+    #     g_vec = goal - ee
+    #     g_norm = float(np.linalg.norm(g_vec) + eps)
+    #     cos_theta = float(np.dot(v, g_vec) / (v_norm * g_norm))  # [-1,1]
+    #     speed_gate = min(v_norm / 8.0, 1.0)                      # 限制单步贡献
+    #     direction_term = 0.15 * (cos_theta * speed_gate)         # 很小
+
+    #     # --- 通道惩罚（只罚越界，温和）---
+    #     tunnel_center_y = 575.0
+    #     half_width = 90.0
+    #     # outside = max(0.0, abs(ee_y - tunnel_center_y) - half_width)
+    #     # tunnel_penalty = -0.1 * (outside / (half_width + 1e-6))
+    #     tunnel_penalty = -0.01 * (ee_y - tunnel_center_y)
+
+    #     # --- 避障（仅在过近时给轻微负值）---
+    #     if hasattr(self, "_get_min_obstacle_distance"):
+    #         min_obs = float(self._get_min_obstacle_distance())
+    #     else:
+    #         min_obs = float("inf")
+    #     safe_r = 45.0
+    #     if math.isfinite(min_obs) and min_obs < safe_r:
+    #         avoidance_term = -0.10 * (1.0 - (min_obs / safe_r))  # (0,-0.1]
+    #     else:
+    #         avoidance_term = 0.0
+
+    #     # --- 碰撞（只罚新碰撞，幅度很小）---
+    #     if not hasattr(self, "prev_collision_count"):
+    #         self.prev_collision_count = int(getattr(self, "collision_count", 0))
+    #     if not hasattr(self, "prev_self_collision_count"):
+    #         self.prev_self_collision_count = int(getattr(self, "self_collision_count", 0))
+
+    #     current_coll = int(getattr(self, "collision_count", 0))
+    #     current_self = int(getattr(self, "self_collision_count", 0))
+    #     new_coll = max(0, current_coll - int(self.prev_collision_count))
+    #     new_self = max(0, current_self - int(self.prev_self_collision_count))
+
+    #     collision_term = -0.50 * float(new_coll)
+    #     self_collision_term = -0.50 * float(new_self)
+
+    #     self.prev_collision_count = current_coll
+    #     self.prev_self_collision_count = current_self
+
+    #     # --- 微小时间惩罚 & 微成功加成（不盖过距离项）---
+    #     time_term = -0.005
+    #     goal_threshold = 35.0
+    #     success_bonus = 0.20 if d <= goal_threshold else 0.0
+
+    #     # --- 汇总（横向项生效，仍以总距离为王）---
+    #     total_reward = (
+    #         distance_term      # 主导
+    #         + x_term           # ⬅️ 横向加权（新）
+    #         + direction_term
+    #         + tunnel_penalty
+    #         + avoidance_term
+    #         + collision_term
+    #         + self_collision_term
+    #         + time_term
+    #         + success_bonus
+    #     )
+
+    #     # 更新缓存
+    #     self.prev_end_effector_pos = ee.copy()
+
+    #     # if debug_mode:
+    #     #     print("\n🔍 REWARD DEBUG (x-weighted):")
+    #     #     print(f"  End: ({ee_x:.1f},{ee_y:.1f})  Goal: ({gx:.1f},{gy:.1f})")
+    #     #     print(f"  dx={dx:.2f} dy={dy:.2f}  d={d:.2f}")
+    #     #     print(f"  distance_term={distance_term:+.3f} (ref={dist_ref:.1f}, w={w_dist})")
+    #     #     print(f"  x_term      ={x_term:+.3f} (x_ref={x_ref:.1f}, w_x={w_x})")
+    #     #     print(f"  direction   ={direction_term:+.3f}  tunnel={tunnel_penalty:+.3f}  avoid={avoidance_term:+.3f}")
+    #     #     print(f"  coll(new={new_coll})={collision_term:+.3f}  self(new={new_self})={self_collision_term:+.3f}")
+    #     #     print(f"  time={time_term:+.3f}  success={success_bonus:+.3f}")
+    #     #     print(f"  ✅ TOTAL={total_reward:+.3f}")
+
+    #     # # 渲染信息
+    #     # self.current_reward_info = {
+    #     #     'total_reward': float(total_reward),
+    #     #     'distance_to_goal': float(d),
+    #     #     'distance_term': float(distance_term),
+    #     #     'x_term': float(x_term),
+    #     #     'dx': float(dx),
+    #     #     'dy': float(dy),
+    #     #     'direction_term': float(direction_term),
+    #     #     'tunnel_penalty': float(tunnel_penalty),
+    #     #     'avoidance_term': float(avoidance_term),
+    #     #     'collision_term': float(collision_term),
+    #     #     'self_collision_term': float(self_collision_term),
+    #     #     'time_term': float(time_term),
+    #     #     'success_bonus': float(success_bonus),
+    #     #     'y_deviation': float(abs(ee_y - tunnel_center_y)),
+    #     #     'is_success': d <= goal_threshold
+    #     # }
+    #     return float(total_reward)
     
     def _compute_obstacle_avoidance_reward(self):
         """计算障碍物避让奖励 - 鼓励机器人保持与障碍物的安全距离"""
@@ -1043,6 +1302,7 @@ class Reacher2DEnv(Env):
                 
                 # 🎯 关键添加：设置障碍物碰撞类型
                 shape.collision_type = OBSTACLE_COLLISION_TYPE
+                shape.collision_slop = 0.01  # 🔧 设置障碍物碰撞容差，与links一致
                 
                 self.space.add(shape)
                 self.obstacles.append(shape)
@@ -1061,19 +1321,27 @@ class Reacher2DEnv(Env):
             
         self.screen.fill((255, 255, 255))
         
-        # 绘制目标点
-        pygame.draw.circle(self.screen, (255, 0, 0), self.goal_pos.astype(int), 10)
+        # 绘制路标点系统（如果存在）
+        if hasattr(self, 'waypoint_navigator'):
+            self._render_waypoints()
+        else:
+            # 绘制原始目标点 - 绿色大圆让它更明显
+            goal_pos_int = self.goal_pos.astype(int)
+            pygame.draw.circle(self.screen, (0, 255, 0), goal_pos_int, 15)  # 绿色大圆
+            pygame.draw.circle(self.screen, (0, 0, 0), goal_pos_int, 15, 3)  # 黑色边框
+            print(f"🎯 [render] 绘制目标点在: {goal_pos_int}")
 
 
         end_effector_pos = self._get_end_effector_position()
         print(f"🔍 [render] end_effector_pos: {end_effector_pos}")
         if end_effector_pos:
-            # 绘制红色圆点标记end_effector位置
+            # 绘制蓝色圆点标记end_effector位置
             pos_int = (int(end_effector_pos[0]), int(end_effector_pos[1]))
-            pygame.draw.circle(self.screen, (255, 0, 0), pos_int, 8)  # 红色圆点，半径8
+            pygame.draw.circle(self.screen, (0, 0, 255), pos_int, 8)  # 蓝色圆点，半径8
             
-            # 绘制一个白色边框让红点更显眼
+            # 绘制一个白色边框让蓝点更显眼
             pygame.draw.circle(self.screen, (255, 255, 255), pos_int, 8, 2)  # 白色边框
+            print(f"🤖 [render] 绘制末端执行器在: {pos_int}")
             
             # 🔍 【调试】在红点旁边显示坐标
             if hasattr(pygame, 'font') and pygame.font.get_init():
@@ -1094,7 +1362,192 @@ class Reacher2DEnv(Env):
         
         self.space.debug_draw(self.draw_options)
         pygame.display.flip()
-        self.clock.tick(60)  # 控制渲染帧率
+        self.clock.tick(60)
+    
+    def _render_waypoints(self):
+        """渲染路标点系统"""
+        if not hasattr(self, 'waypoint_navigator'):
+            return
+        
+        # 绘制所有路标点
+        for i, waypoint in enumerate(self.waypoint_navigator.waypoints):
+            pos_int = waypoint.position.astype(int)
+            
+            if waypoint.visited:
+                # 已访问的路标点 - 绿色
+                color = (0, 255, 0)
+                border_color = (0, 150, 0)
+                text_color = (255, 255, 255)
+            elif i == self.waypoint_navigator.current_waypoint_idx:
+                # 当前目标路标点 - 黄色闪烁
+                brightness = int(200 + 55 * abs(pygame.time.get_ticks() % 1000 - 500) / 500)
+                color = (brightness, brightness, 0)
+                border_color = (180, 180, 0)
+                text_color = (0, 0, 0)
+            else:
+                # 未访问的路标点 - 蓝色
+                color = (100, 150, 255)
+                border_color = (50, 100, 200)
+                text_color = (255, 255, 255)
+            
+            # 绘制路标点圆圈
+            radius = int(waypoint.radius * 0.8)  # 略小于判定半径
+            pygame.draw.circle(self.screen, color, pos_int, radius)
+            pygame.draw.circle(self.screen, border_color, pos_int, radius, 3)
+            
+            # 绘制路标点编号
+            if hasattr(pygame, 'font') and pygame.font.get_init():
+                font = pygame.font.Font(None, 24)
+                text = font.render(str(i), True, text_color)
+                text_rect = text.get_rect(center=pos_int)
+                self.screen.blit(text, text_rect)
+            
+            # 绘制到达半径（当前目标的虚线圆）
+            if i == self.waypoint_navigator.current_waypoint_idx:
+                self._draw_dashed_circle(pos_int, int(waypoint.radius), (255, 255, 0), 2)
+        
+        # 绘制路标点之间的连线
+        if len(self.waypoint_navigator.waypoints) > 1:
+            points = [wp.position.astype(int) for wp in self.waypoint_navigator.waypoints]
+            
+            for i in range(len(points) - 1):
+                start_pos = points[i]
+                end_pos = points[i + 1]
+                
+                # 根据完成状态选择线条颜色
+                if i < self.waypoint_navigator.current_waypoint_idx:
+                    # 已完成的路径段 - 绿色实线
+                    pygame.draw.line(self.screen, (0, 200, 0), start_pos, end_pos, 3)
+                elif i == self.waypoint_navigator.current_waypoint_idx:
+                    # 当前路径段 - 黄色虚线
+                    self._draw_dashed_line(start_pos, end_pos, (255, 200, 0), 3)
+                else:
+                    # 未来路径段 - 灰色虚线
+                    self._draw_dashed_line(start_pos, end_pos, (150, 150, 150), 2)
+        
+        # 绘制进度信息
+        self._render_waypoint_info()
+    
+    def _draw_dashed_circle(self, center, radius, color, width):
+        """绘制虚线圆圈"""
+        circumference = 2 * 3.14159 * radius
+        dash_length = 8
+        num_dashes = int(circumference / (dash_length * 2))
+        
+        for i in range(num_dashes):
+            start_angle = (i * 2 * 3.14159) / num_dashes
+            end_angle = ((i + 0.5) * 2 * 3.14159) / num_dashes
+            
+            start_x = center[0] + radius * np.cos(start_angle)
+            start_y = center[1] + radius * np.sin(start_angle)
+            end_x = center[0] + radius * np.cos(end_angle)
+            end_y = center[1] + radius * np.sin(end_angle)
+            
+            pygame.draw.line(self.screen, color, 
+                           (int(start_x), int(start_y)), 
+                           (int(end_x), int(end_y)), width)
+    
+    def _draw_dashed_line(self, start_pos, end_pos, color, width):
+        """绘制虚线"""
+        distance = np.linalg.norm(np.array(end_pos) - np.array(start_pos))
+        direction = (np.array(end_pos) - np.array(start_pos)) / distance
+        
+        dash_length = 10
+        gap_length = 5
+        current_pos = np.array(start_pos, dtype=float)
+        
+        while np.linalg.norm(current_pos - start_pos) < distance:
+            # 绘制实线段
+            next_pos = current_pos + direction * min(dash_length, 
+                                                   distance - np.linalg.norm(current_pos - start_pos))
+            
+            if np.linalg.norm(next_pos - start_pos) <= distance:
+                pygame.draw.line(self.screen, color, 
+                               current_pos.astype(int), next_pos.astype(int), width)
+            
+            # 移动到下一个实线段起点
+            current_pos = next_pos + direction * gap_length
+    
+    def _render_waypoint_info(self):
+        """渲染路标点信息面板"""
+        if not hasattr(pygame, 'font') or not pygame.font.get_init():
+            return
+        
+        # 创建信息面板
+        font = pygame.font.Font(None, 28)
+        small_font = pygame.font.Font(None, 22)
+        
+        progress = self.waypoint_navigator.get_progress_info()
+        current_idx = self.waypoint_navigator.current_waypoint_idx
+        total_waypoints = len(self.waypoint_navigator.waypoints)
+        
+        # 背景面板
+        panel_width = 250
+        panel_height = 120
+        panel_x = 10
+        panel_y = 10
+        
+        # 半透明背景
+        panel_surface = pygame.Surface((panel_width, panel_height))
+        panel_surface.set_alpha(180)
+        panel_surface.fill((50, 50, 50))
+        self.screen.blit(panel_surface, (panel_x, panel_y))
+        
+        # 标题
+        title_text = font.render("🗺️ Waypoint Navigation", True, (255, 255, 255))
+        self.screen.blit(title_text, (panel_x + 10, panel_y + 10))
+        
+        # 进度信息
+        progress_text = small_font.render(f"Progress: {progress['progress_percentage']:.1f}%", True, (255, 255, 255))
+        self.screen.blit(progress_text, (panel_x + 10, panel_y + 35))
+        
+        waypoint_text = small_font.render(f"Waypoint: {current_idx}/{total_waypoints}", True, (255, 255, 255))
+        self.screen.blit(waypoint_text, (panel_x + 10, panel_y + 55))
+        
+        reward_text = small_font.render(f"Reward: {progress['total_reward_earned']:.1f}", True, (255, 255, 255))
+        self.screen.blit(reward_text, (panel_x + 10, panel_y + 75))
+        
+        # 当前目标位置
+        if current_idx < total_waypoints:
+            target = progress['current_target']
+            target_text = small_font.render(f"Target: ({target[0]:.0f}, {target[1]:.0f})", True, (255, 255, 0))
+            self.screen.blit(target_text, (panel_x + 10, panel_y + 95))  # 控制渲染帧率
+
+    def _init_waypoint_system(self):
+        """初始化路标点系统"""
+        if hasattr(self, 'waypoint_navigator'):
+            return  # 已经初始化
+            
+        # 导入路标点系统
+        import sys
+        import os
+        base_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../../')
+        sys.path.insert(0, os.path.join(base_dir, 'examples/surrogate_model'))
+        from waypoint_navigator import WaypointNavigator
+        
+        # 创建路标点导航器
+        start_pos = self.anchor_point
+        goal_pos = self.goal_pos
+        self.waypoint_navigator = WaypointNavigator(start_pos, goal_pos)
+        
+        print(f"🗺️ 路标点系统已初始化")
+        print(f"   起点: {start_pos}")
+        print(f"   终点: {goal_pos}")
+        print(f"   路标数: {len(self.waypoint_navigator.waypoints)}")
+
+    def _reset_waypoint_system(self):
+        """重置路标点系统"""
+        if hasattr(self, 'waypoint_navigator') and self.waypoint_navigator is not None:
+            self.waypoint_navigator.reset()
+            
+            # 重置路标点相关的状态变量
+            if hasattr(self, 'prev_waypoint_distance'):
+                delattr(self, 'prev_waypoint_distance')
+                
+            print(f"🗺️ 路标点系统已重置")
+        else:
+            # 如果还没有路标点系统，则初始化它
+            self._init_waypoint_system()
 
     def close(self):
         if hasattr(self, 'screen'):

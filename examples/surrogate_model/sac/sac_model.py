@@ -82,11 +82,16 @@ class ReplayBuffer:
     
     def can_sample(self, batch_size):
         return len(self.buffer) >= batch_size
+    
+    def clear(self):
+        """清空buffer中的所有经验"""
+        self.buffer.clear()
+        print(f"🧹 Buffer已清空")
 
 
 class AttentionSACWithBuffer:
     def __init__(self, attn_model, action_dim, joint_embed_dim=128, 
-                 buffer_capacity=100000, batch_size=256, lr=3e-4, 
+                 buffer_capacity=10000, batch_size=256, lr=3e-4, 
                  gamma=0.99, tau=0.005, alpha=0.2, device='cpu', env_type='bullet'):
         
         self.device = device
@@ -121,7 +126,7 @@ class AttentionSACWithBuffer:
         self.gamma = gamma
         self.tau = tau
         self.alpha = alpha
-        
+        # lr = 2e-5  # 🔧 移除硬编码，使用传入的lr参数
         # 优化器 - 现在完全独立
         self.actor_optimizer = torch.optim.Adam(self.actor.parameters(), lr=lr)
         self.critic_optimizer = torch.optim.Adam(
@@ -183,8 +188,8 @@ class AttentionSACWithBuffer:
             # 🔧 关键修复：Action Scaling！
             # SAC输出[-1,+1]，需要缩放到环境的action space
             if self.env_type == 'reacher2d':
-                # 🔧 进一步降低action scale以防止穿模
-                action_scale = 50.0  # 从100.0进一步降低到50.0，更安全的范围
+                # 🎯 修复：恢复到环境的完整action range [-100, +100]
+                action_scale = 100.0  # 恢复到环境max_torque的完整范围
                 scaled_action = tanh_action * action_scale
                 return scaled_action
             else:
@@ -203,10 +208,34 @@ class AttentionSACWithBuffer:
         """从memory buffer采样并更新网络 - 增强数值稳定性"""
         if not self.memory.can_sample(self.batch_size):
             return None
+        
+        # batch = self.memory.sample(min(32, self.batch_size))  # 小批量快速评估
+        # joint_q, vertex_k, vertex_v, actions, rewards, next_joint_q, next_vertex_k, next_vertex_v, dones, vertex_mask = batch
+        
+        # with torch.no_grad():
+        #     current_q1 = self.critic1(joint_q, vertex_k, vertex_v, vertex_mask=vertex_mask, action=actions)
+        #     current_q2 = self.critic2(joint_q, vertex_k, vertex_v, vertex_mask=vertex_mask, action=actions)
+        #     quick_loss = (current_q1.std() + current_q2.std()).item()  # 简单评估
+        
+        # # 动态学习率调整
+        # if quick_loss < 1.0:  # 如果稳定
+        #     new_lr = 5e-5  # 可以提高学习率
+        # else:  # 如果不稳定
+        #     new_lr = 2e-5  # 保持低学习率
+        
+        # # 更新所有优化器的学习率
+        # for param_group in self.critic_optimizer.param_groups:
+        #     param_group['lr'] = new_lr
+        # for param_group in self.actor_optimizer.param_groups:
+        #     param_group['lr'] = new_lr
+        # for param_group in self.alpha_optimizer.param_groups:
+        #     param_group['lr'] = new_lr
             
-        # 从buffer采样
+        # # 从buffer采样
         batch = self.memory.sample(self.batch_size)
         joint_q, vertex_k, vertex_v, actions, rewards, next_joint_q, next_vertex_k, next_vertex_v, dones, vertex_mask = batch
+
+        
         
         # 🛡️ 奖励稳定性检查
         rewards = torch.clamp(rewards, -10.0, 10.0)  # 严格限制奖励范围
@@ -235,9 +264,52 @@ class AttentionSACWithBuffer:
         
         # 使用Huber Loss代替MSE Loss，更稳定
         critic_loss = nn.SmoothL1Loss()(current_q1, target_q) + nn.SmoothL1Loss()(current_q2, target_q)
+
+        current_lr = self.critic_optimizer.param_groups[0]['lr']
+
+        # 添加恢复逻辑
+        if not hasattr(self, 'consecutive_low_loss_count'):
+            self.consecutive_low_loss_count = 0
+
+        if critic_loss.item() < 0.5:  # 非常稳定
+            self.consecutive_low_loss_count += 1
+            if self.consecutive_low_loss_count > 50:  # 连续50次低loss
+                new_lr = min(current_lr * 1.2, 5e-5)  # 可以大幅恢复
+            else:
+                new_lr = min(current_lr * 1.05, 5e-5)  # 小幅提高
+        elif critic_loss.item() > 2.0:  # 严重不稳定
+            self.consecutive_low_loss_count = 0
+            new_lr = max(current_lr * 0.5, 1e-5)  # 大幅降低
+        elif critic_loss.item() > 1.0:  # 轻微不稳定
+            self.consecutive_low_loss_count = 0
+            new_lr = max(current_lr * 0.9, 1e-5)  # 适度降低
+        else:
+            new_lr = current_lr  # 保持不变
+                # 限制调整频率
+        if not hasattr(self, 'last_lr_adjust_step'):
+            self.last_lr_adjust_step = 0
+
+        # 获取当前步数（可以从外部传入或使用计数器）
+        if not hasattr(self, 'update_counter'):
+            self.update_counter = 0
+        self.update_counter += 1
+
+        # 至少100次update才调整一次学习率
+        if self.update_counter - self.last_lr_adjust_step > 100:
+            # 只在有显著变化时更新学习率
+            if abs(current_lr - new_lr) > 1e-7:
+                for param_group in self.critic_optimizer.param_groups:
+                    param_group['lr'] = new_lr
+                for param_group in self.actor_optimizer.param_groups:
+                    param_group['lr'] = new_lr
+                for param_group in self.alpha_optimizer.param_groups:
+                    param_group['lr'] = new_lr
+                print(f"📈 学习率调整 (第{self.update_counter}次更新): {current_lr:.1e} → {new_lr:.1e} (critic_loss: {critic_loss.item():.3f})")
+                self.last_lr_adjust_step = self.update_counter
+
         
         # 🛡️ Loss稳定性检查
-        if critic_loss > 10.0:
+        if critic_loss > 25.0:
             print(f"⚠️ 大Critic Loss: {critic_loss:.3f}, 跳过此次更新")
             return None
         
@@ -291,20 +363,83 @@ class AttentionSACWithBuffer:
         #     print(f"⚠️ Alpha达到下限 {min_alpha}，已限制")
         # 软更新target networks
         self.soft_update_targets()
+
+        def detect_q_divergence(current_q1, current_q2, target_q, step_info=""):
+            """检测Q值是否发散"""
+            divergence_signals = []
+            
+            # 1. 绝对值检测
+            q1_max = current_q1.max().item()
+            q1_min = current_q1.min().item()
+            q2_max = current_q2.max().item()
+            q2_min = current_q2.min().item()
+            target_max = target_q.max().item()
+            target_min = target_q.min().item()
+            
+            # 检查绝对值过大
+            if max(abs(q1_max), abs(q1_min), abs(q2_max), abs(q2_min)) > 100.0:
+                divergence_signals.append(f"Q值绝对值过大: Q1[{q1_min:.2f}, {q1_max:.2f}], Q2[{q2_min:.2f}, {q2_max:.2f}]")
+            
+            # 2. Q值方差检测
+            q1_std = current_q1.std().item()
+            q2_std = current_q2.std().item()
+            if q1_std > 50.0 or q2_std > 50.0:
+                divergence_signals.append(f"Q值方差过大: Q1_std={q1_std:.2f}, Q2_std={q2_std:.2f}")
+            
+            # 3. Q值差异检测
+            q_diff = torch.abs(current_q1 - current_q2).mean().item()
+            if q_diff > 20.0:
+                divergence_signals.append(f"Q1和Q2差异过大: mean_diff={q_diff:.2f}")
+            
+            # 4. Target-Current差异检测
+            target_diff_1 = torch.abs(current_q1 - target_q).mean().item()
+            target_diff_2 = torch.abs(current_q2 - target_q).mean().item()
+            if target_diff_1 > 30.0 or target_diff_2 > 30.0:
+                divergence_signals.append(f"Q值与目标差异过大: diff1={target_diff_1:.2f}, diff2={target_diff_2:.2f}")
+            
+            return divergence_signals
         
+        # 在update方法中调用检测
+        divergence_signals = detect_q_divergence(current_q1, current_q2, target_q)
+        if divergence_signals:
+            print(f"\n🔥 Q值发散警报:")
+            for signal in divergence_signals:
+                print(f"   {signal}")
+            print(f"   建议: 降低学习率、增加正则化或重启训练")
+
+            
         return {
+            'lr': new_lr,
             'critic_loss': critic_loss.item(),
             'actor_loss': actor_loss.item(),
             'alpha_loss': alpha_loss.item(),
             'alpha': self.alpha.item(),
             'q1_mean': current_q1.mean().item(),
             'q2_mean': current_q2.mean().item(),
+            'q1_std': current_q1.std().item(),        # 新增
+            'q2_std': current_q2.std().item(),        # 新增
+            'q1_max': current_q1.max().item(),        # 新增
+            'q1_min': current_q1.min().item(),        # 新增
+            'q2_max': current_q2.max().item(),        # 新增
+            'q2_min': current_q2.min().item(),        # 新增
+            'q_diff_mean': torch.abs(current_q1 - current_q2).mean().item(),  # 新增
+            'target_q_mean': target_q.mean().item(),  # 新增
             'buffer_size': len(self.memory),
-            # 添加loss组件分析
             'entropy_term': entropy_term.item(),
             'q_term': q_term.item(),
             'log_probs_mean': log_probs.mean().item()
         }
+    
+    def clear_buffer(self):
+        """清空经验回放缓冲区"""
+        self.memory.clear()
+        print(f"🧹 SAC模型buffer已清空 (容量: {self.memory.capacity})")
+    
+    def reset_for_new_reward_function(self):
+        """为新奖励函数重置训练状态"""
+        self.clear_buffer()
+        print(f"🔄 模型已重置以适应新奖励函数")
+        print(f"   建议进行新的warmup期: {self.warmup_steps}步")
 
 
 # 训练循环示例
