@@ -217,9 +217,21 @@ class TrainingLogger:
             
             for i, metric in enumerate(metrics):
                 if metric in plot_data and len(plot_data[metric]) > 0:
-                    ax.plot(steps, plot_data[metric], 
-                           label=metric, color=colors[i % len(colors)], linewidth=1.5)
-                    plotted_any = True
+                    # 确保steps和data长度匹配
+                    data = plot_data[metric]
+                    if len(steps) != len(data):
+                        # 取较短的长度
+                        min_len = min(len(steps), len(data))
+                        steps_to_use = steps[:min_len]
+                        data_to_use = data[:min_len]
+                    else:
+                        steps_to_use = steps
+                        data_to_use = data
+                    
+                    if len(steps_to_use) > 0 and len(data_to_use) > 0:
+                        ax.plot(steps_to_use, data_to_use, 
+                               label=metric, color=colors[i % len(colors)], linewidth=1.5)
+                        plotted_any = True
             
             if plotted_any:
                 ax.set_title(group_name, fontsize=12, fontweight='bold')
@@ -238,7 +250,15 @@ class TrainingLogger:
                             if window > 1:
                                 smooth = np.convolve(values, np.ones(window)/window, mode='valid')
                                 smooth_steps = steps[window-1:]
-                                ax.plot(smooth_steps, smooth, '--', alpha=0.7, linewidth=2)
+                                
+                                # 确保smooth_steps和smooth长度匹配
+                                if len(smooth_steps) != len(smooth):
+                                    min_len = min(len(smooth_steps), len(smooth))
+                                    smooth_steps = smooth_steps[:min_len]
+                                    smooth = smooth[:min_len]
+                                
+                                if len(smooth_steps) > 0 and len(smooth) > 0:
+                                    ax.plot(smooth_steps, smooth, '--', alpha=0.7, linewidth=2)
             else:
                 ax.text(0.5, 0.5, f'No data for\n{group_name}', 
                        ha='center', va='center', transform=ax.transAxes)

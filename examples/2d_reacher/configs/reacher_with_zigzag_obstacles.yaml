@@ -1,27 +1,27 @@
 obstacles:
-  # 锯齿形障碍物 - 移动到机器人可达范围内
+  # 锯齿形障碍物 - 通道宽度75px (上方向下移12.5px，下方向上移12.5px)
   - shape: segment
-    points: [[500, 500], [550, 550]]
+    points: [[500, 487], [550, 537]]
   - shape: segment
-    points: [[550, 550], [600, 500]]
+    points: [[550, 537], [600, 487]]
   - shape: segment
-    points: [[600, 500], [650, 550]]
+    points: [[600, 487], [650, 537]]
   - shape: segment
-    points: [[650, 550], [700, 500]]
+    points: [[650, 537], [700, 487]]
   
   - shape: segment
-    points: [[500, 600], [550, 650]]
+    points: [[500, 612], [550, 662]]
   - shape: segment
-    points: [[550, 650], [600, 600]]
+    points: [[550, 662], [600, 612]]
   - shape: segment
-    points: [[600, 600], [650, 650]]
+    points: [[600, 612], [650, 662]]
   - shape: segment
-    points: [[650, 650], [700, 600]]
+    points: [[650, 662], [700, 612]]
 
 goal:
   position: [600, 550]  # 目标在锚点位置 - 距离0px，最容易达到
   radius: 10
 
 start:
-  position: [500, 620]  # 保持起始位置不变
+  position: [480, 620]  # 保持起始位置不变
   angle: 0

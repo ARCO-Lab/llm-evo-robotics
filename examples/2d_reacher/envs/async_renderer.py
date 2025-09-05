@@ -304,9 +304,9 @@ class AsyncRenderer:
 
     @staticmethod
     def _render_worker(render_queue, control_queue, env_params):
-        """混合渲染：原生机器人 + 自定义信息 - 修复Link不动问题"""
+        """混合渲染：原生机器人 + 自定义信息 - 修复Link不动问题 + 防炸开"""
         try:
-            # 🤖 创建Reacher2DEnv实例
+            # 🤖 创建Reacher2DEnv实例（带防炸开功能）
             from reacher2d_env import Reacher2DEnv
             import numpy as np
             import sys
@@ -321,6 +321,15 @@ class AsyncRenderer:
             render_env_params['render_mode'] = 'human'
             render_env = Reacher2DEnv(**render_env_params)
             
+            # 🛡️ 确保渲染环境也启用防炸开功能
+            if not hasattr(render_env, 'explosion_detection'):
+                render_env.explosion_detection = True
+                render_env.max_safe_velocity = 200.0
+                render_env.max_safe_angular_velocity = 10.0
+                render_env.max_separation_impulse = 50.0
+                render_env.gentle_separation = True
+                print("🛡️ 异步渲染器：已启用防炸开功能")
+            
             # 🔄 禁用路标点系统初始化
             # start_pos = render_env.anchor_point
             # goal_pos = render_env.goal_pos
@@ -332,7 +341,7 @@ class AsyncRenderer:
             screen = render_env.screen
             clock = render_env.clock
             
-            print("🎨 混合渲染进程初始化完成 - 修复Link同步问题")
+            print("🎨 混合渲染进程初始化完成 - 修复Link同步问题 + 防炸开保护")
             
             frame_count = 0
             last_stats_time = time.time()
@@ -379,10 +388,17 @@ class AsyncRenderer:
                     if robot_state and 'body_positions' in robot_state:
                         positions = robot_state['body_positions']
                         
-                        # 同步body位置和角度到渲染环境
+                        # 同步body位置和角度到渲染环境（带防炸开保护）
                         for i, (x, y, angle) in enumerate(positions):
                             if i < len(render_env.bodies):
                                 body = render_env.bodies[i]
+                                
+                                # 🛡️ 防炸开检查：限制异常位置和角度
+                                if (abs(x) > 5000 or abs(y) > 5000 or 
+                                    not np.isfinite(x) or not np.isfinite(y) or not np.isfinite(angle)):
+                                    print(f"⚠️ 异步渲染器：检测到异常位置 Link{i}: ({x}, {y}, {angle})，跳过更新")
+                                    continue
+                                
                                 # 设置新的位置和角度
                                 body.position = (x, y)
                                 body.angle = angle
@@ -391,6 +407,23 @@ class AsyncRenderer:
                                 for shape in body.shapes:
                                     # 强制更新shape的缓存边界框和变换
                                     shape.cache_bb()
+                        
+                        # 🛡️ 防炸开：检查并修正渲染环境中的异常速度
+                        for i, body in enumerate(render_env.bodies):
+                            # 检查速度是否异常
+                            velocity_norm = np.linalg.norm(body.velocity)
+                            angular_velocity = abs(body.angular_velocity)
+                            
+                            if velocity_norm > 200.0 or angular_velocity > 10.0:
+                                # 修正异常速度
+                                if velocity_norm > 200.0:
+                                    vel_direction = np.array(body.velocity) / (velocity_norm + 1e-6)
+                                    body.velocity = (vel_direction * 100.0).tolist()
+                                
+                                if angular_velocity > 10.0:
+                                    body.angular_velocity = np.sign(body.angular_velocity) * 5.0
+                                
+                                print(f"🛡️ 异步渲染器：修正Link{i}异常速度")
                         
                         # 🔧 另一种方法：执行一个微小的物理步进来更新所有形状
                         # 保存当前速度
@@ -447,7 +480,7 @@ class AsyncRenderer:
 
                     # 🔵 【修改】绘制end_effector位置蓝点
                     end_effector_pos = render_env._get_end_effector_position()
-                    if end_effector_pos:
+                    if end_effector_pos is not None and len(end_effector_pos) > 0:
                         pos_int = (int(end_effector_pos[0]), int(end_effector_pos[1]))
                         pygame.draw.circle(screen, (0, 0, 255), pos_int, 8)  # 蓝色圆点
                         pygame.draw.circle(screen, (255, 255, 255), pos_int, 8, 2)  # 白色边框
@@ -487,12 +520,20 @@ class AsyncRenderer:
                                 sync_surface = font.render(sync_text, True, (0, 0, 255))
                                 screen.blit(sync_surface, (10, 90))
                                 
-                                # 显示第一个body的状态作为调试
+                                # 显示第一个body的状态作为调试 + 防炸开状态
                                 if len(positions) > 0:
                                     x, y, angle = positions[0]
                                     pos_text = f"Body0: ({x:.1f}, {y:.1f}, {angle:.2f})"
                                     pos_surface = pygame.font.Font(None, 24).render(pos_text, True, (128, 0, 128))
                                     screen.blit(pos_surface, (10, 130))
+                                    
+                                    # 显示防炸开状态
+                                    max_vel = max([np.linalg.norm(body.velocity) for body in render_env.bodies])
+                                    max_ang_vel = max([abs(body.angular_velocity) for body in render_env.bodies])
+                                    safety_text = f"Max Vel: {max_vel:.1f}, Max AngVel: {max_ang_vel:.1f}"
+                                    safety_color = (255, 0, 0) if max_vel > 200 or max_ang_vel > 10 else (0, 128, 0)
+                                    safety_surface = pygame.font.Font(None, 20).render(safety_text, True, safety_color)
+                                    screen.blit(safety_surface, (10, 155))
                     
                     else:
                         # 没有数据时显示等待信息
@@ -513,7 +554,10 @@ class AsyncRenderer:
                         elapsed = current_time - last_stats_time
                         fps = 300 / elapsed if elapsed > 0 else 0
                         queue_size = render_queue.qsize() if hasattr(render_queue, 'qsize') else 'unknown'
-                        # print(f"🎨 混合渲染进程: 帧数={frame_count}, FPS={fps:.1f}, 队列={queue_size}")
+                        # 检查是否有速度异常
+                        max_vel = max([np.linalg.norm(body.velocity) for body in render_env.bodies]) if render_env.bodies else 0
+                        explosion_status = "⚠️ EXPLOSION" if max_vel > 200 else "✅ SAFE"
+                        # print(f"🎨 混合渲染进程: 帧数={frame_count}, FPS={fps:.1f}, 队列={queue_size}, {explosion_status}")
                         last_stats_time = current_time
                         
                 except Exception as e:

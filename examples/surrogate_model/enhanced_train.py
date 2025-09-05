@@ -57,7 +57,7 @@ from sac.sac_model import AttentionSACWithBuffer
 from env_config.env_wrapper import make_reacher2d_vec_envs, make_smart_reacher2d_vec_envs
 from reacher2d_env import Reacher2DEnv
 sys.path.insert(0, os.path.join(base_dir, 'examples/2d_reacher/envs'))
-from async_renderer import AsyncRenderer, StateExtractor
+# from async_renderer import AsyncRenderer, StateExtractor
 import logging
 
 
@@ -447,32 +447,50 @@ def main(args):
         sync_env = None
         
         if args.num_processes > 1:
-            smart_print("🚀 多进程模式：启用异步渲染")
-            
-            train_env_params = env_params.copy()
-            train_env_params['render_mode'] = None  # 训练环境不渲染
-            
-            envs = make_reacher2d_vec_envs(
-                env_params=train_env_params,
-                seed=args.seed,
-                num_processes=args.num_processes,
-                gamma=args.gamma,
-                log_dir=None,
-                device=device,
-                allow_early_resets=False,
-            )
-            
-            # ✅ 恢复异步渲染器
-            async_renderer = AsyncRenderer(env_params)
-            async_renderer.start()
-            
-            sync_env = Reacher2DEnv(**train_env_params)
-            
-            smart_print(f"🔄 使用基础奖励函数，无waypoint系统")
-            smart_print(f"✅ 异步渲染器已启动 (PID: {async_renderer.render_process.pid})")
+            # 多进程模式：检查是否需要渲染
+            if env_params.get('render_mode') == 'human':
+                # 🎯 新方案：多进程训练 + 单独的渲染环境（简洁风格）
+                smart_print("🎨 多进程模式 + 简洁渲染：训练环境无渲染，独立渲染环境")
+                
+                train_env_params = env_params.copy()
+                train_env_params['render_mode'] = None  # 训练环境不渲染
+                
+                envs = make_reacher2d_vec_envs(
+                    env_params=train_env_params,
+                    seed=args.seed,
+                    num_processes=args.num_processes,
+                    gamma=args.gamma,
+                    log_dir=None,
+                    device=device,
+                    allow_early_resets=False,
+                )
+                
+                # 🎯 创建独立的简洁渲染环境（不使用AsyncRenderer）
+                render_env_params = env_params.copy()
+                render_env_params['render_mode'] = 'human'
+                sync_env = Reacher2DEnv(**render_env_params)
+                async_renderer = None  # 不使用AsyncRenderer
+                
+                smart_print("✅ 多进程训练环境已创建（无渲染）")
+                smart_print("✅ 独立渲染环境已创建（简洁风格）")
+                smart_print("💡 渲染将与训练同步，但使用简洁的Gymnasium风格")
+            else:
+                smart_print("🚀 多进程模式：无渲染，高速训练")
+                
+                envs = make_reacher2d_vec_envs(
+                    env_params=env_params,
+                    seed=args.seed,
+                    num_processes=args.num_processes,
+                    gamma=args.gamma,
+                    log_dir=None,
+                    device=device,
+                    allow_early_resets=False,
+                )
+                async_renderer = None
+                sync_env = None
             
         else:   
-            smart_print("🏃 单进程模式：直接渲染")
+            smart_print("🎯 单进程模式：环境内置渲染 (简洁风格，与test_replacement.py一致)")
             envs = make_reacher2d_vec_envs(
                 env_params=env_params,  # 使用原始env_params，包含渲染
                 seed=args.seed,
@@ -483,6 +501,12 @@ def main(args):
                 allow_early_resets=False
             )
             async_renderer = None
+            
+            # 🎨 单进程模式下也创建sync_env用于渲染
+            if env_params.get('render_mode') == 'human':
+                render_env_params = env_params.copy()
+                sync_env = Reacher2DEnv(**render_env_params)
+                smart_print("✅ 单进程渲染环境已创建")
 
         smart_print("✅ 环境创建成功")
         args.env_type = 'reacher2d'
@@ -608,6 +632,13 @@ def main(args):
             start_step = 0
     
     current_obs = envs.reset()
+    print(f"current_obs: {current_obs} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5")
+    
+    # 🔧 修复：同步重置渲染环境
+    if sync_env:
+        sync_env.reset()
+        print(f"🔧 [FIX] sync_env 已重置")
+    
     current_gnn_embeds = single_gnn_embed.repeat(args.num_processes, 1, 1)
     total_steps = 0
     episode_rewards = [0.0] * args.num_processes
@@ -686,13 +717,19 @@ def main(args):
                     smart_print(f"    Max action: {np.max(np.abs(action_values)):6.2f}, Mean abs: {np.mean(np.abs(action_values)):6.2f}")
 
             next_obs, reward, done, infos = envs.step(action_batch)
-            
-            # 🎨 异步渲染
-            if async_renderer and sync_env:
+
+            # 🎨 渲染处理
+            if sync_env:
                 sync_action = action_batch[0].cpu().numpy() if hasattr(action_batch, 'cpu') else action_batch[0]
                 sync_env.step(sync_action)
-                robot_state = StateExtractor.extract_robot_state(sync_env, step)
-                async_renderer.render_frame(robot_state)
+                
+                if async_renderer:
+                    # 使用AsyncRenderer（复杂风格）
+                    robot_state = StateExtractor.extract_robot_state(sync_env, step)
+                    async_renderer.render_frame(robot_state)
+                else:
+                    # 使用环境内置渲染（简洁风格）
+                    sync_env.render()
 
             next_gnn_embeds = single_gnn_embed.repeat(args.num_processes, 1, 1)
 
