@@ -70,6 +70,7 @@ class Reacher2DEnv(Env):
         self.joint_angles = np.zeros(num_links)
         self.joint_velocities = np.zeros(num_links)
         self.step_count = 0
+
         
         # 目标位置（从配置或课程学习）
         self.goal_pos = self.base_goal_pos.copy()
@@ -79,7 +80,7 @@ class Reacher2DEnv(Env):
         
         # 定义空间
         self.action_space = Box(low=-self.max_torque, high=self.max_torque, shape=(self.num_links,), dtype=np.float32)
-        self.observation_space = Box(low=-np.inf, high=np.inf, shape=(self.num_links * 2 + 7,), dtype=np.float32)
+        self.observation_space = Box(low=-np.inf, high=np.inf, shape=(self.num_links * 2 + 8,), dtype=np.float32)
         
         # 渲染相关
         self.screen = None
@@ -102,7 +103,7 @@ class Reacher2DEnv(Env):
         # 统计信息
         self.collision_count = 0
         self.base_collision_count = 0
-
+        self.self_collision_count = 0
         if self.render_mode:
             self._init_rendering()
 
@@ -308,7 +309,7 @@ class Reacher2DEnv(Env):
             if i == 0:  # 基座关节可以360度旋转
                 new_joint_angles[i] = new_joint_angles[i] % (2 * np.pi)
             else:  # 其他关节限制
-                new_joint_angles[i] = np.clip(new_joint_angles[i], -np.pi, np.pi)
+                new_joint_angles[i] = np.clip(new_joint_angles[i], -np.pi * 7 / 8, np.pi * 7 / 8)
         
         # 临时设置新状态以检查碰撞
         self.joint_angles = new_joint_angles
@@ -457,6 +458,28 @@ class Reacher2DEnv(Env):
                                 self.base_collision_count += 1
                             else:
                                 self.collision_count += 1
+
+        for i in range(len(link_positions) - 1):
+            for j in range(i + 2, len(link_positions) - 1):  # 跳过相邻的link
+                link1_start = link_positions[i]
+                link1_end = link_positions[i + 1]
+                link2_start = link_positions[j]
+                link2_end = link_positions[j + 1]
+                
+                # 计算两个link之间的距离
+                distance = self._segment_to_segment_distance(
+                    link1_start, link1_end, link2_start, link2_end
+                )
+                
+                # 如果距离小于link的厚度，则发生自碰撞
+                link_thickness = 8  # 与渲染时的线宽一致
+                if distance < link_thickness + 2:  # +2像素安全边距
+                    collision_detected = True
+                    self.collision_count += 1
+                    
+                    # 可以添加自碰撞的调试信息
+                    if not self.is_silent:
+                        print(f"🔴 自碰撞检测: Link{i} 与 Link{j} 碰撞，距离: {distance:.1f}px")
         
         return collision_detected
     
@@ -492,7 +515,7 @@ class Reacher2DEnv(Env):
         distance = np.linalg.norm(end_pos - self.goal_pos)
         
         # 距离奖励
-        distance_reward = -distance / 100.0
+        distance_reward = -distance / 150.0
         
         # 到达奖励
         reach_reward = 0.0
@@ -528,7 +551,7 @@ class Reacher2DEnv(Env):
         distance = np.linalg.norm(end_pos - self.goal_pos)
         
         # 到达目标
-        if distance < 15.0:
+        if distance < 20.0:
             return True
         
         # 步数限制
@@ -590,20 +613,27 @@ class Reacher2DEnv(Env):
         obs = np.concatenate([obs, [distance]])
         
         # 碰撞信息
-        obs = np.concatenate([obs, [self.collision_count, self.base_collision_count]])
+        obs = np.concatenate([obs, [self.collision_count, self.base_collision_count, self.self_collision_count]])
         
         return obs.astype(np.float32)
     
     def _get_info(self):
         """获取额外信息"""
         end_pos = self._get_end_effector_position()
+        distance = np.linalg.norm(end_pos - self.goal_pos)
         return {
             'end_effector_pos': end_pos,
             'goal_pos': self.goal_pos,
-            'distance': np.linalg.norm(end_pos - self.goal_pos),
+            'distance': float(distance),
             'collision_count': self.collision_count,
             'base_collision_count': self.base_collision_count,
-            'step_count': self.step_count
+            'step_count': self.step_count,
+            'goal': {
+                'distance_to_goal': float(distance),
+                'goal_reached': distance < 20.0,
+                'end_effector_position': end_pos,
+                'goal_position': self.goal_pos,
+            }
         }
     
     def render(self, mode='human'):

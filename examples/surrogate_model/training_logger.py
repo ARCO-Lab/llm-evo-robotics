@@ -494,7 +494,7 @@ class RealTimeMonitor:
         self.logger = logger
         self.alert_thresholds = alert_thresholds or {
             'critic_loss': {'max': 10.0, 'nan_check': True},
-            'actor_loss': {'max': 5.0, 'nan_check': True},
+            'actor_loss': {'max': 50.0, 'nan_check': True},
             'alpha_loss': {'max': 2.0, 'nan_check': True},
         }
         self.alert_history = []
