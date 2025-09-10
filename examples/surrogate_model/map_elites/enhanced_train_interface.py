@@ -1,6 +1,6 @@
 """
 enhanced_train.py的MAP-Elites接口版本
-修复参数传递和渲染可视化问题
+修复参数传递和渲染可视化问题 - 修复所有缺失参数
 """
 
 import sys
@@ -98,86 +98,6 @@ class MAPElitesTrainingInterface:
             if 'REACHER_LOG_LEVEL' in os.environ:
                 del os.environ['REACHER_LOG_LEVEL']
     
-    def _call_enhanced_train_subprocess(self, args) -> Dict[str, Any]:
-        """作为子进程调用enhanced_train.py"""
-        
-        try:
-            enhanced_args = self._convert_to_enhanced_args(args)
-            
-            # 构建命令行参数
-            cmd = [
-                sys.executable,
-                os.path.join(os.path.dirname(__file__), '../enhanced_train.py'),
-                '--train'
-            ]
-            
-            # 构建参数列表（匹配enhanced_train.py的格式）
-            cmd_args = [
-                '--env-name', 'reacher2d',
-                '--num-processes', str(enhanced_args.num_processes),
-                '--lr', str(enhanced_args.lr),
-                '--gamma', str(enhanced_args.gamma),
-                '--seed', str(enhanced_args.seed),
-                '--save-dir', enhanced_args.save_dir,
-                '--grammar-file', enhanced_args.grammar_file,
-                '--rule-sequence'
-            ] + enhanced_args.rule_sequence
-            
-            # 添加SAC特有的参数
-            cmd_args.extend([
-                '--batch-size', str(enhanced_args.batch_size),
-                '--buffer-capacity', str(enhanced_args.buffer_capacity),
-                '--warmup-steps', str(enhanced_args.warmup_steps),
-                '--target-entropy-factor', str(enhanced_args.target_entropy_factor),
-                '--update-frequency', str(enhanced_args.update_frequency)
-            ])
-            
-            # 添加alpha参数
-            if hasattr(enhanced_args, 'alpha'):
-                cmd_args.extend(['--alpha', str(enhanced_args.alpha)])
-            
-            cmd.extend(cmd_args)
-            
-            print(f"🚀 子进程命令: {' '.join(cmd[:10])}... (共{len(cmd)}个参数)")
-            print(f"🎨 渲染模式: {'启用' if self.enable_rendering else '禁用'}")
-            
-            # 🔧 修复：正确的环境变量设置
-            env = os.environ.copy()
-            if self.silent_mode and not self.enable_rendering:
-                env['TRAIN_SILENT'] = '1'
-                env['REACHER_LOG_LEVEL'] = 'SILENT'
-            elif not self.enable_rendering:
-                env['REACHER_LOG_LEVEL'] = 'SILENT'
-            # enable_rendering=True时不设置抑制变量，保持默认渲染
-            
-            result = subprocess.run(
-                cmd, 
-                capture_output=True, 
-                text=True, 
-                env=env,
-                timeout=3600
-            )
-            
-            if result.returncode == 0:
-                print("✅ 子进程训练成功")
-                metrics = self._simulate_metrics_from_output(result.stdout)
-                return metrics
-            else:
-                print(f"❌ 子进程训练失败: 返回码 {result.returncode}")
-                print(f"错误输出: {result.stderr[:500]}...")
-                if result.stdout:
-                    print(f"标准输出: {result.stdout[:300]}...")
-                return self._get_failed_metrics()
-        
-        except subprocess.TimeoutExpired:
-            print(f"⏰ 子进程训练超时")
-            return self._get_timeout_metrics()
-        except Exception as e:
-            print(f"❌ 子进程调用失败: {e}")
-            import traceback
-            traceback.print_exc()
-            return self._get_failed_metrics()
-    
     def _run_modified_enhanced_train(self, args) -> Dict[str, Any]:
         """运行修改版的enhanced_train并收集指标"""
         
@@ -232,7 +152,7 @@ class MAPElitesTrainingInterface:
                 builtins.print = original_print
     
     def _convert_to_enhanced_args(self, args):
-        """将MAP-Elites参数转换为enhanced_train参数格式"""
+        """将MAP-Elites参数转换为enhanced_train参数格式 - 🔧 修复所有缺失参数"""
         
         enhanced_args = argparse.Namespace()
         
@@ -245,65 +165,80 @@ class MAPElitesTrainingInterface:
         enhanced_args.rule_sequence = ['0']
         
         # === 训练参数 ===
-        enhanced_args.seed = getattr(args, 'seed', 42)
+        enhanced_args.seed = int(getattr(args, 'seed', 42))
         enhanced_args.num_processes = 2  # 使用多进程以启用异步渲染
         enhanced_args.save_dir = getattr(args, 'save_dir', './test_enhanced_interface')
         
         # === 学习参数 ===
-        enhanced_args.lr = getattr(args, 'lr', 3e-4)
-        enhanced_args.gamma = getattr(args, 'gamma', 0.99)
-        enhanced_args.alpha = getattr(args, 'alpha', 0.99)  # RMSprop的alpha
+        enhanced_args.lr = float(getattr(args, 'lr', 3e-4))
+        enhanced_args.gamma = float(getattr(args, 'gamma', 0.99))
+        enhanced_args.alpha = float(getattr(args, 'alpha', 0.1))  # 🔧 修复：SAC的alpha应该是0.1
         
         # === SAC特有参数 ===
-        enhanced_args.batch_size = getattr(args, 'batch_size', 64)
-        enhanced_args.buffer_capacity = getattr(args, 'buffer_capacity', 10000)
-        enhanced_args.warmup_steps = getattr(args, 'warmup_steps', 1000)
-        enhanced_args.target_entropy_factor = getattr(args, 'target_entropy_factor', 0.8)
-        enhanced_args.update_frequency = getattr(args, 'update_frequency', 2)
+        enhanced_args.batch_size = int(getattr(args, 'batch_size', 64))
+        enhanced_args.buffer_capacity = int(getattr(args, 'buffer_capacity', 10000))
+        enhanced_args.warmup_steps = int(getattr(args, 'warmup_steps', 1000))
+        enhanced_args.target_entropy_factor = float(getattr(args, 'target_entropy_factor', 0.8))
+        enhanced_args.update_frequency = int(getattr(args, 'update_frequency', 2))
+        
+        # === 🔧 新增：恢复训练参数 ===
+        enhanced_args.resume_checkpoint = None  # 🔧 关键修复！
+        enhanced_args.resume_lr = None
+        enhanced_args.resume_alpha = None
+        
+        # === 🔧 新增：渲染控制参数 ===
+        enhanced_args.render = self.enable_rendering
+        enhanced_args.no_render = not self.enable_rendering
+        
+        # === 🔧 新增：CUDA控制参数 ===
+        enhanced_args.no_cuda = True  # MAP-Elites默认使用CPU
+        enhanced_args.cuda = False
+        enhanced_args.cuda_deterministic = False
         
         # === RL标准参数 ===
         enhanced_args.algo = 'ppo'
-        enhanced_args.eps = 1e-5
-        enhanced_args.entropy_coef = 0.01
-        enhanced_args.value_loss_coef = 0.5
-        enhanced_args.max_grad_norm = 0.5
-        enhanced_args.num_steps = 5
-        enhanced_args.ppo_epoch = 4
-        enhanced_args.num_mini_batch = 32
-        enhanced_args.clip_param = 0.2
-        enhanced_args.num_env_steps = getattr(args, 'total_steps', 10000)
+        enhanced_args.eps = float(1e-5)
+        enhanced_args.entropy_coef = float(0.01)
+        enhanced_args.value_loss_coef = float(0.5)
+        enhanced_args.max_grad_norm = float(0.5)
+        enhanced_args.num_steps = int(5)
+        enhanced_args.ppo_epoch = int(4)
+        enhanced_args.num_mini_batch = int(32)
+        enhanced_args.clip_param = float(0.2)
+        enhanced_args.num_env_steps = int(getattr(args, 'total_steps', 10000))
         
         # === 布尔标志 ===
         enhanced_args.gail = False
         enhanced_args.use_gae = False
-        enhanced_args.cuda_deterministic = False
         enhanced_args.load_model = False
-        enhanced_args.no_cuda = True
-        enhanced_args.cuda = False
         
         # === 其他参数 ===
-        enhanced_args.log_interval = 10
-        enhanced_args.save_interval = 100
+        enhanced_args.log_interval = int(10)
+        enhanced_args.save_interval = int(100)
         enhanced_args.eval_interval = None
-        enhanced_args.eval_num = 1
-        enhanced_args.render_interval = 80
+        enhanced_args.eval_num = int(1)
+        enhanced_args.render_interval = int(80)
         enhanced_args.gail_experts_dir = './gail_experts'
-        enhanced_args.gail_batch_size = 128
-        enhanced_args.gail_epoch = 5
-        enhanced_args.gae_lambda = 0.95
+        enhanced_args.gail_batch_size = int(128)
+        enhanced_args.gail_epoch = int(5)
+        enhanced_args.gae_lambda = float(0.95)
         enhanced_args.load_model_path = False
         
         # === MAP-Elites特定参数 ===
-        enhanced_args.num_joints = getattr(args, 'num_joints', 3)
-        enhanced_args.link_lengths = getattr(args, 'link_lengths', [60.0, 40.0, 30.0])
-        enhanced_args.tau = getattr(args, 'tau', 0.005)
+        enhanced_args.num_joints = int(getattr(args, 'num_joints', 3))
+        enhanced_args.link_lengths = [float(x) for x in getattr(args, 'link_lengths', [60.0, 40.0, 30.0])]
+        enhanced_args.tau = float(getattr(args, 'tau', 0.005))
         
         print(f"✅ 参数转换完成:")
         print(f"   环境: {enhanced_args.env_name}")
         print(f"   进程数: {enhanced_args.num_processes}")
         print(f"   种子: {enhanced_args.seed}")
         print(f"   学习率: {enhanced_args.lr}")
+        print(f"   SAC Alpha: {enhanced_args.alpha}")
         print(f"   关节数: {enhanced_args.num_joints}")
+        print(f"   缓冲区容量: {enhanced_args.buffer_capacity}")
+        print(f"   渲染: {enhanced_args.render}")
+        print(f"   恢复检查点: {enhanced_args.resume_checkpoint}")
         print(f"   保存目录: {enhanced_args.save_dir}")
         
         return enhanced_args
@@ -392,39 +327,6 @@ class MAPElitesTrainingInterface:
         
         return metrics
     
-    def _simulate_metrics_from_output(self, output: str) -> Dict[str, Any]:
-        """从输出字符串模拟指标（备用方法）"""
-        
-        lines = output.split('\n')
-        
-        # 检查训练是否成功启动
-        training_started = any("start training" in line.lower() or "🚀" in line for line in lines)
-        episodes_found = len([line for line in lines if "Episode" in line and "reward" in line])
-        
-        if training_started and episodes_found > 0:
-            base_reward = np.random.uniform(-10, 30)
-            success_rate = min(0.8, max(0.1, episodes_found / 20.0))
-        elif training_started:
-            base_reward = np.random.uniform(-30, 10)
-            success_rate = np.random.uniform(0.0, 0.3)
-        else:
-            base_reward = np.random.uniform(-80, -20)
-            success_rate = 0.0
-        
-        return {
-            'avg_reward': base_reward,
-            'success_rate': success_rate,
-            'min_distance': max(20, 150 - base_reward * 2),
-            'trajectory_smoothness': np.random.uniform(0.3, 0.8),
-            'collision_rate': np.random.uniform(0.0, 0.4),
-            'exploration_area': np.random.uniform(100, 500),
-            'action_variance': np.random.uniform(0.1, 0.5),
-            'learning_rate': np.random.uniform(0.2, 0.8),
-            'final_critic_loss': np.random.uniform(0.5, 8.0),
-            'final_actor_loss': np.random.uniform(0.2, 4.0),
-            'training_stability': np.random.uniform(0.3, 0.9)
-        }
-    
     def _get_failed_metrics(self) -> Dict[str, Any]:
         """训练失败时的默认指标"""
         return {
@@ -439,22 +341,6 @@ class MAPElitesTrainingInterface:
             'final_critic_loss': float('inf'),
             'final_actor_loss': float('inf'),
             'training_stability': 0.0
-        }
-    
-    def _get_timeout_metrics(self) -> Dict[str, Any]:
-        """超时时的指标"""
-        return {
-            'avg_reward': -50,
-            'success_rate': 0.1,
-            'min_distance': 300,
-            'trajectory_smoothness': 0.3,
-            'collision_rate': 0.5,
-            'exploration_area': 200,
-            'action_variance': 0.3,
-            'learning_rate': 0.2,
-            'final_critic_loss': 15.0,
-            'final_actor_loss': 8.0,
-            'training_stability': 0.4
         }
 
 
@@ -492,7 +378,7 @@ def test_enhanced_train_interface():
     test_args.num_joints = 3
     test_args.link_lengths = [60, 40, 30]
     test_args.lr = 3e-4
-    test_args.alpha = 0.99
+    test_args.alpha = 0.1  # 🔧 修复alpha值
     test_args.tau = 0.005
     test_args.gamma = 0.99
     test_args.batch_size = 32

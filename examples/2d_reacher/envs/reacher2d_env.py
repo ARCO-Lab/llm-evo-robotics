@@ -271,6 +271,11 @@ class Reacher2DEnv(Env):
         # 重置统计
         self.collision_count = 0
         self.base_collision_count = 0
+        self.self_collision_count = 0  # 🆕 添加自碰撞计数重置
+        
+        # 🆕 重置关节使用历史记录 - 用于joint_usage_reward
+        if hasattr(self, 'prev_joint_angles'):
+            delattr(self, 'prev_joint_angles')
 
         # 课程学习目标位置
         self.goal_pos = self._get_curriculum_goal()
@@ -285,7 +290,6 @@ class Reacher2DEnv(Env):
             return observation, info
         else:
             return observation
-    
     def step(self, action):
         """执行一步"""
         action = np.clip(action, -self.max_torque, self.max_torque)
@@ -527,24 +531,88 @@ class Reacher2DEnv(Env):
         if collision_detected is None:
             collision_detected = self._check_collision()
         if collision_detected:
-            collision_penalty = -5.0  # 增加碰撞惩罚
+            collision_penalty = -2.0  # 增加碰撞惩罚
         
         # 控制平滑性
         control_penalty = -0.01 * np.sum(np.square(self.joint_velocities))
-        
+        midline_reward = self._compute_midline_reward(end_pos)
+        joint_usage_reward = self._compute_joint_usage_reward()
         # 🎯 存储奖励组成部分用于实时显示
         self.reward_components = {
             'distance_reward': distance_reward,
             'reach_reward': reach_reward,
             'collision_penalty': collision_penalty,
-            'control_penalty': control_penalty
+            'control_penalty': control_penalty,
+            'midline_reward': midline_reward,
+            'joint_usage_reward': joint_usage_reward  # 🆕 添加这个
         }
         
-        total_reward = distance_reward + reach_reward + collision_penalty + control_penalty
+        total_reward = distance_reward + reach_reward + collision_penalty + control_penalty + midline_reward + joint_usage_reward
         self.current_reward = total_reward
         
         return total_reward
-    
+    def _compute_midline_reward(self, end_pos):
+        """计算中线奖励 - 负数的垂直距离"""
+        # 获取中线信息
+        midline_info = self._calculate_channel_midline()
+        if not midline_info:
+            return 0.0
+        
+        # 计算end-effector到中线的垂直距离（只考虑y方向）
+        distance_to_midline = abs(end_pos[1] - midline_info['midline_y'])
+        
+        # 🎯 中线奖励 = 负数的距离（距离越近奖励越大）
+        midline_reward = -distance_to_midline / 300.0  # 除以100进行缩放
+        
+        # 🔍 调试信息
+        if self.step_count <= 10:
+            print(f"🔍 [MIDLINE] 中线y={midline_info['midline_y']:.1f}, 末端y={end_pos[1]:.1f}, 距离={distance_to_midline:.1f}, 奖励={midline_reward:.3f}")
+        
+        return midline_reward
+
+    def _compute_joint_usage_reward(self):
+        """奖励所有关节的平衡使用"""
+        # 初始化历史关节角度
+        if not hasattr(self, 'prev_joint_angles'):
+            self.prev_joint_angles = self.joint_angles.copy()
+            return 0.0
+        
+        # 计算每个关节的角度变化（活跃度）
+        joint_changes = np.abs(self.joint_angles - self.prev_joint_angles)
+        
+        # 🎯 特别关注第一个关节是否过度固化
+        first_joint_change = joint_changes[0]
+        other_joints_change = np.mean(joint_changes[1:]) if len(joint_changes) > 1 else 0.0
+        
+        # 计算关节使用的平衡性
+        usage_balance_reward = 0.0
+        
+        # 1. 奖励第一个关节的适度活跃（防止固化）
+        if first_joint_change > 0.01:  # 如果第一个关节有明显变化
+            usage_balance_reward += 0.02
+        elif first_joint_change < 0.005:  # 如果第一个关节几乎不动（固化）
+            usage_balance_reward -= 0.01
+        
+        # 2. 奖励所有关节的协调使用
+        if len(joint_changes) > 1:
+            # 标准差越小说明关节使用越平衡
+            joint_std = np.std(joint_changes)
+            balance_score = max(0, 1.0 - joint_std * 10)  # 缩放标准差
+            usage_balance_reward += balance_score * 0.03
+        
+        # 更新历史关节角度
+        self.prev_joint_angles = self.joint_angles.copy()
+        
+        # 限制奖励范围
+        usage_balance_reward = np.clip(usage_balance_reward, -0.05, 0.1)
+        
+        # 🔍 调试信息
+        if self.step_count <= 10 or self.step_count % 100 == 0:
+            print(f"🔍 [JOINT_USAGE] 第一关节变化={first_joint_change:.4f}, 平衡奖励={usage_balance_reward:.3f}")
+        
+        return usage_balance_reward
+
+
     def _is_done(self):
         """检查是否完成"""
         end_pos = self._get_end_effector_position()
@@ -635,6 +703,112 @@ class Reacher2DEnv(Env):
                 'goal_position': self.goal_pos,
             }
         }
+
+    def _calculate_channel_midline(self):
+        """计算通道中线位置 - 独立函数"""
+        if not self.obstacles:
+            return None
+        
+        # 收集所有线段障碍物的y坐标
+        y_positions = []
+        for obstacle in self.obstacles:
+            if obstacle.get('type') == 'segment':
+                y_positions.extend([obstacle['start'][1], obstacle['end'][1]])
+        
+        if len(y_positions) < 4:  # 需要至少4个点
+            return None
+        
+        # 找到上下两组的边界
+        y_positions.sort()
+        upper_max_y = max(y_positions[:len(y_positions)//2])  # 上半部分的最大值
+        lower_min_y = min(y_positions[len(y_positions)//2:])  # 下半部分的最小值
+        
+        # 计算中线位置
+        channel_midline_y = (upper_max_y + lower_min_y) / 2
+        
+        return {
+            'midline_y': channel_midline_y,
+            'upper_boundary': upper_max_y,
+            'lower_boundary': lower_min_y,
+            'channel_width': lower_min_y - upper_max_y
+        }
+
+    def _draw_dashed_line(self, surface, color, start_pos, end_pos, width=1, dash_length=10):
+        """绘制虚线"""
+        start = np.array(start_pos)
+        end = np.array(end_pos)
+        
+        total_vector = end - start
+        total_length = np.linalg.norm(total_vector)
+        
+        if total_length == 0:
+            return
+        
+        unit_vector = total_vector / total_length
+        
+        current_pos = start
+        drawn_length = 0
+        is_dash = True
+        
+        while drawn_length < total_length:
+            remaining_length = total_length - drawn_length
+            current_dash_length = min(dash_length, remaining_length)
+            
+            segment_end = current_pos + unit_vector * current_dash_length
+            
+            if is_dash:
+                pygame.draw.line(surface, color, current_pos.astype(int), segment_end.astype(int), width)
+            
+            current_pos = segment_end
+            drawn_length += current_dash_length
+            is_dash = not is_dash
+    def _render_midline_visualization(self):
+        """渲染中线可视化 - 一直显示"""
+        # 获取中线信息
+        midline_info = self._calculate_channel_midline()
+        if not midline_info:
+            return
+        
+        midline_y = int(midline_info['midline_y'])
+        
+        # 🎨 绘制水平中线（青色实线）- 一直显示
+        pygame.draw.line(self.screen, (0, 255, 255), (450, midline_y), (750, midline_y), 3)
+        
+        # 🎨 在中线上标记几个点 - 一直显示
+        for x in range(500, 700, 50):
+            pygame.draw.circle(self.screen, (0, 255, 255), (x, midline_y), 4, 2)
+        
+        # 🎨 绘制末端执行器到中线的垂直连接 - 一直显示
+        end_pos = self._get_end_effector_position()
+        distance_to_midline = abs(end_pos[1] - midline_info['midline_y'])
+        
+        end_pos_int = end_pos.astype(int)
+        midline_point = (int(end_pos[0]), midline_y)
+        
+        # 根据距离选择颜色
+        if distance_to_midline < 15:
+            color = (0, 255, 0)  # 绿色 - 很近，奖励高
+        elif distance_to_midline < 30:
+            color = (255, 255, 0)  # 黄色 - 中等
+        elif distance_to_midline < 50:
+            color = (255, 165, 0)  # 橙色 - 较远
+        else:
+            color = (255, 0, 0)  # 红色 - 很远，惩罚大
+        
+        # 绘制垂直连接线 - 一直显示
+        self._draw_dashed_line(self.screen, color, end_pos_int, midline_point, 2, 8)
+        pygame.draw.circle(self.screen, color, midline_point, 4, 2)
+        
+        # 显示距离数字 - 一直显示
+        if hasattr(pygame, 'font') and pygame.font.get_init():
+            font = pygame.font.Font(None, 18)
+            distance_text = f"{distance_to_midline:.0f}"
+            text_surface = font.render(distance_text, True, color)
+            self.screen.blit(text_surface, (midline_point[0] + 8, midline_point[1] - 10))
+        
+        # 🔍 调试信息（前几步显示）
+        if self.step_count <= 5:
+            print(f"🔍 [RENDER] 中线位置: y={midline_info['midline_y']:.1f}, 垂直距离: {distance_to_midline:.1f}")
     
     def render(self, mode='human'):
         """渲染环境"""
@@ -667,7 +841,7 @@ class Reacher2DEnv(Env):
                     center = [int(obstacle['center'][0]), int(obstacle['center'][1])]
                     radius = int(obstacle['radius'])
                     pygame.draw.circle(self.screen, (200, 100, 100), center, radius)
-        
+        self._render_midline_visualization()
         # 绘制机器人
         link_positions = self._calculate_link_positions()
         
@@ -719,7 +893,9 @@ class Reacher2DEnv(Env):
                 f"  Distance: {self.reward_components['distance_reward']:.3f}",
                 f"  Reach: {self.reward_components['reach_reward']:.3f}",
                 f"  Collision: {self.reward_components['collision_penalty']:.3f}",
-                f"  Control: {self.reward_components['control_penalty']:.3f}"
+                f"  Control: {self.reward_components['control_penalty']:.3f}",
+                f"  Midline: {self.reward_components['midline_reward']:.3f}",
+                f"  Joint Usage: {self.reward_components['joint_usage_reward']:.3f}" 
             ]
             
             # 绘制奖励背景框

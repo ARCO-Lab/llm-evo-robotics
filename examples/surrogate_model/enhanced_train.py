@@ -142,41 +142,71 @@ class ModelManager:
             print(f"❌ 保存模型失败: {e}")
             return False
     
+    # 修复 save_checkpoint 方法 (第145-159行)
     def save_checkpoint(self, sac, step, **kwargs):
-        """保存检查点"""
-        checkpoint_data = {
-            'step': step,
-            'actor_state_dict': sac.actor.state_dict(),
-            'critic1_state_dict': sac.critic1.state_dict(),
-            'critic2_state_dict': sac.critic2.state_dict(),
-            'target_critic1_state_dict': sac.target_critic1.state_dict(),
-            'target_critic2_state_dict': sac.target_critic2.state_dict(),
-            **kwargs
-        }
-        
-        checkpoint_path = os.path.join(self.best_models_dir, f'checkpoint_step_{step}.pth')
-        torch.save(checkpoint_data, checkpoint_path)
-        smart_print(f"💾 保存检查点: {checkpoint_path}")
+        """保存检查点 - 完整版"""
+        try:
+            checkpoint_data = {
+                'step': step,
+                'actor_state_dict': sac.actor.state_dict(),
+                'critic1_state_dict': sac.critic1.state_dict(),
+                'critic2_state_dict': sac.critic2.state_dict(),
+                'target_critic1_state_dict': sac.target_critic1.state_dict(),
+                'target_critic2_state_dict': sac.target_critic2.state_dict(),
+                # 🔧 添加优化器状态
+                'actor_optimizer_state_dict': sac.actor_optimizer.state_dict(),
+                'critic_optimizer_state_dict': sac.critic_optimizer.state_dict(),
+                'alpha_optimizer_state_dict': sac.alpha_optimizer.state_dict(),
+                # 🔧 添加alpha值
+                'alpha': sac.alpha.item() if torch.is_tensor(sac.alpha) else sac.alpha,
+                'log_alpha': sac.log_alpha.item() if torch.is_tensor(sac.log_alpha) else sac.log_alpha,
+                # 🔧 添加训练状态
+                'buffer_size': len(sac.memory),
+                'warmup_steps': sac.warmup_steps,
+                **kwargs
+            }
+            
+            checkpoint_path = os.path.join(self.best_models_dir, f'checkpoint_step_{step}.pth')
+            torch.save(checkpoint_data, checkpoint_path)
+            print(f"💾 保存检查点: step {step}, buffer size: {len(sac.memory)}")
+            return True
+        except Exception as e:
+            print(f"❌ 保存检查点失败: {e}")
+            return False
 
+    # 修复 save_final_model 方法 (第161-176行)
     def save_final_model(self, sac, step, **kwargs):
-        """保存最终模型"""
-        final_model_data = {
-            'step': step,
-            'training_completed': True,
-            'actor_state_dict': sac.actor.state_dict(),
-            'critic1_state_dict': sac.critic1.state_dict(),
-            'critic2_state_dict': sac.critic2.state_dict(),
-            'target_critic1_state_dict': sac.target_critic1.state_dict(),
-            'target_critic2_state_dict': sac.target_critic2.state_dict(),
-            **kwargs
-        }
-        
-        final_path = os.path.join(self.best_models_dir, f'final_model_step_{step}.pth')
-        torch.save(final_model_data, final_path)
-        print(f"💾 保存最终模型: {final_path}")
+        """保存最终模型 - 完整版"""
+        try:
+            final_model_data = {
+                'step': step,
+                'training_completed': True,
+                'actor_state_dict': sac.actor.state_dict(),
+                'critic1_state_dict': sac.critic1.state_dict(),
+                'critic2_state_dict': sac.critic2.state_dict(),
+                'target_critic1_state_dict': sac.target_critic1.state_dict(),
+                'target_critic2_state_dict': sac.target_critic2.state_dict(),
+                # 🔧 添加优化器状态
+                'actor_optimizer_state_dict': sac.actor_optimizer.state_dict(),
+                'critic_optimizer_state_dict': sac.critic_optimizer.state_dict(),
+                'alpha_optimizer_state_dict': sac.alpha_optimizer.state_dict(),
+                # 🔧 添加alpha值
+                'alpha': sac.alpha.item() if torch.is_tensor(sac.alpha) else sac.alpha,
+                'log_alpha': sac.log_alpha.item() if torch.is_tensor(sac.log_alpha) else sac.log_alpha,
+                **kwargs
+            }
+            
+            final_path = os.path.join(self.best_models_dir, f'final_model_step_{step}.pth')
+            torch.save(final_model_data, final_path)
+            print(f"💾 保存最终模型: {final_path}")
+            return True
+        except Exception as e:
+            print(f"❌ 保存最终模型失败: {e}")
+            return False
 
+    # 修复 load_checkpoint 方法 (第178-226行)
     def load_checkpoint(self, sac, checkpoint_path, device='cpu'):
-        """加载检查点"""
+        """加载检查点 - 增强版"""
         try:
             if not os.path.exists(checkpoint_path):
                 print(f"❌ 检查点文件不存在: {checkpoint_path}")
@@ -185,44 +215,88 @@ class ModelManager:
             print(f"🔄 Loading checkpoint from: {checkpoint_path}")
             checkpoint = torch.load(checkpoint_path, map_location=device)
             
-            # 加载网络状态
-            for network_name in ['actor', 'critic1', 'critic2', 'target_critic1', 'target_critic2']:
+            print(f"📋 Checkpoint contains: {list(checkpoint.keys())}")
+            
+            # 🔧 加载网络状态 - 增强错误处理
+            networks = ['actor', 'critic1', 'critic2', 'target_critic1', 'target_critic2']
+            for network_name in networks:
                 state_dict_key = f'{network_name}_state_dict'
                 if state_dict_key in checkpoint:
-                    network = getattr(sac, network_name)
-                    missing_keys, unexpected_keys = network.load_state_dict(
-                        checkpoint[state_dict_key], strict=False
-                    )
-                    if unexpected_keys:
-                        print(f"⚠️ {network_name}: 忽略不匹配的层: {unexpected_keys}")
-                    print(f"✅ {network_name} loaded")
-            
-            # 加载优化器状态
-            for opt_name in ['actor_optimizer', 'critic_optimizer', 'alpha_optimizer']:
-                opt_key = f'{opt_name}_state_dict'
-                if opt_key in checkpoint:
                     try:
-                        getattr(sac, opt_name).load_state_dict(checkpoint[opt_key])
-                        print(f"✅ {opt_name} loaded")
+                        network = getattr(sac, network_name)
+                        state_dict = checkpoint[state_dict_key]
+                        
+                        # 🔧 处理proj_dict问题
+                        if 'proj_dict' in str(state_dict.keys()):
+                            print(f"⚠️ {network_name} 包含proj_dict，使用strict=False加载")
+                            missing_keys, unexpected_keys = network.load_state_dict(state_dict, strict=False)
+                            if unexpected_keys:
+                                print(f"   忽略的键: {unexpected_keys[:3]}...")  # 只显示前3个
+                        else:
+                            network.load_state_dict(state_dict)
+                        
+                        print(f"✅ {network_name} loaded")
                     except Exception as e:
-                        print(f"⚠️ {opt_name} 加载失败: {e}")
+                        print(f"⚠️ {network_name} 加载失败: {e}")
+                        print("   将跳过该网络，使用初始化权重")
+                else:
+                    print(f"⚠️ 未找到 {state_dict_key}")
             
-            # 加载alpha值
+            # 🔧 加载优化器状态 - 可选加载
+            load_optimizers = True  # 可以设为False如果想用新的学习率
+            if load_optimizers:
+                optimizers = ['actor_optimizer', 'critic_optimizer', 'alpha_optimizer']
+                for opt_name in optimizers:
+                    opt_key = f'{opt_name}_state_dict'
+                    if opt_key in checkpoint:
+                        try:
+                            optimizer = getattr(sac, opt_name)
+                            optimizer.load_state_dict(checkpoint[opt_key])
+                            print(f"✅ {opt_name} loaded")
+                        except Exception as e:
+                            print(f"⚠️ {opt_name} 加载失败: {e}")
+                            print("   将使用当前优化器状态")
+            
+            # 🔧 加载alpha值
             if 'alpha' in checkpoint:
-                sac.alpha = checkpoint['alpha'] if isinstance(checkpoint['alpha'], (int, float)) else checkpoint['alpha'].item()
-                print(f"✅ Alpha loaded: {sac.alpha}")
-                
+                try:
+                    alpha_val = checkpoint['alpha']
+                    if isinstance(alpha_val, (int, float)):
+                        sac.alpha = alpha_val
+                    else:
+                        sac.alpha = alpha_val.item()
+                    print(f"✅ Alpha loaded: {sac.alpha}")
+                except Exception as e:
+                    print(f"⚠️ Alpha 加载失败: {e}")
+                    
             if 'log_alpha' in checkpoint:
-                log_alpha_val = checkpoint['log_alpha'] if isinstance(checkpoint['log_alpha'], (int, float)) else checkpoint['log_alpha'].item()
-                sac.log_alpha.data.fill_(log_alpha_val)
-                print(f"✅ Log Alpha loaded: {sac.log_alpha.item()}")
+                try:
+                    log_alpha_val = checkpoint['log_alpha']
+                    if isinstance(log_alpha_val, (int, float)):
+                        sac.log_alpha.data.fill_(log_alpha_val)
+                    else:
+                        sac.log_alpha.data.fill_(log_alpha_val.item())
+                    print(f"✅ Log Alpha loaded: {sac.log_alpha.item()}")
+                except Exception as e:
+                    print(f"⚠️ Log Alpha 加载失败: {e}")
             
+            # 🔧 显示额外信息
             start_step = checkpoint.get('step', 0)
-            print(f"✅ Checkpoint loaded successfully! Starting from step: {start_step}")
+            buffer_size = checkpoint.get('buffer_size', 'N/A')
+            warmup_steps = checkpoint.get('warmup_steps', 'N/A')
+            
+            print(f"✅ Checkpoint loaded successfully!")
+            print(f"   Starting step: {start_step}")
+            print(f"   Buffer size: {buffer_size}")
+            print(f"   Warmup steps: {warmup_steps}")
+            
             return start_step
             
         except Exception as e:
             print(f"❌ Failed to load checkpoint: {e}")
+            import traceback
+            traceback.print_exc()
+            print("Training will start from scratch...")
             return 0
 
 # === 环境设置管理器 ===
@@ -279,9 +353,9 @@ class EnvironmentSetup:
             sync_env = Reacher2DEnv(**render_env_params)
             print(f"✅ 训练环境已创建（进程数: {args.num_processes}，带渲染）")
         else:
-            sync_env = None
-            print(f"✅ 训练环境已创建（进程数: {args.num_processes}，无渲染）")
-        
+                sync_env = None
+                print(f"✅ 训练环境已创建（进程数: {args.num_processes}，无渲染）")
+            
         return envs, sync_env, env_params
 
 # === 训练管理器 ===
@@ -322,11 +396,13 @@ class TrainingManager:
                 print(f"🎉 成功到达目标! 距离: {distance:.1f}")
                 self.consecutive_success_count += 1
                 
-                # 更新最佳记录并保存模型
+                # 🔧 统一的保存逻辑
                 if distance < self.best_min_distance:
                     self.best_min_distance = distance
                     success_rate = self.consecutive_success_count / max(1, step // 100)
                     self.best_success_rate = max(success_rate, self.best_success_rate)
+                    
+                    # 保存最佳模型（包含完整状态）
                     self.model_manager.save_best_model(
                         self.sac, success_rate, distance, step
                     )
@@ -335,16 +411,10 @@ class TrainingManager:
                 if self.consecutive_success_count >= self.min_consecutive_successes and step > 5000:
                     print(f"🏁 连续成功{self.consecutive_success_count}次，训练达到目标!")
                     
-                    # 保存最终成功模型
-                    self.model_manager.save_final_model(
-                        self.sac, step,
-                        final_success_rate=self.best_success_rate,
-                        final_min_distance=self.best_min_distance,
-                        consecutive_successes=self.consecutive_success_count,
-                        reason='连续成功达到目标'
-                    )
-                    return True  # 返回True表示应该结束训练
-            else:
+                    # 🔧 只需要标记训练完成，不需要重复保存
+                    print(f"✅ 最佳模型已保存，训练目标达成！")
+                    return True  # 结束训练
+        else:
                 self.consecutive_success_count = 0
         
         # 记录episode指标
@@ -388,7 +458,7 @@ class TrainingManager:
                       f"Alpha: {metrics['alpha']:.4f}, "
                       f"Buffer Size: {len(self.sac.memory)}")
 
-# 继续其余的代码...（保持与之前相同的 main, run_training_loop, cleanup_resources, test_trained_model, find_latest_model 函数）
+
 
 def main(args):
     """主训练函数"""
@@ -418,12 +488,12 @@ def main(args):
                             args.gamma, None, device, False, args=args)
         sync_env = None
         args.env_type = 'bullet'
-    
+
     # 获取关节数量和创建数据处理器
     num_joints = envs.action_space.shape[0]
     print(f"关节数量: {num_joints}")
     data_handler = DataHandler(num_joints, args.env_type)
-    
+
     # 创建GNN编码器
     if args.env_type == 'reacher2d':
         sys.path.append(os.path.join(base_dir, 'examples/2d_reacher/utils'))
@@ -441,7 +511,7 @@ def main(args):
         gnn_encoder = GNN_Encoder(args.grammar_file, rule_sequence, 70, num_joints)
         gnn_graph = gnn_encoder.get_graph(rule_sequence)
         single_gnn_embed = gnn_encoder.get_gnn_embeds(gnn_graph)
-    
+
     # 创建SAC模型
     attn_model = AttnModel(128, 130, 130, 4)
     sac = AttentionSACWithBuffer(
@@ -455,7 +525,7 @@ def main(args):
     sac.alpha = torch.tensor(args.alpha)
     sac.min_alpha = 0.05
     print(f"🔒 Alpha衰减下限设置为: {sac.min_alpha}")
-    
+
     if hasattr(sac, 'target_entropy'):
         sac.target_entropy = -num_joints * args.target_entropy_factor
     
@@ -509,12 +579,12 @@ def main(args):
         env_config=env_config
     )
     
-    monitor = RealTimeMonitor(logger, alert_thresholds={
-        'critic_loss': {'max': 50.0, 'nan_check': True},
-        'actor_loss': {'max': 10.0, 'nan_check': True},
-        'alpha_loss': {'max': 5.0, 'nan_check': True},
-        'alpha': {'min': 0.01, 'max': 2.0, 'nan_check': True}
-    })
+    # monitor = RealTimeMonitor(logger, alert_thresholds={
+    #     'critic_loss': {'max': 50.0, 'nan_check': True},
+    #     'actor_loss': {'max': 10.0, 'nan_check': True},
+    #     'alpha_loss': {'max': 5.0, 'nan_check': True},
+    #     'alpha': {'min': 0.01, 'max': 2.0, 'nan_check': True}
+    # })
     
     print(f"📊 训练监控系统已初始化: {logger.experiment_dir}")
     
@@ -527,11 +597,11 @@ def main(args):
     if args.resume_checkpoint:
         print(f"🔄 从检查点恢复训练: {args.resume_checkpoint}")
         start_step = model_manager.load_checkpoint(sac, args.resume_checkpoint)
-        
+
         if start_step > 0:
             print(f"成功加载checkpoint, 从step {start_step} 开始训练")
             sac.warmup_steps = 0
-            
+
             # 更新学习率和alpha
             if args.resume_lr:
                 for param_group in sac.actor_optimizer.param_groups:
@@ -539,11 +609,11 @@ def main(args):
                 for param_group in sac.critic_optimizer.param_groups:
                     param_group['lr'] = args.resume_lr
                 print(f"更新学习率为 {args.resume_lr}")
-            
+
             if args.resume_alpha:
                 sac.alpha = args.resume_alpha
                 print(f"更新alpha为 {args.resume_alpha}")
-    
+            
     # 运行训练循环
     run_training_loop(args, envs, sync_env, sac, single_gnn_embed, training_manager, num_joints, start_step)
     
@@ -571,10 +641,10 @@ def run_training_loop(args, envs, sync_env, sac, single_gnn_embed, training_mana
         print(f"从步骤 {start_step} 恢复训练")
     else:
         print(f"预期warmup完成步骤: {sac.warmup_steps}")
-    
+
     training_completed = False
     early_termination_reason = ""
-    
+
     try:
         for step in range(start_step, num_step):
             # 进度显示
@@ -583,7 +653,7 @@ def run_training_loop(args, envs, sync_env, sac, single_gnn_embed, training_mana
                     smart_print(f"Step {step}/{num_step}: Warmup phase ({step}/{sac.warmup_steps})")
                 else:
                     smart_print(f"Step {step}/{num_step}: Training phase, Buffer size: {len(sac.memory)}")
-            
+
             # 获取动作
             if step < sac.warmup_steps:
                 action_batch = torch.from_numpy(np.array([
@@ -594,13 +664,13 @@ def run_training_loop(args, envs, sync_env, sac, single_gnn_embed, training_mana
                 for proc_id in range(args.num_processes):
                     action = sac.get_action(
                         current_obs[proc_id],
-                        current_gnn_embeds[proc_id],
-                        num_joints=envs.action_space.shape[0],
+                                            current_gnn_embeds[proc_id],
+                                            num_joints=envs.action_space.shape[0],
                         deterministic=False
                     )
                     actions.append(action)
                 action_batch = torch.stack(actions)
-            
+
             # 动作分析（调试用）
             if step % 50 == 0 or step < 20:
                 if hasattr(envs, 'envs') and len(envs.envs) > 0:
@@ -615,35 +685,35 @@ def run_training_loop(args, envs, sync_env, sac, single_gnn_embed, training_mana
                     action_str = ', '.join([f"{val:+6.2f}" for val in action_values])
                     smart_print(f"  Process {proc_id}: Actions = [{action_str}]")
                     smart_print(f"    Max action: {np.max(np.abs(action_values)):6.2f}, Mean abs: {np.mean(np.abs(action_values)):6.2f}")
-            
+
             # 执行动作
             next_obs, reward, done, infos = envs.step(action_batch)
-            
+
             # 渲染处理
             if sync_env:
                 sync_action = action_batch[0].cpu().numpy() if hasattr(action_batch, 'cpu') else action_batch[0]
                 sync_env.step(sync_action)
                 sync_env.render()
-            
+
             next_gnn_embeds = single_gnn_embed.repeat(args.num_processes, 1, 1)
-            
+
             # 存储经验
             for proc_id in range(args.num_processes):
                 sac.store_experience(
-                    obs=current_obs[proc_id],
-                    gnn_embeds=current_gnn_embeds[proc_id],
-                    action=action_batch[proc_id],
-                    reward=reward[proc_id],
-                    next_obs=next_obs[proc_id],
-                    next_gnn_embeds=next_gnn_embeds[proc_id],
-                    done=done[proc_id],
-                    num_joints=num_joints
+                        obs=current_obs[proc_id],
+                        gnn_embeds=current_gnn_embeds[proc_id],
+                        action=action_batch[proc_id],
+                        reward=reward[proc_id],
+                        next_obs=next_obs[proc_id],
+                        next_gnn_embeds=next_gnn_embeds[proc_id],
+                        done=done[proc_id],
+                        num_joints=num_joints
                 )
                 episode_rewards[proc_id] += reward[proc_id].item()
-            
+
             current_obs = next_obs.clone()
             current_gnn_embeds = next_gnn_embeds.clone()
-            
+
             # 处理episode结束
             for proc_id in range(args.num_processes):
                 is_done = done[proc_id].item() if torch.is_tensor(done[proc_id]) else bool(done[proc_id])
@@ -677,7 +747,7 @@ def run_training_loop(args, envs, sync_env, sac, single_gnn_embed, training_mana
             if training_completed:
                 print(f"🏁 训练提前终止: {early_termination_reason}")
                 break
-                
+
     except Exception as e:
         print(f"🔴 训练过程中发生错误: {e}")
         training_manager.logger.save_logs()
@@ -687,8 +757,8 @@ def run_training_loop(args, envs, sync_env, sac, single_gnn_embed, training_mana
 def cleanup_resources(sync_env, logger, model_manager, training_manager):
     """清理资源"""
     if sync_env:
-        sync_env.close()
-    
+            sync_env.close()
+            
     # 生成最终报告
     print(f"\n{'='*60}")
     print(f"🏁 训练完成总结:")
@@ -944,7 +1014,7 @@ if __name__ == "__main__":
     # 训练模式 - 参数解析
     parser = create_training_parser()
     args = parser.parse_args()
-    
+
     args.cuda = not args.no_cuda and torch.cuda.is_available()
     args.save_dir = os.path.join(args.save_dir, get_time_stamp())
     os.makedirs(args.save_dir, exist_ok=True)
@@ -952,5 +1022,5 @@ if __name__ == "__main__":
     # 保存参数
     with open(os.path.join(args.save_dir, 'args.txt'), 'w') as f:
         f.write(str(sys.argv))
-    
+
     main(args)

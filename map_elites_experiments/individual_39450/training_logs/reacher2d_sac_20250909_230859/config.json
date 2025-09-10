@@ -1,0 +1,52 @@
+{
+  "experiment_info": {
+    "experiment_name": "reacher2d_sac_20250909_230859",
+    "start_time": "2025-09-09T23:08:59.474700",
+    "log_dir": "./map_elites_experiments/individual_39450/training_logs/reacher2d_sac_20250909_230859",
+    "python_version": "3.10.12",
+    "platform": "posix"
+  },
+  "hyperparams": {
+    "learning_rate": 3.5383201853274624e-06,
+    "alpha": 0.7021707255108061,
+    "warmup_steps": 940,
+    "target_entropy_factor": 1.145046040817418,
+    "batch_size": 32,
+    "buffer_capacity": 10000,
+    "gamma": 0.9932809877353179,
+    "seed": 42,
+    "num_processes": 2,
+    "update_frequency": 1,
+    "total_steps": 120000,
+    "optimizer": "Adam",
+    "network_architecture": {
+      "attn_model_dims": "128-130-130-4",
+      "action_dim": 3
+    }
+  },
+  "env_config": {
+    "env_name": "reacher2d",
+    "env_type": "reacher2d",
+    "goal_threshold": 20.0,
+    "action_dim": 3,
+    "num_links": 3,
+    "link_lengths": [
+      96.62417628087795,
+      82.92806173401047,
+      60.997449748072384
+    ],
+    "config_path": "/home/xli149/Documents/repos/test_robo/examples/2d_reacher/configs/reacher_with_zigzag_obstacles.yaml",
+    "render_mode": null,
+    "reward_function": "\u8ddd\u79bb+\u8fdb\u5ea6+\u6210\u529f+\u78b0\u649e+\u65b9\u5411\u5956\u52b1",
+    "physics_engine": "PyMunk",
+    "obstacle_type": "zigzag",
+    "action_space": "continuous",
+    "observation_space": "joint_angles_and_positions"
+  },
+  "training_metrics": {
+    "total_steps": 0,
+    "total_episodes": 0,
+    "training_time_hours": 0,
+    "avg_steps_per_second": 0
+  }
+}

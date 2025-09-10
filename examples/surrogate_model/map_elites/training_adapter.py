@@ -10,6 +10,9 @@ sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 from map_elites_core import Individual, RobotGenotype, RobotPhenotype, FeatureExtractor
 
+# 🆕 导入新的遗传算法fitness评估器
+from genetic_fitness_evaluator import GeneticFitnessEvaluator
+
 # 导入真实训练接口
 try:
     from enhanced_train_interface import MAPElitesTrainingInterface
@@ -20,17 +23,35 @@ except ImportError:
 
 
 class MAPElitesTrainingAdapter:
-    """MAP-Elites与SAC训练的适配器 - 优化版"""
+    """MAP-Elites与SAC训练的适配器 - 集成遗传算法Fitness评估系统"""
     
     def __init__(self, base_args, base_save_dir: str = "./map_elites_experiments", 
                  use_real_training: bool = True,
                  enable_rendering: bool = False,  # 🆕 控制是否显示可视化
-                 silent_mode: bool = True):       # 🆕 控制是否静默
+                 silent_mode: bool = True,        # 🆕 控制是否静默
+                 use_genetic_fitness: bool = True): # 🆕 控制是否使用新fitness系统
         self.base_args = base_args
         self.base_save_dir = base_save_dir
         self.use_real_training = use_real_training and REAL_TRAINING_AVAILABLE
+        self.enable_rendering = enable_rendering
+        self.silent_mode = silent_mode
+        self.use_genetic_fitness = use_genetic_fitness
         
         os.makedirs(base_save_dir, exist_ok=True)
+        
+        # 🆕 初始化fitness评估系统
+        if self.use_genetic_fitness:
+            try:
+                self.fitness_evaluator = GeneticFitnessEvaluator()
+                print("🎯 使用遗传算法分层Fitness评估系统")
+            except Exception as e:
+                print(f"⚠️  遗传算法Fitness评估器初始化失败: {e}")
+                print("🔄 回退到传统Fitness评估")
+                self.fitness_evaluator = None
+                self.use_genetic_fitness = False
+        else:
+            self.fitness_evaluator = None
+            print("🎯 使用传统平均奖励Fitness评估")
         
         # 特征提取器
         self.feature_extractor = FeatureExtractor()
@@ -48,11 +69,12 @@ class MAPElitesTrainingAdapter:
             print("🔧 MAP-Elites训练适配器已初始化 (使用模拟训练)")
     
     def evaluate_individual(self, individual: Individual, training_steps: int = 5000) -> Individual:
-        """评估单个个体 - 增强版"""
+        """评估单个个体 - 支持新旧两种fitness评估系统"""
         print(f"\n🧬 评估个体 {individual.individual_id}")
         print(f"🤖 基因型: num_links={individual.genotype.num_links}, "
               f"link_lengths={[f'{x:.1f}' for x in individual.genotype.link_lengths]}")
         print(f"🧠 SAC参数: lr={individual.genotype.lr:.2e}, alpha={individual.genotype.alpha:.3f}")
+        print(f"   总长度: {sum(individual.genotype.link_lengths):.1f}px")
         
         # 1. 根据基因型创建训练参数
         training_args = self._genotype_to_training_args(individual.genotype, training_steps)
@@ -76,16 +98,57 @@ class MAPElitesTrainingAdapter:
         # 3. 提取表型特征
         robot_config = {
             'num_links': individual.genotype.num_links,
-            'link_lengths': individual.genotype.link_lengths
+            'link_lengths': individual.genotype.link_lengths,
+            'lr': individual.genotype.lr,
+            'alpha': individual.genotype.alpha
         }
         
         phenotype = self.feature_extractor.extract_from_training_data(training_metrics, robot_config)
         
-        # 4. 更新个体
-        individual.phenotype = phenotype
-        individual.fitness = phenotype.avg_reward  # 使用平均奖励作为适应度
+        # 4. 🆕 Fitness评估 - 新旧系统选择
+        if self.use_genetic_fitness and self.fitness_evaluator:
+            # 🎯 使用新的遗传算法fitness评估系统
+            training_performance = {
+                'success_rate': phenotype.success_rate,
+                'avg_reward': phenotype.avg_reward,
+                'max_distance_covered': training_metrics.get('max_distance', 0),
+                'efficiency': training_metrics.get('efficiency', 0),
+                'near_success_rate': training_metrics.get('near_success_rate', 0)
+            }
+            
+            try:
+                fitness_result = self.fitness_evaluator.evaluate_fitness(
+                    link_lengths=individual.genotype.link_lengths,
+                    training_performance=training_performance
+                )
+                
+                # 更新个体
+                individual.phenotype = phenotype
+                individual.fitness = fitness_result['fitness']
+                individual.fitness_details = fitness_result  # 🆕 保存详细分析
+                
+                print(f"✅ 评估完成 (新系统):")
+                print(f"   旧fitness (avg_reward): {phenotype.avg_reward:.2f}")
+                print(f"   新fitness (分层评估): {individual.fitness:.3f}")
+                print(f"   评估类别: {fitness_result['category']}")
+                print(f"   评估策略: {fitness_result['strategy']}")
+                print(f"   原因: {fitness_result['reason']}")
+                
+            except Exception as e:
+                print(f"   ⚠️ 新fitness系统评估失败: {e}")
+                print(f"   🔄 回退到传统fitness评估")
+                individual.phenotype = phenotype
+                individual.fitness = phenotype.avg_reward
+                
+        else:
+            # 🔄 使用原有的简单fitness评估
+            individual.phenotype = phenotype
+            individual.fitness = phenotype.avg_reward
+            
+            print(f"✅ 评估完成 (传统系统):")
+            print(f"   Fitness (avg_reward): {individual.fitness:.2f}")
         
-        print(f"✅ 评估完成: 适应度={individual.fitness:.2f}, 成功率={phenotype.success_rate:.2f}, 耗时={training_time:.1f}s")
+        print(f"   成功率: {phenotype.success_rate:.2f}, 耗时: {training_time:.1f}s")
         
         return individual
     
@@ -125,10 +188,14 @@ class MAPElitesTrainingAdapter:
         args.num_processes = 1  # MAP-Elites使用单进程
         args.seed = getattr(self.base_args, 'seed', 42)
         
+        # 🆕 渲染和静默控制
+        args.render = self.enable_rendering
+        args.silent = self.silent_mode
+        
         return args
     
     def _run_simulated_training(self, args) -> Dict[str, Any]:
-        """运行模拟训练（备用方案）"""
+        """运行模拟训练（备用方案）- 增强版，支持新fitness系统"""
         # 基于基因型预测大致性能
         num_links = getattr(args, 'num_joints', 4)
         link_lengths = getattr(args, 'link_lengths', [80.0] * num_links)
@@ -136,7 +203,7 @@ class MAPElitesTrainingAdapter:
         # 简单的启发式评估
         total_reach = sum(link_lengths)
         complexity_penalty = abs(num_links - 4) * 10  # 4链节最优
-        length_variance_penalty = np.var(link_lengths) / 10
+        length_variance_penalty = np.var(link_lengths) / 10 if len(link_lengths) > 1 else 0
         
         # 基于超参数的性能预测
         lr_factor = 1.0 if 1e-5 <= args.lr <= 1e-3 else 0.5
@@ -149,9 +216,22 @@ class MAPElitesTrainingAdapter:
         noise = np.random.normal(0, 15)
         final_reward = base_reward + noise
         
+        # 🆕 为新fitness系统添加更多指标
+        success_rate = max(0, min(1, (final_reward + 50) / 150))
+        
+        # 基于机器人长度估算最大距离覆盖
+        max_distance = total_reach * success_rate * np.random.uniform(0.6, 0.9)
+        
+        # 估算效率（基于成功率和复杂度）
+        efficiency = success_rate * (1.0 - complexity_penalty / 50) * np.random.uniform(0.7, 1.0)
+        efficiency = max(0, min(1, efficiency))
+        
+        # 估算接近成功率（通常比成功率高一些）
+        near_success_rate = min(1.0, success_rate + np.random.uniform(0.1, 0.3))
+        
         return {
             'avg_reward': final_reward,
-            'success_rate': max(0, min(1, (final_reward + 50) / 150)),
+            'success_rate': success_rate,
             'min_distance': max(10, 200 - final_reward * 2),
             'trajectory_smoothness': np.random.uniform(0.3, 0.8),
             'collision_rate': np.random.uniform(0.0, 0.3),
@@ -160,14 +240,18 @@ class MAPElitesTrainingAdapter:
             'learning_rate': np.random.uniform(0.1, 0.9),
             'final_critic_loss': np.random.uniform(0.1, 5.0),
             'final_actor_loss': np.random.uniform(0.1, 2.0),
-            'training_stability': np.random.uniform(0.3, 0.9)
+            'training_stability': np.random.uniform(0.3, 0.9),
+            # 🆕 新fitness系统需要的指标
+            'max_distance': max_distance,
+            'efficiency': efficiency,
+            'near_success_rate': near_success_rate
         }
 
 
 # 🧪 测试函数
 def test_training_adapter():
-    """测试训练适配器"""
-    print("🧪 开始测试MAP-Elites训练适配器\n")
+    """测试训练适配器 - 包括新旧fitness系统"""
+    print("🧪 开始测试MAP-Elites训练适配器 (新旧fitness系统对比)\n")
     
     # 1. 创建模拟的基础参数
     print("📊 测试1: 创建基础参数")
@@ -184,51 +268,99 @@ def test_training_adapter():
     base_args.update_frequency = 1
     print(f"✅ 基础参数创建完成: {base_args.env_type}")
     
-    # 2. 测试两种模式
-    for use_real in [False, True]:
-        print(f"\n{'='*30}")
-        print(f"📊 测试模式: {'真实训练(enhanced_train.py)' if use_real else '模拟训练'}")
-        print(f"{'='*30}")
+    # 2. 测试新旧两种fitness系统
+    fitness_modes = [
+        (False, "传统Fitness (avg_reward)"),
+        (True, "遗传算法分层Fitness")
+    ]
+    
+    from map_elites_core import RobotGenotype, RobotPhenotype, Individual
+    
+    # 创建测试个体
+    test_genotypes = [
+        RobotGenotype(num_links=2, link_lengths=[40, 40], lr=2e-4, alpha=0.25),    # 短机器人
+        RobotGenotype(num_links=3, link_lengths=[60, 60, 60], lr=2e-4, alpha=0.25), # 中等机器人  
+        RobotGenotype(num_links=4, link_lengths=[80, 80, 80, 80], lr=2e-4, alpha=0.25) # 长机器人
+    ]
+    
+    results = []
+    
+    for use_genetic, mode_name in fitness_modes:
+        print(f"\n{'='*50}")
+        print(f"📊 测试模式: {mode_name}")
+        print(f"{'='*50}")
         
-        adapter = MAPElitesTrainingAdapter(
-            base_args, 
-            "./test_adapter_results", 
-            use_real_training=use_real
-        )
+        try:
+            adapter = MAPElitesTrainingAdapter(
+                base_args, 
+                "./test_adapter_results", 
+                use_real_training=False,  # 使用模拟训练进行快速测试
+                use_genetic_fitness=use_genetic
+            )
+            
+            mode_results = []
+            
+            for i, genotype in enumerate(test_genotypes):
+                print(f"\n🤖 测试机器人 {i+1}: {genotype.num_links}链节, 总长{sum(genotype.link_lengths):.1f}px")
+                
+                individual = Individual(
+                    genotype=genotype,
+                    phenotype=RobotPhenotype()
+                )
+                
+                # 评估个体
+                start_time = time.time()
+                evaluated = adapter.evaluate_individual(individual, training_steps=100)
+                end_time = time.time()
+                
+                result = {
+                    'genotype': genotype,
+                    'fitness': evaluated.fitness,
+                    'success_rate': evaluated.phenotype.success_rate,
+                    'total_reach': evaluated.phenotype.total_reach,
+                    'evaluation_time': end_time - start_time,
+                    'fitness_details': getattr(evaluated, 'fitness_details', None)
+                }
+                
+                mode_results.append(result)
+                
+                print(f"   适应度: {evaluated.fitness:.3f}")
+                print(f"   成功率: {evaluated.phenotype.success_rate:.2f}")
+                if hasattr(evaluated, 'fitness_details') and evaluated.fitness_details:
+                    print(f"   类别: {evaluated.fitness_details['category']}")
+                    print(f"   策略: {evaluated.fitness_details['strategy']}")
+            
+            results.append((mode_name, mode_results))
+            
+        except Exception as e:
+            print(f"❌ {mode_name} 测试失败: {e}")
+            import traceback
+            traceback.print_exc()
+    
+    # 3. 对比分析
+    if len(results) >= 2:
+        print(f"\n{'='*60}")
+        print("📊 新旧Fitness系统对比分析")
+        print(f"{'='*60}")
         
-        # 创建测试个体
-        from map_elites_core import RobotGenotype, RobotPhenotype, Individual
+        print("机器人配置 | 传统Fitness | 新Fitness | 新系统类别")
+        print("-" * 55)
         
-        test_genotype = RobotGenotype(
-            num_links=3,
-            link_lengths=[70, 50, 30],
-            lr=2e-4,
-            alpha=0.25
-        )
-        
-        test_individual = Individual(
-            genotype=test_genotype,
-            phenotype=RobotPhenotype()
-        )
-        
-        # 评估个体（使用较少步数进行快速测试）
-        test_steps = 500 if use_real else 100
-        start_time = time.time()
-        
-        evaluated = adapter.evaluate_individual(test_individual, training_steps=test_steps)
-        
-        end_time = time.time()
-        
-        print(f"✅ 评估结果 (耗时: {end_time - start_time:.1f}秒):")
-        print(f"   适应度: {evaluated.fitness:.2f}")
-        print(f"   成功率: {evaluated.phenotype.success_rate:.2f}")
-        print(f"   总伸展: {evaluated.phenotype.total_reach:.1f}")
-        print(f"   训练稳定性: {evaluated.phenotype.learning_efficiency:.2f}")
-        
-        if use_real and REAL_TRAINING_AVAILABLE:
-            print(f"✅ 真实训练模式工作正常!")
-        elif use_real:
-            print(f"⚠️  真实训练不可用，已回退到模拟模式")
+        for i in range(len(test_genotypes)):
+            genotype = test_genotypes[i]
+            old_result = results[0][1][i]  # 传统系统结果
+            new_result = results[1][1][i]  # 新系统结果
+            
+            config = f"{genotype.num_links}链节,{sum(genotype.link_lengths):.0f}px"
+            old_fitness = old_result['fitness']
+            new_fitness = new_result['fitness']
+            category = new_result['fitness_details']['category'] if new_result['fitness_details'] else 'N/A'
+            
+            print(f"{config:12} | {old_fitness:10.2f} | {new_fitness:9.3f} | {category}")
+    
+    print(f"\n✅ 训练适配器测试完成!")
+    if len(results) >= 2:
+        print(f"🎯 新的遗传算法Fitness系统已成功集成!")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,55 @@
+{
+  "experiment_info": {
+    "experiment_name": "reacher2d_sac_20250909_230859",
+    "start_time": "2025-09-09T23:08:59.144013",
+    "log_dir": "./map_elites_experiments/individual_39117/training_logs/reacher2d_sac_20250909_230859",
+    "python_version": "3.10.12",
+    "platform": "posix"
+  },
+  "hyperparams": {
+    "learning_rate": 1.3009979129278365e-06,
+    "alpha": 0.8064461503809629,
+    "warmup_steps": 2859,
+    "target_entropy_factor": 0.9066731778739936,
+    "batch_size": 128,
+    "buffer_capacity": 10000,
+    "gamma": 0.9816177141420735,
+    "seed": 42,
+    "num_processes": 2,
+    "update_frequency": 1,
+    "total_steps": 120000,
+    "optimizer": "Adam",
+    "network_architecture": {
+      "attn_model_dims": "128-130-130-4",
+      "action_dim": 6
+    }
+  },
+  "env_config": {
+    "env_name": "reacher2d",
+    "env_type": "reacher2d",
+    "goal_threshold": 20.0,
+    "action_dim": 6,
+    "num_links": 6,
+    "link_lengths": [
+      48.8477168300152,
+      54.712776760199894,
+      50.356813599240766,
+      60.6447447325589,
+      75.35484945196983,
+      73.81040336517017
+    ],
+    "config_path": "/home/xli149/Documents/repos/test_robo/examples/2d_reacher/configs/reacher_with_zigzag_obstacles.yaml",
+    "render_mode": null,
+    "reward_function": "\u8ddd\u79bb+\u8fdb\u5ea6+\u6210\u529f+\u78b0\u649e+\u65b9\u5411\u5956\u52b1",
+    "physics_engine": "PyMunk",
+    "obstacle_type": "zigzag",
+    "action_space": "continuous",
+    "observation_space": "joint_angles_and_positions"
+  },
+  "training_metrics": {
+    "total_steps": 0,
+    "total_episodes": 0,
+    "training_time_hours": 0,
+    "avg_steps_per_second": 0
+  }
+}
