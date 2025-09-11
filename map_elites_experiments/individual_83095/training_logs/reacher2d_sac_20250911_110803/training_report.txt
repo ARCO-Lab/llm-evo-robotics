@@ -1,0 +1,106 @@
+Training Report - reacher2d_sac_20250911_110803
+================================================================================
+
+📋 实验基本信息:
+  实验名称: reacher2d_sac_20250911_110803
+  开始时间: 2025-09-11T11:08:03.154326
+  结束时间: 2025-09-11T11:08:05.252307
+  Python版本: 3.10.12
+  平台: posix
+  日志目录: ./map_elites_experiments/individual_83095/training_logs/reacher2d_sac_20250911_110803
+
+⚙️ 训练超参数:
+  SAC算法参数:
+    alpha: 0.5061434806791208
+    batch_size: 64
+    buffer_capacity: 10000
+  训练流程参数:
+    warmup_steps: 1000
+    seed: 42
+    num_processes: 2
+    update_frequency: 1
+  其他参数:
+    learning_rate: 2.7110525468400786e-05
+    target_entropy_factor: 0.8
+    gamma: 0.99
+    total_steps: 120000
+    optimizer: Adam
+    network_architecture: {'attn_model_dims': '128-130-130-4', 'action_dim': 6}
+
+🌍 环境配置:
+  env_name: reacher2d
+  env_type: reacher2d
+  goal_threshold: 20.0
+  action_dim: 6
+  num_links: 6
+  link_lengths: [48.93218561509842, 82.35515161737545, 89.47683000974988, 51.698022129752474, 98.1197916657559, 59.47276569770429]
+  config_path: /home/xli149/Documents/repos/test_robo/examples/2d_reacher/configs/reacher_with_zigzag_obstacles.yaml
+  render_mode: None
+  reward_function: 距离+进度+成功+碰撞+方向奖励
+  physics_engine: PyMunk
+  obstacle_type: zigzag
+  action_space: continuous
+  observation_space: joint_angles_and_positions
+
+📊 训练统计概览:
+  总训练步数: 1000
+  总训练时间: 0.00 小时
+  平均训练速度: 678.90 步/秒
+  总Episode数: 10
+  平均Episode长度: 100.0 步
+
+📈 训练损失分析:
+  critic_loss:
+    最终值: 6.821230
+    平均值: 6.821230
+    标准差: 0.000000
+    最小值: 6.821230
+    最大值: 6.821230
+
+  actor_loss:
+    最终值: -1.846650
+    平均值: -1.846650
+    标准差: 0.000000
+    最小值: -1.846650
+    最大值: -1.846650
+
+  alpha_loss:
+    最终值: -0.000000
+    平均值: 0.000000
+    标准差: 0.000000
+    最小值: -0.000000
+    最大值: -0.000000
+
+  alpha:
+    最终值: 0.999973
+    平均值: 0.999973
+    标准差: 0.000000
+    最小值: 0.999973
+    最大值: 0.999973
+
+🎯 训练细节统计:
+  q1_mean:
+    最终值: 0.307686
+    平均值: 0.307686
+    最小值: 0.307686
+    最大值: 0.307686
+
+  q2_mean:
+    最终值: -3.301924
+    平均值: -3.301924
+    最小值: -3.301924
+    最大值: -3.301924
+
+  buffer_size:
+    最终值: 1002.000000
+    平均值: 1002.000000
+
+  learning_rate:
+    最终值: 0.000027
+    平均值: 0.000027
+
+💡 训练分析建议:
+  ❌ Critic Loss过高 (>= 5.0)，需要调整超参数或奖励函数
+  👍 Actor Loss表现良好 (< 0)
+
+================================================================================

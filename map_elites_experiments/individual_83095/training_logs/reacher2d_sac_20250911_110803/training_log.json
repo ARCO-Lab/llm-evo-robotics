@@ -1,0 +1,134 @@
+{
+  "config": {
+    "experiment_info": {
+      "experiment_name": "reacher2d_sac_20250911_110803",
+      "start_time": "2025-09-11T11:08:03.154326",
+      "log_dir": "./map_elites_experiments/individual_83095/training_logs/reacher2d_sac_20250911_110803",
+      "python_version": "3.10.12",
+      "platform": "posix"
+    },
+    "hyperparams": {
+      "learning_rate": 2.7110525468400786e-05,
+      "alpha": 0.5061434806791208,
+      "warmup_steps": 1000,
+      "target_entropy_factor": 0.8,
+      "batch_size": 64,
+      "buffer_capacity": 10000,
+      "gamma": 0.99,
+      "seed": 42,
+      "num_processes": 2,
+      "update_frequency": 1,
+      "total_steps": 120000,
+      "optimizer": "Adam",
+      "network_architecture": {
+        "attn_model_dims": "128-130-130-4",
+        "action_dim": 6
+      }
+    },
+    "env_config": {
+      "env_name": "reacher2d",
+      "env_type": "reacher2d",
+      "goal_threshold": 20.0,
+      "action_dim": 6,
+      "num_links": 6,
+      "link_lengths": [
+        48.93218561509842,
+        82.35515161737545,
+        89.47683000974988,
+        51.698022129752474,
+        98.1197916657559,
+        59.47276569770429
+      ],
+      "config_path": "/home/xli149/Documents/repos/test_robo/examples/2d_reacher/configs/reacher_with_zigzag_obstacles.yaml",
+      "render_mode": null,
+      "reward_function": "\u8ddd\u79bb+\u8fdb\u5ea6+\u6210\u529f+\u78b0\u649e+\u65b9\u5411\u5956\u52b1",
+      "physics_engine": "PyMunk",
+      "obstacle_type": "zigzag",
+      "action_space": "continuous",
+      "observation_space": "joint_angles_and_positions"
+    },
+    "training_metrics": {
+      "total_steps": 0,
+      "total_episodes": 0,
+      "training_time_hours": 0,
+      "avg_steps_per_second": 0
+    }
+  },
+  "steps": [
+    1000
+  ],
+  "times": [
+    1.4729626178741455
+  ],
+  "episodes": [
+    10
+  ],
+  "metrics": {
+    "lr": [
+      1.3555262734200393e-05
+    ],
+    "critic_loss": [
+      6.821230398255459
+    ],
+    "actor_loss": [
+      -1.8466503338724336
+    ],
+    "alpha_loss": [
+      -0.0
+    ],
+    "alpha": [
+      0.9999728898420501
+    ],
+    "q1_mean": [
+      0.30768645408869544
+    ],
+    "q2_mean": [
+      -3.301923917711048
+    ],
+    "q1_std": [
+      3.7280359313220295
+    ],
+    "q2_std": [
+      4.563254496980876
+    ],
+    "q1_max": [
+      11.214307874305533
+    ],
+    "q1_min": [
+      -6.244316470603181
+    ],
+    "q2_max": [
+      7.283939175160166
+    ],
+    "q2_min": [
+      -12.468804884330844
+    ],
+    "q_diff_mean": [
+      5.397231160852783
+    ],
+    "target_q_mean": [
+      -3.17001192571272
+    ],
+    "buffer_size": [
+      1002.0
+    ],
+    "entropy_term": [
+      -1.9158228188694832
+    ],
+    "q_term": [
+      -0.06917248499704978
+    ],
+    "log_probs_mean": [
+      -3.7851377959050607
+    ],
+    "step": [
+      1000.0
+    ],
+    "learning_rate": [
+      2.7110525468400786e-05
+    ],
+    "warmup_progress": [
+      1.0
+    ]
+  }
+}

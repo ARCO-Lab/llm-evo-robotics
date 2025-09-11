@@ -344,7 +344,7 @@ class Reacher2DEnv(Env):
         
         if self.gym_api_version == "new":
             terminated = done
-            truncated = self.step_count >= 500
+            truncated = self.step_count >= 120000  # 🔧 修改为120000步
             return observation, reward, terminated, truncated, info
         else:
             return observation, reward, done, info
@@ -623,7 +623,7 @@ class Reacher2DEnv(Env):
             return True
         
         # 步数限制
-        if self.step_count >= 500:
+        if self.step_count >= 120000:  # 🔧 修改为120000步
             return True
         
         return False

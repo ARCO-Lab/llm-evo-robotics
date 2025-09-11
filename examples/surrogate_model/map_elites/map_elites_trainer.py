@@ -3,9 +3,90 @@ import argparse
 from typing import List, Optional
 import numpy as np
 import multiprocessing as mp
-
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from map_elites_core import MAPElitesArchive, RobotMutator, Individual, RobotGenotype, RobotPhenotype
 from training_adapter import MAPElitesTrainingAdapter
+import os
+import sys
+import pickle
+import traceback
+import torch
+import numpy as np
+
+import argparse
+from map_elites_core import Individual , RobotGenotype, RobotPhenotype
+from training_adapter import MAPElitesTrainingAdapter
+
+def init_worker_process():
+    process_id = mp.current_process().pid
+    torch.manual_seed(42 + process_id)
+    np.random.seed(42 + process_id)
+
+    torch.set_num_threads(1)
+    if torch.cuda.is_available():
+        device = (process_id % torch.cuda.device_count())
+        torch.cuda.set_device(device)
+    print(f"🔄 进程 {process_id} 初始化完成")
+
+def evaluate_individual_isolated(individual_data, base_args_dict, training_steps):
+    """在独立进程中评估个体"""
+
+    try:
+
+        process_id = os.getpid()
+        enable_rendering = base_args_dict.get('enable_rendering', False)
+        silent_mode = base_args_dict.get('silent_mode', True)
+        
+        print(f"🎨 进程 {process_id} 接收参数: rendering={enable_rendering}, silent={silent_mode}")
+        print(f"进程 {process_id}开始训练个体 {individual_data['individual_id']}")
+        base_args = argparse.Namespace(**base_args_dict)
+
+        genotype = RobotGenotype(
+            num_links = individual_data['num_links'],
+            link_lengths = individual_data['link_lengths'],
+            lr = individual_data['lr'],
+            alpha = individual_data['alpha']
+        )
+        individual = Individual(
+            individual_id = individual_data['individual_id'],
+            genotype = genotype,
+            phenotype = RobotPhenotype(),
+            generation = individual_data['generation'],
+            parent_id = individual_data['parent_id']
+        )
+
+        adapter = MAPElitesTrainingAdapter(
+            base_args,
+            enable_rendering = base_args_dict.get('enable_rendering', False),  # 🔧 使用传递的参数
+            silent_mode = base_args_dict.get('silent_mode', True),             # 🔧 使用传递的参数
+            use_genetic_fitness = True
+        )
+        result = adapter.evaluate_individual(individual, training_steps)
+        print(f"✅ 进程 {process_id} 完成训练个体 {individual_data['individual_id']}, fitness: {result.fitness:.3f}")
+
+        return {
+            'individual_id': result.individual_id,
+            'fitness': result.fitness,
+            'fitness_details': getattr(result, 'fitness_details', {}),
+            'generation': result.generation,
+            'parent_id': result.parent_id,
+            'genotype': {
+                'num_links': result.genotype.num_links,
+                'link_lengths': result.genotype.link_lengths,
+                'lr': result.genotype.lr,
+                'alpha': result.genotype.alpha
+            },
+            'phenotype': {
+                'avg_reward': result.phenotype.avg_reward,
+                'success_rate': getattr(result.phenotype, 'success_rate', 0.0),
+                'min_distance': getattr(result.phenotype, 'min_distance', float('inf'))
+            }
+        }
+        
+    except Exception as e:
+        print(f"❌ 进程 {os.getpid()} 训练个体 {individual_data['individual_id']} 失败: {e}")
+        traceback.print_exc()
+        return None
 
 
 class MAPElitesEvolutionTrainer:
@@ -15,7 +96,9 @@ class MAPElitesEvolutionTrainer:
                  training_steps_per_individual: int = 3000,
                  enable_rendering: bool = False,    # 🆕 是否启用渲染
                  silent_mode: bool = True,          # 🆕 是否静默模式
-                 use_genetic_fitness: bool = True): # 🆕 是否使用遗传算法fitness
+                 use_genetic_fitness: bool = True,  # 🆕 是否使用遗传算法fitness
+                 enable_multiprocess: bool = False,
+                 max_workers: int = 4 ):
         
         # 初始化组件
         self.archive = MAPElitesArchive()
@@ -30,10 +113,19 @@ class MAPElitesEvolutionTrainer:
         self.num_initial_random = num_initial_random
         self.training_steps_per_individual = training_steps_per_individual
         self.use_genetic_fitness = use_genetic_fitness
-        
+        self.enable_multiprocess = enable_multiprocess
+        self.max_workers = min(max_workers, mp.cpu_count()) if enable_multiprocess else 1
+        self.base_args = base_args
+
+        if enable_multiprocess:
+            print(f"🔄 启用多进程训练 (最大进程数: {self.max_workers})")
+        else:
+            print("🔄 使用单进程训练")
+
         print("🧬 MAP-Elites进化训练器已初始化")
         print(f"🎯 Fitness评估: {'遗传算法分层系统' if use_genetic_fitness else '传统平均奖励'}")
         print(f"🎨 可视化: {'启用' if enable_rendering else '禁用'}")
+
     
     def run_evolution(self, num_generations: int = 50, individuals_per_generation: int = 10):
         """运行MAP-Elites进化"""
@@ -61,12 +153,22 @@ class MAPElitesEvolutionTrainer:
                     new_individuals.append(individual)
             
             # 评估新个体
-            for i, individual in enumerate(new_individuals):
-                print(f"  个体 {i+1}/{len(new_individuals)}")
-                evaluated_individual = self.adapter.evaluate_individual(
-                    individual, self.training_steps_per_individual
-                )
-                self.archive.add_individual(evaluated_individual)
+            # for i, individual in enumerate(new_individuals):
+            #     print(f"  个体 {i+1}/{len(new_individuals)}")
+            #     evaluated_individual = self.adapter.evaluate_individual(
+            #         individual, self.training_steps_per_individual
+            #     )
+            #     self.archive.add_individual(evaluated_individual)
+
+            if len(new_individuals) > 0:
+                print(f"📦 第{generation}代创建了 {len(new_individuals)} 个新个体，开始评估...")
+                evaluated_individuals = self._evaluate_individuals_parallel(new_individuals)
+                
+                # 添加到存档
+                for individual in evaluated_individuals:
+                    self.archive.add_individual(individual)
+            else:
+                print(f"⚠️ 第{generation}代没有创建新个体")
             
             # 输出代际统计
             self._print_generation_stats(generation)
@@ -79,27 +181,54 @@ class MAPElitesEvolutionTrainer:
         # 最终结果打印
         print(f"\n🎉 进化完成!")
         self._print_final_results()
-    
     def _initialize_random_population(self):
-        """初始化随机种群"""
+        """初始化随机种群 - 支持并行评估"""
+        print(f"🎲 创建 {self.num_initial_random} 个随机个体...")
+        
+        # 批量创建个体
+        individuals = []
         for i in range(self.num_initial_random):
-            print(f"  初始化个体 {i+1}/{self.num_initial_random}")
             individual = self._create_random_individual(0)
-            evaluated_individual = self.adapter.evaluate_individual(
-                individual, self.training_steps_per_individual
-            )
-             # 🆕 添加这些调试信息
-            print(f"🔍 调试 - 个体 {i+1} 评估结果:")
-            print(f"   Fitness: {evaluated_individual.fitness}")
-            if hasattr(evaluated_individual, 'fitness_details'):
-                print(f"   Fitness详情: {evaluated_individual.fitness_details}")
-            else:
-                print(f"   ⚠️ 没有fitness_details属性")
-
-            self.archive.add_individual(evaluated_individual)
+            individuals.append(individual)
+        
+        print(f"📦 个体创建完成，开始评估...")
+        
+        # 并行或顺序评估
+        evaluated_individuals = self._evaluate_individuals_parallel(individuals)
+        
+        # 添加调试信息
+        for i, individual in enumerate(evaluated_individuals):
+            print(f"🔍 个体 {i+1} 评估结果:")
+            print(f"   ID: {individual.individual_id}")
+            print(f"   Fitness: {individual.fitness:.3f}")
+            if hasattr(individual, 'fitness_details') and individual.fitness_details:
+                print(f"   类别: {individual.fitness_details.get('category', 'N/A')}")
+            
+            # 添加到存档
+            self.archive.add_individual(individual)
         
         stats = self.archive.get_statistics()
         print(f"📊 初始化完成: 存档大小={stats['size']}, 最佳适应度={stats['best_fitness']:.3f}")
+    # def _initialize_random_population(self):
+    #     """初始化随机种群"""
+    #     for i in range(self.num_initial_random):
+    #         print(f"  初始化个体 {i+1}/{self.num_initial_random}")
+    #         individual = self._create_random_individual(0)
+    #         evaluated_individual = self.adapter.evaluate_individual(
+    #             individual, self.training_steps_per_individual
+    #         )
+    #          # 🆕 添加这些调试信息
+    #         print(f"🔍 调试 - 个体 {i+1} 评估结果:")
+    #         print(f"   Fitness: {evaluated_individual.fitness}")
+    #         if hasattr(evaluated_individual, 'fitness_details'):
+    #             print(f"   Fitness详情: {evaluated_individual.fitness_details}")
+    #         else:
+    #             print(f"   ⚠️ 没有fitness_details属性")
+
+    #         self.archive.add_individual(evaluated_individual)
+        
+    #     stats = self.archive.get_statistics()
+    #     print(f"📊 初始化完成: 存档大小={stats['size']}, 最佳适应度={stats['best_fitness']:.3f}")
     
     def _create_random_individual(self, generation: int) -> Individual:
         """创建随机个体"""
@@ -123,6 +252,136 @@ class MAPElitesEvolutionTrainer:
             generation=generation,
             parent_id=parent.individual_id
         )
+    def _evaluate_individuals_parallel(self, individuals):
+        """并行评估多个个体"""
+        if not self.enable_multiprocess or len(individuals) <= 1:
+            # 单进程模式
+            return self._evaluate_individuals_sequential(individuals)
+        
+        print(f"🔄 开始并行评估 {len(individuals)} 个个体 (使用 {self.max_workers} 个进程)")
+        
+        # 准备可序列化的数据
+        individual_data_list = []
+        for individual in individuals:
+            individual_data = {
+                'individual_id': individual.individual_id,
+                'num_links': individual.genotype.num_links,
+                'link_lengths': individual.genotype.link_lengths,
+                'lr': individual.genotype.lr,
+                'alpha': individual.genotype.alpha,
+                'generation': individual.generation,
+                'parent_id': individual.parent_id
+            }
+            individual_data_list.append(individual_data)
+        
+        # 准备可序列化的参数
+        base_args_dict = {
+            'env_type': self.base_args.env_type,
+            'num_processes': 1,
+            'seed': self.base_args.seed,
+            'save_dir': self.base_args.save_dir,
+            'lr': self.base_args.lr,
+            'alpha': self.base_args.alpha,
+            'tau': self.base_args.tau,
+            'gamma': self.base_args.gamma,
+            'update_frequency': getattr(self.base_args, 'update_frequency', 1),
+            'enable_rendering': self.adapter.enable_rendering,  # 🆕 从主训练器传递
+            'silent_mode': self.adapter.silent_mode            # 🆕 从主训练器传递
+        }
+        
+        # 使用进程池并行评估
+        results = []
+        with ProcessPoolExecutor(
+            max_workers=self.max_workers,
+            initializer=init_worker_process
+        ) as executor:
+            # 提交所有任务
+            future_to_data = {
+                executor.submit(
+                    evaluate_individual_isolated, 
+                    data, 
+                    base_args_dict, 
+                    self.training_steps_per_individual
+                ): data
+                for data in individual_data_list
+            }
+            
+            # 收集结果
+            completed = 0
+            for future in as_completed(future_to_data):
+                data = future_to_data[future]
+                try:
+                    result = future.result(timeout=7200)  # 2小时超时
+                    if result:
+                        results.append(result)
+                        completed += 1
+                        print(f"✅ 完成 {completed}/{len(individuals)} 个个体")
+                    else:
+                        print(f"❌ 个体 {data['individual_id']} 评估失败")
+                        
+                except Exception as e:
+                    print(f"❌ 个体 {data['individual_id']} 异常: {e}")
+        
+        # 重建Individual对象
+        evaluated_individuals = self._reconstruct_individuals_from_results(results, individuals)
+        
+        print(f"🎉 并行评估完成: {len(evaluated_individuals)}/{len(individuals)} 个个体成功")
+        return evaluated_individuals
+
+    def _evaluate_individuals_sequential(self, individuals):
+        """顺序评估多个个体（原有逻辑）"""
+        evaluated_individuals = []
+        for i, individual in enumerate(individuals):
+            print(f"🔄 评估个体 {i+1}/{len(individuals)}")
+            evaluated_individual = self.adapter.evaluate_individual(
+                individual, self.training_steps_per_individual
+            )
+            evaluated_individuals.append(evaluated_individual)
+        return evaluated_individuals
+
+    def _reconstruct_individuals_from_results(self, results, original_individuals):
+        """从结果重建Individual对象"""
+        result_map = {r['individual_id']: r for r in results if r}
+        
+        evaluated = []
+        for individual in original_individuals:
+            if individual.individual_id in result_map:
+                result = result_map[individual.individual_id]
+                
+                # 重建个体对象
+                from map_elites_core import Individual, RobotGenotype, RobotPhenotype
+                
+                genotype = RobotGenotype(
+                    num_links=result['genotype']['num_links'],
+                    link_lengths=result['genotype']['link_lengths'],
+                    lr=result['genotype']['lr'],
+                    alpha=result['genotype']['alpha']
+                )
+                
+                phenotype = RobotPhenotype()
+                phenotype.avg_reward = result['phenotype']['avg_reward']
+                phenotype.success_rate = result['phenotype']['success_rate']
+                phenotype.min_distance = result['phenotype']['min_distance']
+                
+                new_individual = Individual(
+                    individual_id=result['individual_id'],
+                    genotype=genotype,
+                    phenotype=phenotype,
+                    generation=result['generation'],
+                    parent_id=result['parent_id']
+                )
+                
+                new_individual.fitness = result['fitness']
+                new_individual.fitness_details = result['fitness_details']
+                
+                evaluated.append(new_individual)
+            else:
+                # 评估失败，设置默认fitness
+                individual.fitness = 0.0
+                print(f"⚠️ 个体 {individual.individual_id} 使用默认fitness")
+                evaluated.append(individual)
+        
+        return evaluated
     
     def _print_generation_stats(self, generation: int):
         """打印代际统计信息 - 增强fitness分析"""
@@ -270,10 +529,12 @@ def start_real_training():
     trainer = MAPElitesEvolutionTrainer(
         base_args=base_args,
         num_initial_random=10,               # 初始随机个体数
-        training_steps_per_individual=2000,  # 每个个体的训练步数
+        training_steps_per_individual=120000,  # 每个个体的训练步数
         enable_rendering=True,               # 🎨 启用可视化
         silent_mode=False,                   # 🔊 显示详细输出
-        use_genetic_fitness=True             # 🎯 使用遗传算法fitness
+        use_genetic_fitness=True,             # 🎯 使用遗传算法fitness
+        enable_multiprocess=True,             # 🆕 启用多进程
+        max_workers=4  
     )
     
     try:
@@ -428,7 +689,7 @@ def test_map_elites_trainer():
             trainer = MAPElitesEvolutionTrainer(
                 base_args=base_args,
                 num_initial_random=3,  # 使用更少的个体进行快速测试
-                training_steps_per_individual=100,  # 使用更少的训练步数
+                training_steps_per_individual=120000,  # 使用更少的训练步数
                 use_genetic_fitness=use_genetic
             )
             print("✅ 训练器创建成功")
@@ -556,7 +817,7 @@ if __name__ == "__main__":
             trainer = MAPElitesEvolutionTrainer(
                 base_args=base_args,
                 num_initial_random=5,
-                training_steps_per_individual=200,
+                training_steps_per_individual=120000,
                 use_genetic_fitness=True  # 🆕 使用遗传算法fitness
             )
             
