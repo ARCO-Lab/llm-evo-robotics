@@ -61,7 +61,7 @@ def create_training_parser():
     # 基本参数
     parser.add_argument('--env-name', default='reacher2d', help='环境名称')
     parser.add_argument('--seed', type=int, default=42, help='随机种子')
-    parser.add_argument('--num-processes', type=int, default=2, help='并行进程数')
+    parser.add_argument('--num-processes', type=int, default=1, help='并行进程数')
     parser.add_argument('--lr', type=float, default=3e-4, help='学习率')
     parser.add_argument('--gamma', type=float, default=0.99, help='折扣因子')
     parser.add_argument('--alpha', type=float, default=0.1, help='SAC熵系数')
@@ -372,62 +372,286 @@ class TrainingManager:
         self.best_success_rate = 0.0
         self.best_min_distance = float('inf')
         self.consecutive_success_count = 0
-        self.min_consecutive_successes = 3
+        self.min_consecutive_successes = 2
+
+                # 🆕 Episodes控制 - 2个episodes × 120k步
+        self.current_episodes = 0
+        self.max_episodes = 2
+        self.steps_per_episode = 120000
+        self.current_episode_steps = 0
+        self.total_training_steps = 0
+        self.episode_results = []
+        self.current_episode_start_step = 0
+        self.current_episode_start_time = time.time()
         
+        # 🆕 追踪每个episode的最佳表现
+        self.current_episode_best_distance = float('inf')
+        self.current_episode_best_reward = float('-inf')
+        self.current_episode_min_distance_step = 0
+        
+        print(f"🎯 训练配置: 2个episodes × 120,000步/episode = 总计240,000步")
+
+    def update_episode_tracking(self, episode_step, infos, episode_rewards):
+        """在每个训练步骤中更新episode追踪"""
+        for proc_id in range(len(infos)):
+            if len(infos) > proc_id and isinstance(infos[proc_id], dict):
+                info = infos[proc_id]
+                
+                # 提取当前距离
+                current_distance = float('inf')
+                if 'goal' in info:
+                    current_distance = info['goal'].get('distance_to_goal', float('inf'))
+                elif 'distance' in info:
+                    current_distance = info['distance']
+                
+                # 更新最佳距离
+                if current_distance < self.current_episode_best_distance:
+                    self.current_episode_best_distance = current_distance
+                    self.current_episode_best_reward = episode_rewards[proc_id]
+                    self.current_episode_min_distance_step = episode_step  # 🔧 直接使用episode_step
+            
+    # def update_episode_tracking(self, step, infos, episode_rewards):
+    #     """在每个训练步骤中更新episode追踪"""
+    #     for proc_id in range(len(infos)):
+    #         if len(infos) > proc_id and isinstance(infos[proc_id], dict):
+    #             info = infos[proc_id]
+                
+    #             # 提取当前距离
+    #             current_distance = float('inf')
+    #             if 'goal' in info:
+    #                 current_distance = info['goal'].get('distance_to_goal', float('inf'))
+    #             elif 'distance' in info:
+    #                 current_distance = info['distance']
+                
+    #             # 更新最佳距离
+    #             if current_distance < self.current_episode_best_distance:
+    #                 self.current_episode_best_distance = current_distance
+    #                 self.current_episode_best_reward = episode_rewards[proc_id]
+    #                 self.current_episode_min_distance_step = step - self.current_episode_start_step
+
+    def _classify_episode_result(self, goal_reached, distance, steps, reward):
+        """分类episode结果"""
+        if goal_reached:
+            if steps < 200:
+                return {
+                    'type': 'PERFECT_SUCCESS',
+                    'score': 1.0,
+                    'description': '快速精确到达'
+                }
+            elif steps < 400:
+                return {
+                    'type': 'GOOD_SUCCESS', 
+                    'score': 0.9,
+                    'description': '正常速度到达'
+                }
+            else:
+                return {
+                    'type': 'SLOW_SUCCESS',
+                    'score': 0.7,
+                    'description': '缓慢但成功到达'
+                }
+        else:
+            if distance < 50:
+                return {
+                    'type': 'NEAR_SUCCESS',
+                    'score': 0.5,
+                    'description': '接近成功'
+                }
+            elif distance < 100:
+                return {
+                    'type': 'TIMEOUT_CLOSE',
+                    'score': 0.3,
+                    'description': '超时但较接近'
+                }
+            elif reward > -100:
+                return {
+                    'type': 'TIMEOUT_MEDIUM',
+                    'score': 0.2,
+                    'description': '超时中等表现'
+                }
+            else:
+                return {
+                    'type': 'COMPLETE_FAILURE',
+                    'score': 0.0,
+                    'description': '完全失败'
+                }
+
+    def _check_episode_stopping_conditions(self, step):
+        """检查是否应该停止训练"""
+        # 完成2个episodes就停止
+        if self.current_episodes >= 2:
+            print(f"🏁 完成{self.current_episodes}个episodes，训练结束")
+            return True
+        
+        # 检查当前episode步数限制
+        episode_steps = step - self.current_episode_start_step
+        if episode_steps >= 120000:
+            print(f"⏰ 当前episode达到120,000步限制")
+            return False  # 不是整体结束，只是当前episode结束
+        
+        return False
+
+    def _generate_final_fitness_report(self):
+        """生成最终fitness报告"""
+        if len(self.episode_results) == 0:
+            print("⚠️ 没有episode结果数据")
+            return
+        
+        print("\n" + "="*50)
+        print("🎯 最终训练结果报告")
+        print("="*50)
+        
+        # 计算综合指标（基于最佳距离）
+        success_count = sum(1 for ep in self.episode_results if ep['success'])
+        success_rate = success_count / len(self.episode_results)
+        avg_best_distance = sum(ep['best_distance'] for ep in self.episode_results) / len(self.episode_results)
+        avg_end_distance = sum(ep['end_distance'] for ep in self.episode_results) / len(self.episode_results)
+        avg_steps = sum(ep['steps'] for ep in self.episode_results) / len(self.episode_results)
+        avg_score = sum(ep['score'] for ep in self.episode_results) / len(self.episode_results)
+        
+        print(f"📊 Episodes完成: {len(self.episode_results)}/2")
+        print(f"🎯 成功率: {success_rate:.1%} ({success_count}/{len(self.episode_results)})")
+        print(f"🏆 平均最佳距离: {avg_best_distance:.1f}px")
+        print(f"📏 平均结束距离: {avg_end_distance:.1f}px")
+        print(f"⏱️  平均步数: {avg_steps:.0f}")
+        print(f"⭐ 平均得分: {avg_score:.2f}")
+        
+        # 详细episode信息
+        print("\n📋 详细Episode结果:")
+        for i, ep in enumerate(self.episode_results, 1):
+            status = "✅" if ep['success'] else "❌"
+            print(f"   Episode {i}: {status} {ep['type']} - "
+                  f"最佳距离:{ep['best_distance']:.1f}px@{ep['best_distance_step']}步, "
+                  f"结束距离:{ep['end_distance']:.1f}px, "
+                  f"得分:{ep['score']:.2f}")
+        
+        print("="*50)   
+
     def handle_episode_end(self, proc_id, step, episode_rewards, infos):
-        """处理episode结束逻辑"""
+        """处理episode结束逻辑 - 使用最佳距离版本"""
         if len(infos) <= proc_id or not isinstance(infos[proc_id], dict):
             episode_rewards[proc_id] = 0.0
             return False
         
         info = infos[proc_id]
-        goal_reached = False
-        distance = float('inf')
         
-        # 检查目标信息
+        # 🎯 计算episode详细信息
+        episode_steps = step - self.current_episode_start_step
+        episode_duration = time.time() - self.current_episode_start_time if hasattr(self, 'current_episode_start_time') else 0
+        episode_reward = episode_rewards[proc_id]
+        
+        # 🎯 使用最佳距离而不是结束时距离
+        best_distance = self.current_episode_best_distance
+        best_reward = self.current_episode_best_reward
+        goal_reached = best_distance < 20.0
+        
+        # 获取结束时的距离用于对比
+        end_distance = float('inf')
         if 'goal' in info:
-            goal_info = info['goal']
-            distance = goal_info.get('distance_to_goal', float('inf'))
-            goal_reached = goal_info.get('goal_reached', False)
-            
-            print(f"Episode {step} 结束: 奖励 {episode_rewards[proc_id]:.2f}, 距离 {distance:.1f}")
-            
-            if goal_reached:
-                print(f"🎉 成功到达目标! 距离: {distance:.1f}")
-                self.consecutive_success_count += 1
-                
-                # 🔧 统一的保存逻辑
-                if distance < self.best_min_distance:
-                    self.best_min_distance = distance
-                    success_rate = self.consecutive_success_count / max(1, step // 100)
-                    self.best_success_rate = max(success_rate, self.best_success_rate)
-                    
-                    # 保存最佳模型（包含完整状态）
-                    self.model_manager.save_best_model(
-                        self.sac, success_rate, distance, step
-                    )
-                
-                # 检查是否达到训练目标
-                if self.consecutive_success_count >= self.min_consecutive_successes and step > 5000:
-                    print(f"🏁 连续成功{self.consecutive_success_count}次，训练达到目标!")
-                    
-                    # 🔧 只需要标记训练完成，不需要重复保存
-                    print(f"✅ 最佳模型已保存，训练目标达成！")
-                    return True  # 结束训练
-        else:
-                self.consecutive_success_count = 0
+            end_distance = info['goal'].get('distance_to_goal', float('inf'))
+        elif 'distance' in info:
+            end_distance = info['distance']
         
-        # 记录episode指标
-        episode_metrics = {
-            'reward': episode_rewards[proc_id],
-            'length': step,
-            'distance_to_goal': distance,
-            'goal_reached': goal_reached
+        # 🎯 分类episode结果（基于最佳距离）
+        episode_type = self._classify_episode_result(goal_reached, best_distance, episode_steps, best_reward)
+        
+        # 存储episode结果
+        episode_result = {
+            'episode_num': self.current_episodes + 1,
+            'type': episode_type['type'],
+            'success': goal_reached,
+            'best_distance': best_distance,      # 🎯 最佳距离
+            'end_distance': end_distance,        # 🎯 结束距离
+            'best_distance_step': self.current_episode_min_distance_step,  # 🎯 达到最佳距离的步数
+            'steps': episode_steps,
+            'duration': episode_duration,
+            'reward': episode_reward,
+            'best_reward': best_reward,          # 🎯 达到最佳距离时的奖励
+            'score': episode_type['score'],
+            'description': episode_type['description']
         }
-        self.logger.log_episode(step // 100, episode_metrics)
-        episode_rewards[proc_id] = 0.0
         
-        return False
+        self.episode_results.append(episode_result)
+        self.current_episodes += 1
+        
+        # 🎯 打印episode结果（显示最佳距离）
+        print(f"📊 Episode {self.current_episodes}/2 完成:")
+        print(f"   类型: {episode_type['type']} ({episode_type['description']})")
+        print(f"   成功: {'✅' if goal_reached else '❌'}")
+        print(f"   最佳距离: {best_distance:.1f}px (步数: {self.current_episode_min_distance_step})")
+        print(f"   结束距离: {end_distance:.1f}px")
+        print(f"   总步数: {episode_steps}")
+        print(f"   最终奖励: {episode_reward:.2f}")
+        print(f"   得分: {episode_type['score']:.2f}")
+        
+        # 🎯 重置episode追踪
+        self.current_episode_best_distance = float('inf')
+        self.current_episode_best_reward = float('-inf')
+        self.current_episode_min_distance_step = 0
+        self.current_episode_start_step = step
+        self.current_episode_start_time = time.time()
+        
+        # 检查停止条件
+        should_stop = self._check_episode_stopping_conditions(step)
+        if should_stop:
+            self._generate_final_fitness_report()
+        
+        episode_rewards[proc_id] = 0.0
+        return should_stop
+    # def handle_episode_end(self, proc_id, step, episode_rewards, infos):
+    #     """处理episode结束逻辑"""
+    #     if len(infos) <= proc_id or not isinstance(infos[proc_id], dict):
+    #         episode_rewards[proc_id] = 0.0
+    #         return False
+        
+    #     info = infos[proc_id]
+    #     goal_reached = False
+    #     distance = float('inf')
+        
+    #     # 检查目标信息
+    #     if 'goal' in info:
+    #         goal_info = info['goal']
+    #         distance = goal_info.get('distance_to_goal', float('inf'))
+    #         goal_reached = goal_info.get('goal_reached', False)
+            
+    #         print(f"Episode {step} 结束: 奖励 {episode_rewards[proc_id]:.2f}, 距离 {distance:.1f}")
+            
+    #         if goal_reached:
+    #             print(f"🎉 成功到达目标! 距离: {distance:.1f}")
+    #             self.consecutive_success_count += 1
+                
+    #             # 🔧 统一的保存逻辑
+    #             if distance < self.best_min_distance:
+    #                 self.best_min_distance = distance
+    #                 success_rate = self.consecutive_success_count / max(1, step // 100)
+    #                 self.best_success_rate = max(success_rate, self.best_success_rate)
+                    
+    #                 # 保存最佳模型（包含完整状态）
+    #                 self.model_manager.save_best_model(
+    #                     self.sac, success_rate, distance, step
+    #                 )
+                
+    #             # 检查是否达到训练目标
+    #             if self.consecutive_success_count >= self.min_consecutive_successes and step > 5000:
+    #                 print(f"🏁 连续成功{self.consecutive_success_count}次，训练达到目标!")
+                    
+    #                 # 🔧 只需要标记训练完成，不需要重复保存
+    #                 print(f"✅ 最佳模型已保存，训练目标达成！")
+    #                 return True  # 结束训练
+    #     else:
+    #             self.consecutive_success_count = 0
+        
+    #     # 记录episode指标
+    #     episode_metrics = {
+    #         'reward': episode_rewards[proc_id],
+    #         'length': step,
+    #         'distance_to_goal': distance,
+    #         'goal_reached': goal_reached
+    #     }
+    #     self.logger.log_episode(step // 100, episode_metrics)
+    #     episode_rewards[proc_id] = 0.0
+        
+    #     return False
     
     def should_update_model(self, step):
         """判断是否应该更新模型"""
@@ -616,12 +840,78 @@ def main(args):
             
     # 运行训练循环
     run_training_loop(args, envs, sync_env, sac, single_gnn_embed, training_manager, num_joints, start_step)
-    
+    training_results = collect_training_results(training_manager)
     # 清理资源
     cleanup_resources(sync_env, logger, model_manager, training_manager)
-
+    return training_results
+def collect_training_results(training_manager):
+    """收集训练结果用于fitness计算"""
+    import numpy as np
+    
+    if not hasattr(training_manager, 'episode_results') or not training_manager.episode_results:
+        print("⚠️ 没有找到episode_results，返回默认结果")
+        return {
+            'success': False,
+            'error': 'No episode results available',
+            'episodes_completed': 0,
+            'success_rate': 0.0,
+            'avg_best_distance': float('inf'),
+            'avg_score': 0.0,
+            'total_training_time': 0.0,
+            'episode_details': [],
+            'learning_progress': 0.0,
+            'avg_steps_to_best': 120000
+        }
+    
+    episodes = training_manager.episode_results
+    print(f"📊 收集到 {len(episodes)} 个episode的结果")
+    
+    # 计算基础统计
+    success_count = sum(1 for ep in episodes if ep.get('success', False))
+    total_episodes = len(episodes)
+    
+    # 计算平均最佳距离
+    distances = [ep.get('best_distance', float('inf')) for ep in episodes]
+    avg_best_distance = np.mean([d for d in distances if d != float('inf')]) if distances else float('inf')
+    
+    # 计算学习进步
+    if len(episodes) >= 2:
+        first_score = episodes[0].get('episode_score', 0)
+        last_score = episodes[-1].get('episode_score', 0)
+        learning_progress = last_score - first_score
+    else:
+        learning_progress = 0.0
+    
+    # 计算平均到达最佳距离的步数
+    steps_to_best = [ep.get('steps_to_best', 120000) for ep in episodes]
+    avg_steps_to_best = np.mean(steps_to_best)
+    
+    # 计算总训练时间
+    durations = [ep.get('duration', 0) for ep in episodes]
+    total_training_time = sum(durations)
+    
+    result = {
+        'success': True,
+        'episodes_completed': total_episodes,
+        'success_rate': success_count / total_episodes if total_episodes > 0 else 0.0,
+        'avg_best_distance': avg_best_distance,
+        'avg_score': np.mean([ep.get('episode_score', 0) for ep in episodes]),
+        'total_training_time': total_training_time,
+        'episode_details': episodes,
+        'learning_progress': learning_progress,
+        'avg_steps_to_best': avg_steps_to_best,
+        'episode_results': episodes
+    }
+    
+    print(f"✅ 训练结果收集完成:")
+    print(f"   Episodes: {total_episodes}")
+    print(f"   成功率: {result['success_rate']:.1%}")
+    print(f"   平均最佳距离: {result['avg_best_distance']:.1f}px")
+    print(f"   学习进步: {result['learning_progress']:+.3f}")
+    
+    return result
 def run_training_loop(args, envs, sync_env, sac, single_gnn_embed, training_manager, num_joints, start_step=0):
-    """运行训练循环"""
+    """运行训练循环 - Episodes版本"""
     current_obs = envs.reset()
     print(f"初始观察: {current_obs.shape}")
     
@@ -632,74 +922,79 @@ def run_training_loop(args, envs, sync_env, sac, single_gnn_embed, training_mana
     
     current_gnn_embeds = single_gnn_embed.repeat(args.num_processes, 1, 1)
     episode_rewards = [0.0] * args.num_processes
-    num_step = 120000
-    total_steps = 0
+    
+    # 🆕 Episodes控制参数
+    max_episodes = 2
+    steps_per_episode = 120000
     
     print(f"开始训练: warmup {sac.warmup_steps} 步")
-    print(f"总训练步数: {num_step}, 更新频率: {args.update_frequency}")
-    if start_step > 0:
-        print(f"从步骤 {start_step} 恢复训练")
-    else:
-        print(f"预期warmup完成步骤: {sac.warmup_steps}")
-
+    print(f"训练配置: {max_episodes}个episodes × {steps_per_episode}步/episode")
+    
     training_completed = False
     early_termination_reason = ""
+    global_step = start_step  # 全局步数计数器（用于模型更新等）
 
     try:
-        for step in range(start_step, num_step):
-            # 进度显示
-            if step % 100 == 0:
-                if step < sac.warmup_steps:
-                    smart_print(f"Step {step}/{num_step}: Warmup phase ({step}/{sac.warmup_steps})")
+        # 🆕 Episodes循环
+        for episode_num in range(max_episodes):
+            print(f"\n🎯 开始Episode {episode_num + 1}/{max_episodes}")
+            
+            # 重置episode追踪
+            training_manager.current_episode_start_step = global_step
+            training_manager.current_episode_start_time = time.time()
+            training_manager.current_episode_best_distance = float('inf')
+            training_manager.current_episode_best_reward = float('-inf')
+            training_manager.current_episode_min_distance_step = 0
+            
+            episode_step = 0  # 🎯 每个episode内的步数计数
+            episode_completed = False
+            
+            # 🆕 单个Episode的训练循环
+            while episode_step < steps_per_episode and not episode_completed:
+                # 进度显示
+                if episode_step % 100 == 0:
+                    if global_step < sac.warmup_steps:
+                        smart_print(f"Episode {episode_num+1}, Step {episode_step}/{steps_per_episode}: Warmup phase ({global_step}/{sac.warmup_steps})")
+                    else:
+                        smart_print(f"Episode {episode_num+1}, Step {episode_step}/{steps_per_episode}: Training phase, Buffer size: {len(sac.memory)}")
+
+                # 获取动作
+                if global_step < sac.warmup_steps:
+                    action_batch = torch.from_numpy(np.array([
+                        envs.action_space.sample() for _ in range(args.num_processes)
+                    ]))
                 else:
-                    smart_print(f"Step {step}/{num_step}: Training phase, Buffer size: {len(sac.memory)}")
+                    actions = []
+                    for proc_id in range(args.num_processes):
+                        action = sac.get_action(
+                            current_obs[proc_id],
+                            current_gnn_embeds[proc_id],
+                            num_joints=envs.action_space.shape[0],
+                            deterministic=False
+                        )
+                        actions.append(action)
+                    action_batch = torch.stack(actions)
 
-            # 获取动作
-            if step < sac.warmup_steps:
-                action_batch = torch.from_numpy(np.array([
-                    envs.action_space.sample() for _ in range(args.num_processes)
-                ]))
-            else:
-                actions = []
+                # 动作分析（调试用）
+                if episode_step % 50 == 0 or episode_step < 20:
+                    if hasattr(envs, 'envs') and len(envs.envs) > 0:
+                        env_goal = getattr(envs.envs[0], 'goal_pos', 'NOT FOUND')
+                        print(f"🎯 [Episode {episode_num+1}] Step {episode_step} - 环境goal_pos: {env_goal}")
+
+                # 执行动作
+                next_obs, reward, done, infos = envs.step(action_batch)
+
+                # 渲染处理
+                if sync_env:
+                    sync_action = action_batch[0].cpu().numpy() if hasattr(action_batch, 'cpu') else action_batch[0]
+                    sync_env.step(sync_action)
+                    sync_env.render()
+
+                next_gnn_embeds = single_gnn_embed.repeat(args.num_processes, 1, 1)
+
+                # 存储经验
                 for proc_id in range(args.num_processes):
-                    action = sac.get_action(
-                        current_obs[proc_id],
-                                            current_gnn_embeds[proc_id],
-                                            num_joints=envs.action_space.shape[0],
-                        deterministic=False
-                    )
-                    actions.append(action)
-                action_batch = torch.stack(actions)
-
-            # 动作分析（调试用）
-            if step % 50 == 0 or step < 20:
-                if hasattr(envs, 'envs') and len(envs.envs) > 0:
-                    env_goal = getattr(envs.envs[0], 'goal_pos', 'NOT FOUND')
-                    print(f"🎯 [训练] Step {step} - 环境goal_pos: {env_goal}")
-                
-                smart_print(f"\n🎯 Step {step} Action Analysis:")
-                action_numpy = action_batch.cpu().numpy() if hasattr(action_batch, 'cpu') else action_batch.numpy()
-                
-                for proc_id in range(min(args.num_processes, 2)):
-                    action_values = action_numpy[proc_id]
-                    action_str = ', '.join([f"{val:+6.2f}" for val in action_values])
-                    smart_print(f"  Process {proc_id}: Actions = [{action_str}]")
-                    smart_print(f"    Max action: {np.max(np.abs(action_values)):6.2f}, Mean abs: {np.mean(np.abs(action_values)):6.2f}")
-
-            # 执行动作
-            next_obs, reward, done, infos = envs.step(action_batch)
-
-            # 渲染处理
-            if sync_env:
-                sync_action = action_batch[0].cpu().numpy() if hasattr(action_batch, 'cpu') else action_batch[0]
-                sync_env.step(sync_action)
-                sync_env.render()
-
-            next_gnn_embeds = single_gnn_embed.repeat(args.num_processes, 1, 1)
-
-            # 存储经验
-            for proc_id in range(args.num_processes):
-                sac.store_experience(
+                    sac.store_experience(
                         obs=current_obs[proc_id],
                         gnn_embeds=current_gnn_embeds[proc_id],
                         action=action_batch[proc_id],
@@ -708,41 +1003,54 @@ def run_training_loop(args, envs, sync_env, sac, single_gnn_embed, training_mana
                         next_gnn_embeds=next_gnn_embeds[proc_id],
                         done=done[proc_id],
                         num_joints=num_joints
-                )
-                episode_rewards[proc_id] += reward[proc_id].item()
+                    )
+                    episode_rewards[proc_id] += reward[proc_id].item()
 
-            current_obs = next_obs.clone()
-            current_gnn_embeds = next_gnn_embeds.clone()
+                current_obs = next_obs.clone()
+                current_gnn_embeds = next_gnn_embeds.clone()
 
-            # 处理episode结束
-            for proc_id in range(args.num_processes):
-                is_done = done[proc_id].item() if torch.is_tensor(done[proc_id]) else bool(done[proc_id])
-                if is_done:
-                    should_end = training_manager.handle_episode_end(proc_id, step, episode_rewards, infos)
-                    if should_end:
-                        training_completed = True
-                        early_termination_reason = f"连续成功{training_manager.consecutive_success_count}次，达到训练目标"
-                        break
-                    
-                    if hasattr(envs, 'reset_one'):
-                        current_obs[proc_id] = envs.reset_one(proc_id)
-                        current_gnn_embeds[proc_id] = single_gnn_embed
+                # 🆕 更新episode追踪
+                training_manager.update_episode_tracking(global_step, infos, episode_rewards)
+
+                # 处理episode结束
+                for proc_id in range(args.num_processes):
+                    is_done = done[proc_id].item() if torch.is_tensor(done[proc_id]) else bool(done[proc_id])
+                    if is_done:# 第934行修改为：
+                        should_end = training_manager.handle_episode_end(proc_id, episode_step, episode_rewards, infos)
+                        # should_end = training_manager.handle_episode_end(proc_id, global_step, episode_rewards, infos)
+                        if should_end:
+                            training_completed = True
+                            early_termination_reason = f"完成{training_manager.current_episodes}个episodes"
+                            episode_completed = True
+                            break
+                        
+                        if hasattr(envs, 'reset_one'):
+                            current_obs[proc_id] = envs.reset_one(proc_id)
+                            current_gnn_embeds[proc_id] = single_gnn_embed
+                
+                # 模型更新
+                if training_manager.should_update_model(global_step):
+                    training_manager.update_and_log(global_step, global_step)
+                
+                # 定期保存和绘图
+                if global_step % 1000 == 0 and global_step > 0:
+                    training_manager.logger.plot_losses(recent_steps=2000, show=False)
+                    training_manager.model_manager.save_checkpoint(
+                        sac, global_step,
+                        best_success_rate=training_manager.best_success_rate,
+                        best_min_distance=training_manager.best_min_distance,
+                        consecutive_success_count=training_manager.consecutive_success_count,
+                        current_episode=episode_num + 1,
+                        episode_step=episode_step
+                    )
+                
+                episode_step += 1  # 🎯 episode内步数递增
+                global_step += args.num_processes  # 全局步数递增
+                
+                if training_completed:
+                    break
             
-            # 模型更新
-            if training_manager.should_update_model(step):
-                training_manager.update_and_log(step, total_steps)
-            
-            # 定期保存和绘图
-            if step % 1000 == 0 and step > 0:
-                training_manager.logger.plot_losses(recent_steps=2000, show=False)
-                training_manager.model_manager.save_checkpoint(
-                    sac, step,
-                    best_success_rate=training_manager.best_success_rate,
-                    best_min_distance=training_manager.best_min_distance,
-                    consecutive_success_count=training_manager.consecutive_success_count
-                )
-            
-            total_steps += args.num_processes
+            print(f"📊 Episode {episode_num + 1} 完成: {episode_step} 步")
             
             if training_completed:
                 print(f"🏁 训练提前终止: {early_termination_reason}")
@@ -753,6 +1061,139 @@ def run_training_loop(args, envs, sync_env, sac, single_gnn_embed, training_mana
         training_manager.logger.save_logs()
         training_manager.logger.generate_report()
         raise e
+# def run_training_loop(args, envs, sync_env, sac, single_gnn_embed, training_manager, num_joints, start_step=0):
+#     """运行训练循环"""
+#     current_obs = envs.reset()
+#     print(f"初始观察: {current_obs.shape}")
+    
+#     # 重置渲染环境
+#     if sync_env:
+#         sync_env.reset()
+#         print("🔧 sync_env 已重置")
+    
+#     current_gnn_embeds = single_gnn_embed.repeat(args.num_processes, 1, 1)
+#     episode_rewards = [0.0] * args.num_processes
+#     num_step = 120000
+#     total_steps = 0
+    
+#     print(f"开始训练: warmup {sac.warmup_steps} 步")
+#     print(f"总训练步数: {num_step}, 更新频率: {args.update_frequency}")
+#     if start_step > 0:
+#         print(f"从步骤 {start_step} 恢复训练")
+#     else:
+#         print(f"预期warmup完成步骤: {sac.warmup_steps}")
+
+#     training_completed = False
+#     early_termination_reason = ""
+
+#     try:
+#         for step in range(start_step, num_step):
+#             # 进度显示
+#             if step % 100 == 0:
+#                 if step < sac.warmup_steps:
+#                     smart_print(f"Step {step}/{num_step}: Warmup phase ({step}/{sac.warmup_steps})")
+#                 else:
+#                     smart_print(f"Step {step}/{num_step}: Training phase, Buffer size: {len(sac.memory)}")
+
+#             # 获取动作
+#             if step < sac.warmup_steps:
+#                 action_batch = torch.from_numpy(np.array([
+#                     envs.action_space.sample() for _ in range(args.num_processes)
+#                 ]))
+#             else:
+#                 actions = []
+#                 for proc_id in range(args.num_processes):
+#                     action = sac.get_action(
+#                         current_obs[proc_id],
+#                                             current_gnn_embeds[proc_id],
+#                                             num_joints=envs.action_space.shape[0],
+#                         deterministic=False
+#                     )
+#                     actions.append(action)
+#                 action_batch = torch.stack(actions)
+
+#             # 动作分析（调试用）
+#             if step % 50 == 0 or step < 20:
+#                 if hasattr(envs, 'envs') and len(envs.envs) > 0:
+#                     env_goal = getattr(envs.envs[0], 'goal_pos', 'NOT FOUND')
+#                     print(f"🎯 [训练] Step {step} - 环境goal_pos: {env_goal}")
+                
+#                 smart_print(f"\n🎯 Step {step} Action Analysis:")
+#                 action_numpy = action_batch.cpu().numpy() if hasattr(action_batch, 'cpu') else action_batch.numpy()
+                
+#                 for proc_id in range(min(args.num_processes, 2)):
+#                     action_values = action_numpy[proc_id]
+#                     action_str = ', '.join([f"{val:+6.2f}" for val in action_values])
+#                     smart_print(f"  Process {proc_id}: Actions = [{action_str}]")
+#                     smart_print(f"    Max action: {np.max(np.abs(action_values)):6.2f}, Mean abs: {np.mean(np.abs(action_values)):6.2f}")
+
+#             # 执行动作
+#             next_obs, reward, done, infos = envs.step(action_batch)
+
+#             # 渲染处理
+#             if sync_env:
+#                 sync_action = action_batch[0].cpu().numpy() if hasattr(action_batch, 'cpu') else action_batch[0]
+#                 sync_env.step(sync_action)
+#                 sync_env.render()
+
+#             next_gnn_embeds = single_gnn_embed.repeat(args.num_processes, 1, 1)
+
+#             # 存储经验
+#             for proc_id in range(args.num_processes):
+#                 sac.store_experience(
+#                         obs=current_obs[proc_id],
+#                         gnn_embeds=current_gnn_embeds[proc_id],
+#                         action=action_batch[proc_id],
+#                         reward=reward[proc_id],
+#                         next_obs=next_obs[proc_id],
+#                         next_gnn_embeds=next_gnn_embeds[proc_id],
+#                         done=done[proc_id],
+#                         num_joints=num_joints
+#                 )
+#                 episode_rewards[proc_id] += reward[proc_id].item()
+
+#             current_obs = next_obs.clone()
+#             current_gnn_embeds = next_gnn_embeds.clone()
+
+#             # 处理episode结束
+#             for proc_id in range(args.num_processes):
+#                 is_done = done[proc_id].item() if torch.is_tensor(done[proc_id]) else bool(done[proc_id])
+#                 if is_done:
+#                     should_end = training_manager.handle_episode_end(proc_id, step, episode_rewards, infos)
+#                     if should_end:
+#                         training_completed = True
+#                         early_termination_reason = f"连续成功{training_manager.consecutive_success_count}次，达到训练目标"
+#                         break
+                    
+#                     if hasattr(envs, 'reset_one'):
+#                         current_obs[proc_id] = envs.reset_one(proc_id)
+#                         current_gnn_embeds[proc_id] = single_gnn_embed
+            
+#             # 模型更新
+#             if training_manager.should_update_model(step):
+#                 training_manager.update_and_log(step, total_steps)
+            
+#             # 定期保存和绘图
+#             if step % 1000 == 0 and step > 0:
+#                 training_manager.logger.plot_losses(recent_steps=2000, show=False)
+#                 training_manager.model_manager.save_checkpoint(
+#                     sac, step,
+#                     best_success_rate=training_manager.best_success_rate,
+#                     best_min_distance=training_manager.best_min_distance,
+#                     consecutive_success_count=training_manager.consecutive_success_count
+#                 )
+            
+#             total_steps += args.num_processes
+            
+#             if training_completed:
+#                 print(f"🏁 训练提前终止: {early_termination_reason}")
+#                 break
+
+#     except Exception as e:
+#         print(f"🔴 训练过程中发生错误: {e}")
+#         training_manager.logger.save_logs()
+#         training_manager.logger.generate_report()
+#         raise e
 
 def cleanup_resources(sync_env, logger, model_manager, training_manager):
     """清理资源"""

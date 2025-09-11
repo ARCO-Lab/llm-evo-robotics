@@ -2,6 +2,7 @@ import time
 import argparse
 from typing import List, Optional
 import numpy as np
+import multiprocessing as mp
 
 from map_elites_core import MAPElitesArchive, RobotMutator, Individual, RobotGenotype, RobotPhenotype
 from training_adapter import MAPElitesTrainingAdapter
@@ -87,6 +88,14 @@ class MAPElitesEvolutionTrainer:
             evaluated_individual = self.adapter.evaluate_individual(
                 individual, self.training_steps_per_individual
             )
+             # 🆕 添加这些调试信息
+            print(f"🔍 调试 - 个体 {i+1} 评估结果:")
+            print(f"   Fitness: {evaluated_individual.fitness}")
+            if hasattr(evaluated_individual, 'fitness_details'):
+                print(f"   Fitness详情: {evaluated_individual.fitness_details}")
+            else:
+                print(f"   ⚠️ 没有fitness_details属性")
+
             self.archive.add_individual(evaluated_individual)
         
         stats = self.archive.get_statistics()

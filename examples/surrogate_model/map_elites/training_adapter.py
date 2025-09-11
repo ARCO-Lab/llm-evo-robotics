@@ -12,7 +12,7 @@ from map_elites_core import Individual, RobotGenotype, RobotPhenotype, FeatureEx
 
 # 🆕 导入新的遗传算法fitness评估器
 from genetic_fitness_evaluator import GeneticFitnessEvaluator
-
+from fitness_manager import FitnessManager
 # 导入真实训练接口
 try:
     from enhanced_train_interface import MAPElitesTrainingInterface
@@ -67,12 +67,19 @@ class MAPElitesTrainingAdapter:
             print(f"   🔇 静默: {'启用' if silent_mode else '禁用'}")
         else:
             print("🔧 MAP-Elites训练适配器已初始化 (使用模拟训练)")
-    
+
+
+        self.fitness_manager = FitnessManager(
+            use_genetic_fitness=use_genetic_fitness,
+            primary_strategy='episodes' if use_real_training else 'genetic'
+        )
+
+
     def evaluate_individual(self, individual: Individual, training_steps: int = 5000) -> Individual:
-        """评估单个个体 - 支持新旧两种fitness评估系统"""
+        """评估单个个体 - 使用统一的FitnessManager"""
         print(f"\n🧬 评估个体 {individual.individual_id}")
         print(f"🤖 基因型: num_links={individual.genotype.num_links}, "
-              f"link_lengths={[f'{x:.1f}' for x in individual.genotype.link_lengths]}")
+            f"link_lengths={[f'{x:.1f}' for x in individual.genotype.link_lengths]}")
         print(f"🧠 SAC参数: lr={individual.genotype.lr:.2e}, alpha={individual.genotype.alpha:.3f}")
         print(f"   总长度: {sum(individual.genotype.link_lengths):.1f}px")
         
@@ -95,7 +102,7 @@ class MAPElitesTrainingAdapter:
         
         training_time = time.time() - start_time
         
-        # 3. 提取表型特征
+        # 3. 提取表型特征（保留原有逻辑，用于兼容性）
         robot_config = {
             'num_links': individual.genotype.num_links,
             'link_lengths': individual.genotype.link_lengths,
@@ -105,52 +112,193 @@ class MAPElitesTrainingAdapter:
         
         phenotype = self.feature_extractor.extract_from_training_data(training_metrics, robot_config)
         
-        # 4. 🆕 Fitness评估 - 新旧系统选择
-        if self.use_genetic_fitness and self.fitness_evaluator:
-            # 🎯 使用新的遗传算法fitness评估系统
-            training_performance = {
-                'success_rate': phenotype.success_rate,
-                'avg_reward': phenotype.avg_reward,
-                'max_distance_covered': training_metrics.get('max_distance', 0),
-                'efficiency': training_metrics.get('efficiency', 0),
-                'near_success_rate': training_metrics.get('near_success_rate', 0)
-            }
+        # 4. 🆕 使用统一的FitnessManager计算fitness
+        if not hasattr(self, 'fitness_manager'):
+            # 延迟初始化FitnessManager
+            from fitness_manager import FitnessManager
+            self.fitness_manager = FitnessManager(
+                use_genetic_fitness=self.use_genetic_fitness,
+                primary_strategy='episodes' if self.use_real_training else 'genetic'
+            )
+        
+        try:
+            # 🎯 准备完整的训练结果数据
+            complete_training_data = self._prepare_training_data_for_fitness(
+                training_metrics, phenotype, training_time
+            )
             
-            try:
-                fitness_result = self.fitness_evaluator.evaluate_fitness(
-                    link_lengths=individual.genotype.link_lengths,
-                    training_performance=training_performance
-                )
-                
-                # 更新个体
-                individual.phenotype = phenotype
-                individual.fitness = fitness_result['fitness']
-                individual.fitness_details = fitness_result  # 🆕 保存详细分析
-                
-                print(f"✅ 评估完成 (新系统):")
-                print(f"   旧fitness (avg_reward): {phenotype.avg_reward:.2f}")
-                print(f"   新fitness (分层评估): {individual.fitness:.3f}")
-                print(f"   评估类别: {fitness_result['category']}")
-                print(f"   评估策略: {fitness_result['strategy']}")
-                print(f"   原因: {fitness_result['reason']}")
-                
-            except Exception as e:
-                print(f"   ⚠️ 新fitness系统评估失败: {e}")
-                print(f"   🔄 回退到传统fitness评估")
-                individual.phenotype = phenotype
-                individual.fitness = phenotype.avg_reward
-                
-        else:
-            # 🔄 使用原有的简单fitness评估
+            # 🎯 使用FitnessManager统一计算fitness
+            fitness_result = self.fitness_manager.calculate_fitness(
+                individual=individual, 
+                training_results=complete_training_data
+            )
+            # 更新个体
+            individual.phenotype = phenotype
+            individual.fitness = fitness_result['fitness']
+            individual.fitness_details = fitness_result['details']
+            
+            # 🎯 统一的结果显示
+            print(f"✅ 评估完成:")
+            print(f"   Fitness方法: {fitness_result['details']['method']}")
+            print(f"   最终Fitness: {individual.fitness:.3f}")
+            print(f"   评估类别: {fitness_result['details']['category']}")
+            print(f"   评估策略: {fitness_result['details']['strategy']}")
+            print(f"   原因: {fitness_result['details']['reason']}")
+            
+            # 🎯 显示对比信息（如果有的话）
+            if 'avg_reward' in fitness_result['details']:
+                print(f"   传统fitness (avg_reward): {fitness_result['details']['avg_reward']:.2f}")
+            if 'success_rate' in fitness_result['details']:
+                print(f"   成功率: {fitness_result['details']['success_rate']:.1%}")
+            
+        except Exception as e:
+            print(f"❌ FitnessManager计算失败: {e}")
+            print(f"🔄 使用传统备用方案")
+            
+            # 备用方案：使用传统fitness
             individual.phenotype = phenotype
             individual.fitness = phenotype.avg_reward
+            individual.fitness_details = {
+                'method': 'fallback',
+                'category': 'error_recovery',
+                'strategy': 'avg_reward_fallback',
+                'reason': f'FitnessManager失败，使用avg_reward: {phenotype.avg_reward:.2f}',
+                'error': str(e)
+            }
             
-            print(f"✅ 评估完成 (传统系统):")
+            print(f"✅ 备用评估完成:")
             print(f"   Fitness (avg_reward): {individual.fitness:.2f}")
         
-        print(f"   成功率: {phenotype.success_rate:.2f}, 耗时: {training_time:.1f}s")
+        print(f"   训练耗时: {training_time:.1f}s")
         
         return individual
+
+    def _prepare_training_data_for_fitness(self, training_metrics, phenotype, training_time):
+        """准备用于fitness计算的完整训练数据"""
+        
+        # 🎯 检查是否有episodes结果（来自enhanced_train.py的新格式）
+        if isinstance(training_metrics, dict) and 'episode_results' in training_metrics:
+            # 新的episodes-based数据格式
+            return {
+                'episodes_completed': training_metrics.get('episodes_completed', 0),
+                'success_rate': training_metrics.get('success_rate', 0.0),
+                'avg_best_distance': training_metrics.get('avg_best_distance', float('inf')),
+                'learning_progress': training_metrics.get('learning_progress', 0.0),
+                'avg_steps_to_best': training_metrics.get('avg_steps_to_best', 120000),
+                'total_training_time': training_metrics.get('total_training_time', training_time),
+                'episode_details': training_metrics.get('episode_details', []),
+                'episode_results': training_metrics['episode_results'],
+                # 兼容性数据
+                'avg_reward': phenotype.avg_reward,
+                'phenotype': phenotype
+            }
+        
+        # 🎯 检查是否有详细的训练指标（模拟训练或旧格式）
+        elif isinstance(training_metrics, dict):
+            return {
+                'success_rate': training_metrics.get('success_rate', phenotype.success_rate),
+                'avg_reward': training_metrics.get('avg_reward', phenotype.avg_reward),
+                'max_distance': training_metrics.get('max_distance', 0),
+                'efficiency': training_metrics.get('efficiency', 0),
+                'near_success_rate': training_metrics.get('near_success_rate', phenotype.success_rate + 0.1),
+                'training_time': training_time,
+                # 原始数据
+                'raw_training_metrics': training_metrics,
+                'phenotype': phenotype
+            }
+        
+        # 🎯 最简单的数据格式（只有phenotype）
+        else:
+            return {
+                'avg_reward': phenotype.avg_reward,
+                'success_rate': phenotype.success_rate,
+                'training_time': training_time,
+                'phenotype': phenotype
+            }
+    
+    # def evaluate_individual(self, individual: Individual, training_steps: int = 5000) -> Individual:
+    #     """评估单个个体 - 支持新旧两种fitness评估系统"""
+    #     print(f"\n🧬 评估个体 {individual.individual_id}")
+    #     print(f"🤖 基因型: num_links={individual.genotype.num_links}, "
+    #           f"link_lengths={[f'{x:.1f}' for x in individual.genotype.link_lengths]}")
+    #     print(f"🧠 SAC参数: lr={individual.genotype.lr:.2e}, alpha={individual.genotype.alpha:.3f}")
+    #     print(f"   总长度: {sum(individual.genotype.link_lengths):.1f}px")
+        
+    #     # 1. 根据基因型创建训练参数
+    #     training_args = self._genotype_to_training_args(individual.genotype, training_steps)
+        
+    #     # 2. 运行训练
+    #     start_time = time.time()
+    #     if self.use_real_training:
+    #         print(f"   🎯 使用enhanced_train.py进行真实训练 ({training_steps} steps)")
+    #         try:
+    #             training_metrics = self.training_interface.train_individual(training_args)
+    #         except Exception as e:
+    #             print(f"   ❌ 真实训练失败: {e}")
+    #             print(f"   🔄 回退到模拟训练")
+    #             training_metrics = self._run_simulated_training(training_args)
+    #     else:
+    #         print(f"   🎲 使用模拟训练 ({training_steps} steps)")
+    #         training_metrics = self._run_simulated_training(training_args)
+        
+    #     training_time = time.time() - start_time
+        
+    #     # 3. 提取表型特征
+    #     robot_config = {
+    #         'num_links': individual.genotype.num_links,
+    #         'link_lengths': individual.genotype.link_lengths,
+    #         'lr': individual.genotype.lr,
+    #         'alpha': individual.genotype.alpha
+    #     }
+        
+    #     phenotype = self.feature_extractor.extract_from_training_data(training_metrics, robot_config)
+        
+    #     # 4. 🆕 Fitness评估 - 新旧系统选择
+    #     if self.use_genetic_fitness and self.fitness_evaluator:
+    #         # 🎯 使用新的遗传算法fitness评估系统
+    #         training_performance = {
+    #             'success_rate': phenotype.success_rate,
+    #             'avg_reward': phenotype.avg_reward,
+    #             'max_distance_covered': training_metrics.get('max_distance', 0),
+    #             'efficiency': training_metrics.get('efficiency', 0),
+    #             'near_success_rate': training_metrics.get('near_success_rate', 0)
+    #         }
+            
+    #         try:
+    #             fitness_result = self.fitness_evaluator.evaluate_fitness(
+    #                 link_lengths=individual.genotype.link_lengths,
+    #                 training_performance=training_performance
+    #             )
+                
+    #             # 更新个体
+    #             individual.phenotype = phenotype
+    #             individual.fitness = fitness_result['fitness']
+    #             individual.fitness_details = fitness_result  # 🆕 保存详细分析
+                
+    #             print(f"✅ 评估完成 (新系统):")
+    #             print(f"   旧fitness (avg_reward): {phenotype.avg_reward:.2f}")
+    #             print(f"   新fitness (分层评估): {individual.fitness:.3f}")
+    #             print(f"   评估类别: {fitness_result['category']}")
+    #             print(f"   评估策略: {fitness_result['strategy']}")
+    #             print(f"   原因: {fitness_result['reason']}")
+                
+    #         except Exception as e:
+    #             print(f"   ⚠️ 新fitness系统评估失败: {e}")
+    #             print(f"   🔄 回退到传统fitness评估")
+    #             individual.phenotype = phenotype
+    #             individual.fitness = phenotype.avg_reward
+                
+    #     else:
+    #         # 🔄 使用原有的简单fitness评估
+    #         individual.phenotype = phenotype
+    #         individual.fitness = phenotype.avg_reward
+            
+    #         print(f"✅ 评估完成 (传统系统):")
+    #         print(f"   Fitness (avg_reward): {individual.fitness:.2f}")
+        
+    #     print(f"   成功率: {phenotype.success_rate:.2f}, 耗时: {training_time:.1f}s")
+        
+    #     return individual
     
     def _genotype_to_training_args(self, genotype: RobotGenotype, training_steps: int):
         """将基因型转换为训练参数"""

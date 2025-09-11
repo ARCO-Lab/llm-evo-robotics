@@ -97,7 +97,8 @@ class MAPElitesTrainingInterface:
                 del os.environ['TRAIN_SILENT']
             if 'REACHER_LOG_LEVEL' in os.environ:
                 del os.environ['REACHER_LOG_LEVEL']
-    
+
+
     def _run_modified_enhanced_train(self, args) -> Dict[str, Any]:
         """运行修改版的enhanced_train并收集指标"""
         
@@ -125,8 +126,26 @@ class MAPElitesTrainingInterface:
                 except:
                     pass
             
+            # 解析更多关键指标
+            if "🎉 成功到达目标" in line:
+                try:
+                    metrics_collector.add_success()
+                except:
+                    pass
+            
+            if "距离:" in line and "px" in line:
+                try:
+                    distance_part = line.split("距离:")[-1].split("px")[0].strip()
+                    distance = float(distance_part)
+                    metrics_collector.add_distance(distance)
+                except:
+                    pass
+            
             if not self.silent_mode:
                 original_print(*args, **kwargs)
+        
+        training_results = None
+        traditional_metrics = None
         
         try:
             # 根据模式设置print函数
@@ -137,19 +156,199 @@ class MAPElitesTrainingInterface:
             print(f"🚀 开始训练 - 数据类型: {torch.get_default_dtype()}")
             print(f"🎯 参数: num_joints={getattr(args, 'num_joints', 'N/A')}, save_dir={args.save_dir}")
             
-            # 调用原始的enhanced_train
-            enhanced_train_main(args)
+            # 🆕 调用修改后的enhanced_train.main()并接收返回值
+            try:
+                # from enhanced_train import main as enhanced_train_main
+                training_results = enhanced_train_main(args)
+                print(f"✅ enhanced_train.main() 返回结果: {type(training_results)}")
+                if isinstance(training_results, dict):
+                    print(f"   包含键: {list(training_results.keys())}")
+                    print(f"   success: {training_results.get('success', 'N/A')}")
+                    print(f"   episodes_completed: {training_results.get('episodes_completed', 'N/A')}")
+                else:
+                    print(f"   ⚠️ 返回值不是字典: {training_results}")
+            except Exception as e:
+                print(f"⚠️ enhanced_train.main() 调用失败: {e}")
+                training_results = None
             
-            # 解析指标
-            metrics = self._parse_metrics_from_output(captured_output, args.save_dir, metrics_collector)
+            # 🆕 始终解析传统指标作为基础/备选
+            try:
+                traditional_metrics = self._parse_metrics_from_output(captured_output, args.save_dir, metrics_collector)
+                print(f"✅ 传统指标解析完成: {len(traditional_metrics)} 项")
+            except Exception as e:
+                print(f"⚠️ 传统指标解析失败: {e}")
+                traditional_metrics = self._get_default_metrics()
             
-            return metrics
+            # 🆕 合并episodes数据和传统指标
+            if isinstance(training_results, dict) and training_results.get('success', False):
+                print(f"📊 检测到episodes数据:")
+                print(f"   Episodes完成: {training_results.get('episodes_completed', 'N/A')}")
+                print(f"   成功率: {training_results.get('success_rate', 'N/A'):.1%}")
+                print(f"   平均最佳距离: {training_results.get('avg_best_distance', 'N/A')}")
+                
+                # 🎯 合并两种数据，episodes数据优先
+                combined_metrics = traditional_metrics.copy()
+                combined_metrics.update(training_results)
+                
+                # 🆕 添加数据来源标识和质量评估
+                combined_metrics['data_sources'] = ['episodes', 'traditional']
+                combined_metrics['primary_source'] = 'episodes'
+                combined_metrics['data_quality'] = 'high'  # episodes数据质量更高
+                
+                # 🆕 交叉验证：比较episodes数据和传统数据的一致性
+                if 'avg_reward' in traditional_metrics and traditional_metrics['avg_reward'] != 0:
+                    traditional_success = traditional_metrics.get('success_rate', 0)
+                    episodes_success = training_results.get('success_rate', 0)
+                    consistency_score = 1.0 - abs(traditional_success - episodes_success)
+                    combined_metrics['data_consistency'] = consistency_score
+                    print(f"   数据一致性: {consistency_score:.2f}")
+                
+                print(f"✅ 返回合并数据: episodes + traditional ({len(combined_metrics)} 项)")
+                return combined_metrics
+                
+            else:
+                print("⚠️ 未检测到有效的episodes数据，使用传统解析方法")
+                
+                # 🆕 增强传统数据
+                if traditional_metrics:
+                    traditional_metrics['data_sources'] = ['traditional']
+                    traditional_metrics['primary_source'] = 'traditional'
+                    traditional_metrics['data_quality'] = 'medium'
+                    
+                    # 如果传统解析也有问题，标记为低质量
+                    if traditional_metrics.get('avg_reward', 0) == 0:
+                        traditional_metrics['data_quality'] = 'low'
+                        traditional_metrics['success'] = False
+                        print("⚠️ 传统数据质量低")
+                    else:
+                        traditional_metrics['success'] = True
+                        print(f"✅ 返回传统数据 ({len(traditional_metrics)} 项)")
+                    
+                    return traditional_metrics
+                else:
+                    # 🆘 最后的备选方案
+                    print("❌ 所有数据解析方法都失败，返回默认指标")
+                    return self._get_failed_metrics()
+            
+        except Exception as e:
+            print(f"❌ 训练过程发生严重错误: {e}")
+            import traceback
+            traceback.print_exc()
+            
+            # 尝试从已有数据中恢复
+            if traditional_metrics:
+                traditional_metrics['success'] = False
+                traditional_metrics['error'] = str(e)
+                traditional_metrics['data_quality'] = 'error_recovery'
+                return traditional_metrics
+            else:
+                return self._get_failed_metrics()
             
         finally:
             # 恢复原始print函数
             if self.silent_mode:
                 import builtins
                 builtins.print = original_print
+            
+            # 清理资源
+            try:
+                # 清理可能的GPU内存
+                if torch.cuda.is_available():
+                    torch.cuda.empty_cache()
+            except:
+                pass
+
+    def _get_default_metrics(self) -> Dict[str, Any]:
+        """获取默认的传统指标"""
+        return {
+            'avg_reward': 0.0,
+            'success_rate': 0.0,
+            'min_distance': float('inf'),
+            'trajectory_smoothness': 0.0,
+            'collision_rate': 1.0,
+            'exploration_area': 0.0,
+            'action_variance': 0.0,
+            'learning_rate': 0.0,
+            'final_critic_loss': float('inf'),
+            'final_actor_loss': float('inf'),
+            'training_stability': 0.0,
+            'max_distance': 0.0,
+            'efficiency': 0.0,
+            'near_success_rate': 0.0
+        }
+
+    def _get_failed_metrics(self) -> Dict[str, Any]:
+        """返回训练失败时的默认指标"""
+        failed_metrics = self._get_default_metrics()
+        failed_metrics.update({
+            'success': False,
+            'error': 'Training failed',
+            'episodes_completed': 0,
+            'avg_best_distance': float('inf'),
+            'avg_score': 0.0,
+            'total_training_time': 0.0,
+            'episode_details': [],
+            'episode_results': [],
+            'learning_progress': 0.0,
+            'avg_steps_to_best': 120000,
+            'data_sources': ['error'],
+            'primary_source': 'error',
+            'data_quality': 'failed'
+        })
+        return failed_metrics
+    
+    # def _run_modified_enhanced_train(self, args) -> Dict[str, Any]:
+    #     """运行修改版的enhanced_train并收集指标"""
+        
+    #     # 确保正确的数据类型设置
+    #     torch.set_default_dtype(torch.float64)
+        
+    #     # 创建指标收集器
+    #     metrics_collector = TrainingMetricsCollector()
+        
+    #     # 保存原始的print函数
+    #     original_print = print
+        
+    #     # 创建输出捕获函数
+    #     captured_output = []
+    #     def capturing_print(*args, **kwargs):
+    #         line = ' '.join(str(arg) for arg in args)
+    #         captured_output.append(line)
+            
+    #         # 实时解析关键指标
+    #         if "Episode" in line and "finished with reward" in line:
+    #             try:
+    #                 reward_str = line.split("reward")[-1].strip()
+    #                 reward = float(reward_str)
+    #                 metrics_collector.add_episode_reward(reward)
+    #             except:
+    #                 pass
+            
+    #         if not self.silent_mode:
+    #             original_print(*args, **kwargs)
+        
+    #     try:
+    #         # 根据模式设置print函数
+    #         if self.silent_mode:
+    #             import builtins
+    #             builtins.print = capturing_print
+            
+    #         print(f"🚀 开始训练 - 数据类型: {torch.get_default_dtype()}")
+    #         print(f"🎯 参数: num_joints={getattr(args, 'num_joints', 'N/A')}, save_dir={args.save_dir}")
+            
+    #         # 调用原始的enhanced_train
+    #         enhanced_train_main(args)
+            
+    #         # 解析指标
+    #         metrics = self._parse_metrics_from_output(captured_output, args.save_dir, metrics_collector)
+            
+    #         return metrics
+            
+    #     finally:
+    #         # 恢复原始print函数
+    #         if self.silent_mode:
+    #             import builtins
+    #             builtins.print = original_print
     
     def _convert_to_enhanced_args(self, args):
         """将MAP-Elites参数转换为enhanced_train参数格式 - 🔧 修复所有缺失参数"""
@@ -351,11 +550,23 @@ class TrainingMetricsCollector:
         self.episode_rewards = []
         self.critic_losses = []
         self.actor_losses = []
+        self.success_count = 0      # 🆕 添加这行
+        self.distances = []    
         self.start_time = time.time()
     
     def add_episode_reward(self, reward):
         self.episode_rewards.append(reward)
         print(f"📊 收集episode奖励: {reward:.2f} (总计: {len(self.episode_rewards)})")
+     
+    def add_success(self):              # 🆕 添加这个方法
+        """添加成功记录"""
+        self.success_count += 1
+        print(f"🎉 记录成功: {self.success_count}")
+    
+    def add_distance(self, distance):   # 🆕 添加这个方法
+        """添加距离记录"""
+        self.distances.append(distance)
+        print(f"📏 记录距离: {distance:.1f}px")
     
     def add_losses(self, critic_loss, actor_loss):
         if critic_loss is not None:
