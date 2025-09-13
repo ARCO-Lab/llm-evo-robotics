@@ -31,8 +31,19 @@ class Reacher2DEnv(Env):
     保持与原版相同的接口，但使用解析几何替代物理仿真
     """
     
-    def __init__(self, num_links=3, link_lengths=None, render_mode=None, config_path=None, curriculum_stage=1, debug_level='SILENT'):
+    def __init__(self, num_links=2, link_lengths=None, render_mode=None, config_path=None, curriculum_stage=1, debug_level='SILENT'):
         super().__init__()
+
+            # 🆕 维持奖励系统
+        self.maintain_threshold = 20.0  # 维持距离阈值
+        self.maintain_target_steps = 500  # 10秒 ≈ 500步 (假设50Hz)
+        self.maintain_counter = 0  # 当前维持步数
+        self.maintain_bonus_given = False  # 是否已给过维持奖励
+        self.in_maintain_zone = False  # 是否在维持区域
+        
+        # 维持奖励历史
+        self.maintain_history = []  # 记录维持历史
+        self.max_maintain_streak = 0  # 最长维持记录
         
         # 设置日志
         self._set_logging(debug_level)
@@ -174,7 +185,7 @@ class Reacher2DEnv(Env):
         if config_path is None:
             # 默认配置
             return {
-                "start": {"position": [300, 300]},
+                "start": {"position": [480, 620]},
                 "goal": {"position": [600, 550]},
                 "obstacles": []
             }
@@ -512,45 +523,193 @@ class Reacher2DEnv(Env):
         obs.extend([float(collision), float(self.collision_count)])
         
         return np.array(obs, dtype=np.float32)
-    
+
     def _compute_reward(self, collision_detected=None):
-        """计算奖励"""
+        """改进版奖励函数 - 强化维持奖励"""
         end_pos = self._get_end_effector_position()
         distance = np.linalg.norm(end_pos - self.goal_pos)
         
-        # 距离奖励
-        distance_reward = -distance / 150.0
+        # 基础奖励（保持原有逻辑）
+        distance_reward = -distance / 50.0
         
-        # 到达奖励
-        reach_reward = 0.0
+        # 🆕 强化维持奖励系统
+        maintain_reward = 0.0
+        
+        if distance < self.maintain_threshold:
+            # 在维持区域内
+            if not self.in_maintain_zone:
+                # 刚进入维持区域
+                self.in_maintain_zone = True
+                self.maintain_counter = 1
+                print(f"🎯 进入维持区域! 距离: {distance:.1f}px")
+            else:
+                # 继续在维持区域
+                self.maintain_counter += 1
+                
+            # 🏆 强化维持奖励计算
+            if self.maintain_counter <= self.maintain_target_steps:
+                # 🔧 大幅增加基础维持奖励
+                maintain_progress = self.maintain_counter / self.maintain_target_steps
+                maintain_reward = 5.0 * maintain_progress  # 从0.5增加到5.0
+                
+                # 🎉 更频繁的里程碑奖励
+                milestone_intervals = [25, 50, 100, 150, 200, 250, 300, 350, 400, 450]  # 更密集的奖励
+                if self.maintain_counter in milestone_intervals:
+                    milestone_bonus = 10.0  # 从2.0增加到10.0
+                    maintain_reward += milestone_bonus
+                    print(f"🏆 维持里程碑! {self.maintain_counter}步 (+{milestone_bonus})")
+                
+                # 🎊 完成10秒维持的巨大奖励
+                if self.maintain_counter == self.maintain_target_steps and not self.maintain_bonus_given:
+                    completion_bonus = 50.0  # 从20.0增加到50.0
+                    maintain_reward += completion_bonus
+                    self.maintain_bonus_given = True
+                    print(f"🎊 完成10秒维持! 获得巨大奖励: +{completion_bonus}")
+                    
+            elif self.maintain_counter > self.maintain_target_steps:
+                # 超过目标时间，持续给予强维持奖励
+                maintain_reward = 10.0  # 从1.0增加到10.0
+                
+            # 🔧 强化稳定性奖励 - 严厉惩罚移动
+            if hasattr(self, 'prev_distance') and self.prev_distance < self.maintain_threshold:
+                movement = abs(distance - self.prev_distance)
+                # 🔧 更严厉的移动惩罚
+                if movement < 1.0:  # 移动很少
+                    stability_reward = 5.0  # 大奖励
+                elif movement < 2.0:  # 移动较少
+                    stability_reward = 2.0
+                elif movement < 5.0:  # 移动中等
+                    stability_reward = 0.0
+                else:  # 移动太多
+                    stability_reward = -10.0  # 严厉惩罚
+                maintain_reward += stability_reward
+                
+        else:
+            # 离开维持区域 - 严厉惩罚
+            if self.in_maintain_zone:
+                # 🔧 离开维持区域的惩罚
+                leave_penalty = -20.0  # 严厉惩罚离开
+                maintain_reward = leave_penalty
+                
+                # 记录这次维持
+                self.maintain_history.append(self.maintain_counter)
+                self.max_maintain_streak = max(self.max_maintain_streak, self.maintain_counter)
+                
+                if self.maintain_counter >= 50:
+                    print(f"⚠️ 离开维持区域! 本次维持: {self.maintain_counter}步 "
+                        f"(最佳: {self.max_maintain_streak}步) 惩罚: {leave_penalty}")
+                
+                # 重置维持状态
+                self.in_maintain_zone = False
+                self.maintain_counter = 0
+        
+        # 到达奖励（保持原有逻辑但调整）
         if distance < 20.0:
-            reach_reward = 10.0
+            reach_reward = 2.0  # 减少基础到达奖励
+        else:
+            reach_reward = 0.0
         
-        # 碰撞惩罚
+        # 🔧 在维持区域时更强的控制平滑性要求
+        if self.in_maintain_zone:
+            # 在维持区域时，严厉惩罚大动作
+            control_penalty = -1.0 * np.sum(np.square(self.joint_velocities))  # 从-0.1增加到-1.0
+        else:
+            control_penalty = -0.01 * np.sum(np.square(self.joint_velocities))
+        
+        # 其他奖励保持不变
         collision_penalty = 0.0
         if collision_detected is None:
             collision_detected = self._check_collision()
         if collision_detected:
-            collision_penalty = -2.0  # 增加碰撞惩罚
+            collision_penalty = -2.0
         
-        # 控制平滑性
-        control_penalty = -0.01 * np.sum(np.square(self.joint_velocities))
         midline_reward = self._compute_midline_reward(end_pos)
         joint_usage_reward = self._compute_joint_usage_reward()
-        # 🎯 存储奖励组成部分用于实时显示
+        
+        # 存储奖励组成部分
         self.reward_components = {
             'distance_reward': distance_reward,
             'reach_reward': reach_reward,
+            'maintain_reward': maintain_reward,  # 🆕 维持奖励
             'collision_penalty': collision_penalty,
             'control_penalty': control_penalty,
             'midline_reward': midline_reward,
-            'joint_usage_reward': joint_usage_reward  # 🆕 添加这个
+            'joint_usage_reward': joint_usage_reward
         }
         
-        total_reward = distance_reward + reach_reward + collision_penalty + control_penalty + midline_reward + joint_usage_reward
-        self.current_reward = total_reward
+        # 更新prev_distance
+        self.prev_distance = distance
         
+        total_reward = (distance_reward + reach_reward + maintain_reward + 
+                    collision_penalty + control_penalty + midline_reward + joint_usage_reward)
+        
+        # 🔧 调试信息（每50步显示一次）
+        if self.step_count % 50 == 0 and self.in_maintain_zone:
+            print(f"🏆 维持进度: {self.maintain_counter}/{self.maintain_target_steps} "
+                f"({self.maintain_counter/self.maintain_target_steps*100:.1f}%) "
+                f"维持奖励: +{maintain_reward:.2f}, 总奖励: {total_reward:.2f}")
+        
+        self.current_reward = total_reward
         return total_reward
+    
+    # def _compute_reward(self, collision_detected=None):
+    #     """改进版奖励函数 - 鼓励维持在目标附近"""
+    #     end_pos = self._get_end_effector_position()
+    #     distance = np.linalg.norm(end_pos - self.goal_pos)
+        
+    #     # 距离奖励
+    #     distance_reward = -distance / 50.0
+        
+    #     # 🔧 新增：维持在目标附近的奖励
+    #     if distance < 20.0:
+    #         reach_reward = 10.0
+    #         # 🔧 关键：额外的"保持静止"奖励
+    #         if hasattr(self, 'prev_distance') and self.prev_distance < 20.0:
+    #             # 如果上一步也在目标附近，奖励小的移动
+    #             movement = abs(distance - self.prev_distance)
+    #             stay_reward = max(0, 2.0 - movement * 10.0)  # 移动越少奖励越高
+    #         else:
+    #             stay_reward = 0.0
+    #     else:
+    #         reach_reward = 0.0
+    #         stay_reward = 0.0
+        
+    #     # 🔧 增强控制平滑性奖励（在目标附近时）
+    #     if distance < 30.0:
+    #         # 在目标附近时，更强地惩罚大动作
+    #         control_penalty = -0.05 * np.sum(np.square(self.joint_velocities))
+    #     else:
+    #         control_penalty = -0.01 * np.sum(np.square(self.joint_velocities))
+        
+    #     # 其他奖励保持不变
+    #     collision_penalty = 0.0
+    #     if collision_detected is None:
+    #         collision_detected = self._check_collision()
+    #     if collision_detected:
+    #         collision_penalty = -2.0
+        
+    #     midline_reward = self._compute_midline_reward(end_pos)
+    #     joint_usage_reward = self._compute_joint_usage_reward()
+        
+    #     # 存储奖励组成部分
+    #     self.reward_components = {
+    #         'distance_reward': distance_reward,
+    #         'reach_reward': reach_reward,
+    #         'stay_reward': stay_reward,  # 🔧 新增
+    #         'collision_penalty': collision_penalty,
+    #         'control_penalty': control_penalty,
+    #         'midline_reward': midline_reward,
+    #         'joint_usage_reward': joint_usage_reward
+    #     }
+        
+    #     # 更新prev_distance
+    #     self.prev_distance = distance
+        
+    #     total_reward = (distance_reward + reach_reward + stay_reward + 
+    #                 collision_penalty + control_penalty + midline_reward + joint_usage_reward)
+    #     self.current_reward = total_reward
+        
+    #     return total_reward
     def _compute_midline_reward(self, end_pos):
         """计算中线奖励 - 负数的垂直距离"""
         # 获取中线信息
@@ -684,11 +843,11 @@ class Reacher2DEnv(Env):
         obs = np.concatenate([obs, [self.collision_count, self.base_collision_count, self.self_collision_count]])
         
         return obs.astype(np.float32)
-    
     def _get_info(self):
-        """获取额外信息"""
+        """获取额外信息，包括维持状态"""
         end_pos = self._get_end_effector_position()
         distance = np.linalg.norm(end_pos - self.goal_pos)
+        
         return {
             'end_effector_pos': end_pos,
             'goal_pos': self.goal_pos,
@@ -701,8 +860,34 @@ class Reacher2DEnv(Env):
                 'goal_reached': distance < 20.0,
                 'end_effector_position': end_pos,
                 'goal_position': self.goal_pos,
+            },
+            'maintain': {  # 🆕 维持信息
+                'in_maintain_zone': self.in_maintain_zone,
+                'maintain_counter': self.maintain_counter,
+                'maintain_target': self.maintain_target_steps,
+                'maintain_progress': self.maintain_counter / self.maintain_target_steps if self.maintain_target_steps > 0 else 0.0,
+                'max_maintain_streak': self.max_maintain_streak,
+                'maintain_completed': self.maintain_counter >= self.maintain_target_steps
             }
         }
+    # def _get_info(self):
+    #     """获取额外信息"""
+    #     end_pos = self._get_end_effector_position()
+    #     distance = np.linalg.norm(end_pos - self.goal_pos)
+    #     return {
+    #         'end_effector_pos': end_pos,
+    #         'goal_pos': self.goal_pos,
+    #         'distance': float(distance),
+    #         'collision_count': self.collision_count,
+    #         'base_collision_count': self.base_collision_count,
+    #         'step_count': self.step_count,
+    #         'goal': {
+    #             'distance_to_goal': float(distance),
+    #             'goal_reached': distance < 20.0,
+    #             'end_effector_position': end_pos,
+    #             'goal_position': self.goal_pos,
+    #         }
+    #     }
 
     def _calculate_channel_midline(self):
         """计算通道中线位置 - 独立函数"""
@@ -895,7 +1080,8 @@ class Reacher2DEnv(Env):
                 f"  Collision: {self.reward_components['collision_penalty']:.3f}",
                 f"  Control: {self.reward_components['control_penalty']:.3f}",
                 f"  Midline: {self.reward_components['midline_reward']:.3f}",
-                f"  Joint Usage: {self.reward_components['joint_usage_reward']:.3f}" 
+                f"  Joint Usage: {self.reward_components['joint_usage_reward']:.3f}",
+                f"  Maintain: {self.reward_components['maintain_reward']:.3f}",
             ]
             
             # 绘制奖励背景框

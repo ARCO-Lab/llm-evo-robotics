@@ -134,7 +134,7 @@ class AttentionSACWithBuffer:
         )
         
         # 自动调整alpha
-        self.target_entropy = -action_dim
+        self.target_entropy = -action_dim * 0.5
         self.log_alpha = torch.zeros(1, requires_grad=True, device=device)
         self.alpha_optimizer = torch.optim.Adam([self.log_alpha], lr=lr)
         

@@ -1,0 +1,32 @@
+{
+  "bottlenecks": [
+    "学习停滞，可能需要调整学习率或探索策略",
+    "探索过度，建议减少alpha值"
+  ],
+  "recommendations": [
+    "增加学习率: --lr 5e-4",
+    "减少批次大小: --batch-size 16",
+    "增加探索: --alpha 0.4",
+    "减少探索: --alpha 0.15",
+    "增加warmup: --warmup-steps 3000",
+    "使用可达配置: 修改enhanced_train.py第54行为reacher_easy.yaml",
+    "监控训练: 每1000步检查距离变化",
+    "早期停止: 连续5000步无改善时停止",
+    "简化网络: 如果过于复杂，考虑AttnModel(64, 66, 66, 2)"
+  ],
+  "analysis_results": {
+    "model_complexity": {
+      "total_params": 75073,
+      "param_per_joint": 25024.333333333332,
+      "verdict": "合适"
+    },
+    "learning_progress": {
+      "distance_improvement": -11.410996015891499,
+      "verdict": "学习停滞"
+    },
+    "action_diversity": {
+      "avg_std": 58.78938482998635,
+      "verdict": "过于随机"
+    }
+  }
+}
