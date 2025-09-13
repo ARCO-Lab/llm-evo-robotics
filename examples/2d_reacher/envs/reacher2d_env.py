@@ -640,6 +640,9 @@ class Reacher2DEnv(Env):
         # 更新prev_distance
         self.prev_distance = distance
         
+        # total_reward = (distance_reward + reach_reward + maintain_reward + 
+        #             collision_penalty)
+
         total_reward = (distance_reward + reach_reward + maintain_reward + 
                     collision_penalty + control_penalty + midline_reward + joint_usage_reward)
         

@@ -35,7 +35,8 @@ if not hasattr(np, 'bool'):
 from training_logger import TrainingLogger, RealTimeMonitor
 from gnn_encoder import GNN_Encoder
 from attn_model.attn_model import AttnModel
-from sac.ppo_model import AttentionPPOWithBuffer
+# from sac.ppo_model import AttentionPPOWithBuffer
+from sac.universal_ppo_model import UniversalPPOWithBuffer
 from env_config.env_wrapper import make_reacher2d_vec_envs
 from reacher2d_env import Reacher2DEnv
 
@@ -48,8 +49,8 @@ from attn_dataset.sim_data_handler import DataHandler
 SILENT_MODE = True
 GOAL_THRESHOLD = 20.0
 DEFAULT_CONFIG = {
-    'num_links': 2,
-    'link_lengths': [90,90],
+    'num_links': 4,
+    'link_lengths': [90,90,90,90],
     'config_path': None
 }
 
@@ -62,7 +63,7 @@ def create_training_parser():
     parser.add_argument('--env-name', default='reacher2d', help='环境名称')
     parser.add_argument('--seed', type=int, default=42, help='随机种子')
     parser.add_argument('--num-processes', type=int, default=1, help='并行进程数')
-    parser.add_argument('--lr', type=float, default=3e-4, help='学习率')
+    parser.add_argument('--lr', type=float, default=2e-4, help='学习率')
     parser.add_argument('--gamma', type=float, default=0.99, help='折扣因子')
     parser.add_argument('--save-dir', default='./trained_models/reacher2d/enhanced_test/', help='保存目录')
     
@@ -71,9 +72,9 @@ def create_training_parser():
     parser.add_argument('--no-render', action='store_true', default=False, help='强制禁用可视化窗口')
     
     # PPO特定参数
-    parser.add_argument('--clip-epsilon', type=float, default=0.2, help='PPO裁剪参数')
+    parser.add_argument('--clip-epsilon', type=float, default=0.1, help='PPO裁剪参数')
     parser.add_argument('--entropy-coef', type=float, default=0.01, help='熵系数')
-    parser.add_argument('--value-coef', type=float, default=0.5, help='值函数损失系数')
+    parser.add_argument('--value-coef', type=float, default=0.25, help='值函数损失系数')
     parser.add_argument('--ppo-epochs', type=int, default=4, help='PPO更新轮数')
     parser.add_argument('--batch-size', type=int, default=64, help='批次大小')
     parser.add_argument('--buffer-size', type=int, default=2048, help='缓冲区容量')
@@ -520,6 +521,24 @@ class TrainingManager:
         self.current_episode_start_step = step
         self.current_episode_start_time = time.time()
         
+        # 🔧 修复：更新全局最佳成功率和距离
+        if episode_result['success']:
+            self.consecutive_success_count += 1
+            # 更新全局最佳距离
+            if best_distance < self.best_min_distance:
+                self.best_min_distance = best_distance
+            
+            # 计算当前成功率
+            success_count = sum(1 for ep in self.episode_results if ep['success'])
+            current_success_rate = success_count / len(self.episode_results)
+            
+            # 更新全局最佳成功率
+            if current_success_rate > self.best_success_rate:
+                self.best_success_rate = current_success_rate
+                print(f"🎯 更新最佳成功率: {self.best_success_rate:.1%}")
+        else:
+            self.consecutive_success_count = 0
+        
         # 检查停止条件
         should_stop = self._check_episode_stopping_conditions(step)
         if should_stop:
@@ -531,28 +550,94 @@ class TrainingManager:
     def should_update_model(self, step):
         """PPO每个episode结束后更新"""
         # PPO不需要warmup，buffer满了就可以更新
-        return len(self.ppo.buffer.joint_q) >= self.ppo.batch_size
-    
+        # return len(self.ppo.buffer.joint_q) >= self.ppo.batch_size
+        return len(self.ppo.buffer.experiences) >= self.ppo.batch_size
+    # def update_and_log(self, step, next_obs=None, next_gnn_embeds=None, num_joints=12):
+    #     """PPO更新并记录"""
+    #     metrics = self.ppo.update(next_obs, next_gnn_embeds, num_joints)
+        
+    #     if metrics:
+    #         enhanced_metrics = metrics.copy()
+    #         enhanced_metrics.update({
+    #             'step': step,
+    #             'buffer_size': len(self.ppo.buffer.joint_q),
+    #             'learning_rate': self.ppo.actor_optimizer.param_groups[0]['lr'],
+    #             'update_count': metrics['update_count']
+    #         })
+            
+    #         self.logger.log_step(step, enhanced_metrics, episode=step//100)
+            
+    #         if step % 100 == 0:
+    #             print(f"Step {step}: "
+    #                   f"Actor Loss: {metrics['actor_loss']:.4f}, "
+    #                   f"Critic Loss: {metrics['critic_loss']:.4f}, "
+    #                   f"Entropy: {metrics['entropy']:.4f}")
+
+
     def update_and_log(self, step, next_obs=None, next_gnn_embeds=None, num_joints=12):
-        """PPO更新并记录"""
+        """PPO更新并记录 - 增强版loss打印"""
         metrics = self.ppo.update(next_obs, next_gnn_embeds, num_joints)
         
         if metrics:
             enhanced_metrics = metrics.copy()
             enhanced_metrics.update({
                 'step': step,
-                'buffer_size': len(self.ppo.buffer.joint_q),
+                # 'buffer_size': len(self.ppo.buffer.joint_q),
+                'buffer_size': len(self.ppo.buffer.experiences),
                 'learning_rate': self.ppo.actor_optimizer.param_groups[0]['lr'],
                 'update_count': metrics['update_count']
             })
             
             self.logger.log_step(step, enhanced_metrics, episode=step//100)
             
-            if step % 100 == 0:
-                print(f"Step {step}: "
-                      f"Actor Loss: {metrics['actor_loss']:.4f}, "
-                      f"Critic Loss: {metrics['critic_loss']:.4f}, "
-                      f"Entropy: {metrics['entropy']:.4f}")
+            # 🔧 增强版loss打印 - 每次更新都打印
+            print(f"\n🔥 PPO网络Loss更新 [Step {step}]:")
+            print(f"   📊 Actor Loss: {metrics['actor_loss']:.6f}")
+            print(f"   📊 Critic Loss: {metrics['critic_loss']:.6f}")
+            print(f"   📊 总Loss: {metrics['actor_loss'] + metrics['critic_loss']:.6f}")
+            print(f"   🎭 Entropy: {metrics['entropy']:.6f}")
+            print(f"   📈 学习率: {self.ppo.actor_optimizer.param_groups[0]['lr']:.2e}")
+            print(f"   🔄 更新次数: {metrics['update_count']}")
+            # print(f"   💾 Buffer大小: {len(self.ppo.buffer.joint_q)}")
+            print(f"   💾 Buffer大小: {len(self.ppo.buffer.experiences)}")
+            
+            # 🔧 添加梯度范数信息（如果可用）
+            if 'actor_grad_norm' in metrics:
+                print(f"   ⚡ Actor梯度范数: {metrics['actor_grad_norm']:.6f}")
+            if 'critic_grad_norm' in metrics:
+                print(f"   ⚡ Critic梯度范数: {metrics['critic_grad_norm']:.6f}")
+            
+            # 🔧 添加PPO特定指标
+            if 'policy_ratio' in metrics:
+                print(f"   🎯 策略比率: {metrics['policy_ratio']:.4f}")
+            if 'clip_fraction' in metrics:
+                print(f"   ✂️  裁剪比例: {metrics['clip_fraction']:.4f}")
+            if 'kl_divergence' in metrics:
+                print(f"   📏 KL散度: {metrics['kl_divergence']:.6f}")
+            if 'explained_variance' in metrics:
+                print(f"   📊 解释方差: {metrics['explained_variance']:.4f}")
+            
+            # 🔧 Loss趋势分析
+            if hasattr(self, 'loss_history'):
+                if len(self.loss_history) >= 3:
+                    recent_losses = self.loss_history[-3:]
+                    if recent_losses[-1] < recent_losses[0]:
+                        trend = "📉 下降"
+                    elif recent_losses[-1] > recent_losses[0]:
+                        trend = "📈 上升"
+                    else:
+                        trend = "➡️  平稳"
+                    print(f"   📈 Loss趋势: {trend}")
+            else:
+                self.loss_history = []
+            
+            # 记录loss历史
+            total_loss = metrics['actor_loss'] + metrics['critic_loss']
+            self.loss_history.append(total_loss)
+            if len(self.loss_history) > 10:  # 只保留最近10次
+                self.loss_history = self.loss_history[-10:]
+            
+            print(f"   {'='*50}")
 
 def main(args):
     """主训练函数 - PPO版本"""
@@ -594,7 +679,8 @@ def main(args):
         from reacher2d_gnn_encoder import Reacher2D_GNN_Encoder
         
         print("🤖 初始化 Reacher2D GNN 编码器...")
-        reacher2d_encoder = Reacher2D_GNN_Encoder(max_nodes=20, num_joints=num_joints)
+        # reacher2d_encoder = Reacher2D_GNN_Encoder(max_nodes=20, num_joints=num_joints)
+        reacher2d_encoder = Reacher2D_GNN_Encoder(max_nodes=num_joints, num_joints=num_joints)
         single_gnn_embed = reacher2d_encoder.get_gnn_embeds(
             num_links=num_joints, 
             link_lengths=env_params['link_lengths']
@@ -608,18 +694,34 @@ def main(args):
 
     # 创建PPO模型
     attn_model = AttnModel(128, 130, 130, 4)
-    ppo = AttentionPPOWithBuffer(
-        attn_model, num_joints, 
+    # ppo = AttentionPPOWithBuffer(
+    #     attn_model, num_joints, 
+    #     buffer_size=args.buffer_size, 
+    #     batch_size=args.batch_size,
+    #     lr=args.lr, 
+    #     gamma=args.gamma,
+    #     clip_epsilon=args.clip_epsilon,
+    #     entropy_coef=args.entropy_coef,
+    #     value_coef=args.value_coef,
+    #     env_type=args.env_type
+    #     # 🔧 移除了 joint_embed_dim 参数
+    # )
+    # 创建通用PPO模型
+    print("🎯 初始化通用PPO模型...")
+    ppo = UniversalPPOWithBuffer(
         buffer_size=args.buffer_size, 
         batch_size=args.batch_size,
         lr=args.lr, 
         gamma=args.gamma,
+        gae_lambda=0.95,
         clip_epsilon=args.clip_epsilon,
         entropy_coef=args.entropy_coef,
         value_coef=args.value_coef,
+        max_grad_norm=0.5,
+        device=device,
         env_type=args.env_type
-        # 🔧 移除了 joint_embed_dim 参数
     )
+    print("✅ 通用PPO模型初始化完成")
     # PPO特定参数设置
     print(f"🎯 PPO配置: clip_epsilon={args.clip_epsilon}, entropy_coef={args.entropy_coef}")
     
@@ -822,7 +924,8 @@ def run_training_loop(args, envs, sync_env, ppo, single_gnn_embed, training_mana
             while episode_step < steps_per_episode and not episode_completed:
                 # 进度显示
                 if episode_step % 100 == 0:
-                    smart_print(f"PPO Episode {episode_num+1}, Step {episode_step}/{steps_per_episode}: Buffer size: {len(ppo.buffer.joint_q)}")
+                    # smart_print(f"PPO Episode {episode_num+1}, Step {episode_step}/{steps_per_episode}: Buffer size: {len(ppo.buffer.joint_q)}")
+                    smart_print(f"PPO Episode {episode_num+1}, Step {episode_step}/{steps_per_episode}: Buffer size: {len(ppo.buffer.experiences)}")
 
                 # 获取动作 - PPO版本
                 if global_step < 1000:  # PPO的简单warmup
@@ -991,6 +1094,18 @@ def cleanup_resources(sync_env, logger, model_manager, training_manager):
     """清理资源"""
     if sync_env:
         sync_env.close()
+    
+    # 🔧 修复：保存最终成功的模型
+    if training_manager.best_success_rate > 0:
+        print(f"💾 保存最终成功模型...")
+        model_manager.save_final_model(
+            training_manager.ppo, 
+            step=training_manager.total_training_steps,
+            final_success_rate=training_manager.best_success_rate,
+            final_min_distance=training_manager.best_min_distance,
+            final_consecutive_successes=training_manager.consecutive_success_count,
+            episode_results=training_manager.episode_results
+        )
             
     # 生成最终报告
     print(f"\n{'='*60}")
@@ -1040,12 +1155,21 @@ def test_trained_model(model_path, num_episodes=10, render=True):
     
     print(f"   GNN嵌入形状: {gnn_embed.shape}")
     
-    # 创建PPO模型
+    # 创建PPO模型 - 🔧 修复：使用与训练时相同的学习率
     attn_model = AttnModel(128, 130, 130, 4)
-    ppo = AttentionPPOWithBuffer(attn_model, num_joints, 
-                                buffer_size=2048, batch_size=64,
-                                lr=1e-5, env_type='reacher2d')
-    
+    # ppo = AttentionPPOWithBuffer(attn_model, num_joints, 
+    #                             buffer_size=2048, batch_size=64,
+    #                             lr=2e-4, env_type='reacher2d')  # 修复: 使用训练时的学习率
+    # 创建通用PPO模型用于测试
+    print("🎯 初始化通用PPO模型用于测试...")
+    ppo = UniversalPPOWithBuffer(
+        buffer_size=2048, 
+        batch_size=64,
+        lr=2e-4, 
+        device=torch.device('cpu'),
+        env_type='reacher2d'
+    )
+    print("✅ 通用PPO测试模型初始化完成")
     # 加载PPO模型
     try:
         if not os.path.exists(model_path):
@@ -1062,6 +1186,11 @@ def test_trained_model(model_path, num_episodes=10, render=True):
         if 'critic_state_dict' in model_data:
             ppo.critic.load_state_dict(model_data['critic_state_dict'], strict=False)
             print("✅ PPO Critic 加载成功")
+        
+        # 🔧 关键修复：设置模型为评估模式
+        ppo.actor.eval()
+        ppo.critic.eval()
+        print("🎯 模型已设置为评估模式")
         
         # 模型验证
         print(f"🔍 PPO模型验证:")
@@ -1094,7 +1223,7 @@ def test_trained_model(model_path, num_episodes=10, render=True):
         obs = env.reset()
         episode_reward = 0
         step_count = 0
-        max_steps = 2500
+        max_steps = 5000
         min_distance_this_episode = float('inf')
         episode_success = False
         
