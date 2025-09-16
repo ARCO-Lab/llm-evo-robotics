@@ -11,3 +11,5 @@ trained_models/
 *.egg-info
 venv/
 venv_2d_reacher/
+map_elites_experiments/
+

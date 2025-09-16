@@ -376,6 +376,7 @@ class MAPElitesTrainingInterface:
         # === SAC特有参数 ===
         enhanced_args.batch_size = int(getattr(args, 'batch_size', 64))
         enhanced_args.buffer_capacity = int(getattr(args, 'buffer_capacity', 10000))
+        enhanced_args.buffer_size = int(getattr(args, 'buffer_size', getattr(args, 'buffer_capacity', 10000)))  # 🔧 修复：添加缺失的buffer_size参数
         enhanced_args.warmup_steps = int(getattr(args, 'warmup_steps', 1000))
         enhanced_args.target_entropy_factor = float(getattr(args, 'target_entropy_factor', 0.8))
         enhanced_args.update_frequency = int(getattr(args, 'update_frequency', 2))
@@ -397,13 +398,16 @@ class MAPElitesTrainingInterface:
         # === RL标准参数 ===
         enhanced_args.algo = 'ppo'
         enhanced_args.eps = float(1e-5)
-        enhanced_args.entropy_coef = float(0.01)
-        enhanced_args.value_loss_coef = float(0.5)
-        enhanced_args.max_grad_norm = float(0.5)
+        enhanced_args.entropy_coef = float(getattr(args, 'entropy_coef', 0.01))
+        enhanced_args.value_loss_coef = float(getattr(args, 'value_coef', 0.5))
+        enhanced_args.value_coef = float(getattr(args, 'value_coef', 0.5))  # 🔧 修复：添加value_coef参数
+        enhanced_args.max_grad_norm = float(getattr(args, 'max_grad_norm', 0.5))
         enhanced_args.num_steps = int(5)
-        enhanced_args.ppo_epoch = int(4)
+        enhanced_args.ppo_epoch = int(getattr(args, 'ppo_epochs', 4))
+        enhanced_args.ppo_epochs = int(getattr(args, 'ppo_epochs', 10))  # 🔧 添加PPO epochs参数
+        enhanced_args.clip_epsilon = float(getattr(args, 'clip_epsilon', 0.2))  # 🔧 添加clip epsilon参数
         enhanced_args.num_mini_batch = int(32)
-        enhanced_args.clip_param = float(0.2)
+        enhanced_args.clip_param = float(getattr(args, 'clip_epsilon', 0.2))
         enhanced_args.num_env_steps = int(getattr(args, 'total_steps', 10000))
         
         # === 布尔标志 ===

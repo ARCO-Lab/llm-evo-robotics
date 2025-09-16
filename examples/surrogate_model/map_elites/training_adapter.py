@@ -29,13 +29,15 @@ class MAPElitesTrainingAdapter:
                  use_real_training: bool = True,
                  enable_rendering: bool = False,  # 🆕 控制是否显示可视化
                  silent_mode: bool = True,        # 🆕 控制是否静默
-                 use_genetic_fitness: bool = True): # 🆕 控制是否使用新fitness系统
+                 use_genetic_fitness: bool = True, # 🆕 控制是否使用新fitness系统
+                 shared_ppo_trainer=None):        # 🆕 共享PPO训练器
         self.base_args = base_args
         self.base_save_dir = base_save_dir
         self.use_real_training = use_real_training and REAL_TRAINING_AVAILABLE
         self.enable_rendering = enable_rendering
         self.silent_mode = silent_mode
         self.use_genetic_fitness = use_genetic_fitness
+        self.shared_ppo_trainer = shared_ppo_trainer  # 🆕 保存共享PPO训练器引用
         
         os.makedirs(base_save_dir, exist_ok=True)
         
@@ -321,6 +323,7 @@ class MAPElitesTrainingAdapter:
         args.gamma = genotype.gamma
         args.batch_size = genotype.batch_size
         args.buffer_capacity = genotype.buffer_capacity
+        args.buffer_size = genotype.buffer_capacity  # 🔧 修复：添加缺失的buffer_size参数
         args.warmup_steps = genotype.warmup_steps
         args.target_entropy_factor = genotype.target_entropy_factor
         
@@ -333,8 +336,15 @@ class MAPElitesTrainingAdapter:
         
         # 🔧 设置其他训练参数
         args.update_frequency = getattr(self.base_args, 'update_frequency', 1)
-        args.num_processes = 1  # MAP-Elites使用单进程
+        args.num_processes = 1  # 🔧 强制单进程，避免多进程通信问题
         args.seed = getattr(self.base_args, 'seed', 42)
+        
+        # 🔧 添加更多必需参数
+        args.ppo_epochs = 10
+        args.clip_epsilon = 0.2
+        args.entropy_coef = 0.01
+        args.value_coef = 0.5
+        args.max_grad_norm = 0.5
         
         # 🆕 渲染和静默控制
         args.render = self.enable_rendering

@@ -118,14 +118,26 @@ class UniversalAttnModel(nn.Module):
 
 class UniversalPPOActor(nn.Module):
     """通用PPO Actor - 支持任意关节数"""
-    def __init__(self, attn_model, log_std_init=-1.0, device='cpu'):
+    def __init__(self, attn_model, log_std_init=-1.5, device='cpu'):
         super(UniversalPPOActor, self).__init__()
         self.attn_model = attn_model
         self.device = device
         
-        # 🎯 使用可学习的log_std参数，但不固定维度
+        # 🔧 修复：使用更保守的初始值，防止entropy爆炸
         self.log_std_base = nn.Parameter(torch.tensor(log_std_init))
         
+    # def forward(self, joint_q, vertex_k, vertex_v, vertex_mask=None):
+    #     """前向传播，输出动作分布参数"""
+    #     batch_size, num_joints, _ = joint_q.shape
+        
+    #     # 获取动作均值
+    #     mean = self.attn_model(joint_q, vertex_k, vertex_v, vertex_mask)  # [B, num_joints]
+        
+    #     # 动态生成标准差
+    #     std = torch.exp(self.log_std_base).expand_as(mean)  # [B, num_joints]
+        
+    #     return mean, std
+
     def forward(self, joint_q, vertex_k, vertex_v, vertex_mask=None):
         """前向传播，输出动作分布参数"""
         batch_size, num_joints, _ = joint_q.shape
@@ -133,8 +145,9 @@ class UniversalPPOActor(nn.Module):
         # 获取动作均值
         mean = self.attn_model(joint_q, vertex_k, vertex_v, vertex_mask)  # [B, num_joints]
         
-        # 动态生成标准差
-        std = torch.exp(self.log_std_base).expand_as(mean)  # [B, num_joints]
+        # 🔧 修复：更严格的标准差限制，防止entropy爆炸
+        log_std_clamped = torch.clamp(self.log_std_base, min=-2.3, max=-0.5)
+        std = torch.exp(log_std_clamped).expand_as(mean)  # std范围: [0.1, 0.6]
         
         return mean, std
     
@@ -312,7 +325,8 @@ class UniversalPPOWithBuffer:
         self.gamma = gamma
         self.gae_lambda = gae_lambda
         self.clip_epsilon = clip_epsilon
-        self.entropy_coef = entropy_coef
+        # 🔧 修复：降低熵系数，防止过度探索
+        self.entropy_coef = min(entropy_coef, 0.005)
         self.value_coef = value_coef
         self.max_grad_norm = max_grad_norm
         
@@ -321,13 +335,15 @@ class UniversalPPOWithBuffer:
         self.actor = UniversalPPOActor(self.universal_attn, device=device)
         self.critic = UniversalPPOCritic(self.universal_attn, device=device)
         
-        # 优化器
-        self.actor_optimizer = torch.optim.Adam(self.actor.parameters(), lr=lr)
-        self.critic_optimizer = torch.optim.Adam(self.critic.parameters(), lr=lr*0.5)
+        # 🔧 修复：更保守的学习率和更激进的衰减
+        actor_lr = lr * 0.3  # Actor学习率降低
+        critic_lr = lr * 0.2  # Critic学习率更低
+        self.actor_optimizer = torch.optim.Adam(self.actor.parameters(), lr=actor_lr)
+        self.critic_optimizer = torch.optim.Adam(self.critic.parameters(), lr=critic_lr)
         
-        # 学习率调度器
-        self.actor_scheduler = torch.optim.lr_scheduler.StepLR(self.actor_optimizer, step_size=1000, gamma=0.95)
-        self.critic_scheduler = torch.optim.lr_scheduler.StepLR(self.critic_optimizer, step_size=1000, gamma=0.95)
+        # 🔧 修复：更激进的学习率衰减
+        self.actor_scheduler = torch.optim.lr_scheduler.StepLR(self.actor_optimizer, step_size=500, gamma=0.9)
+        self.critic_scheduler = torch.optim.lr_scheduler.StepLR(self.critic_optimizer, step_size=500, gamma=0.9)
         
         # 经验缓冲区
         self.buffer = UniversalRolloutBuffer(buffer_size, device)
@@ -378,6 +394,16 @@ class UniversalPPOWithBuffer:
         """PPO更新 - 处理混合关节数数据"""
         if len(self.buffer.experiences) < self.batch_size:
             return None
+        
+        # 🔧 添加：训练前检查和重置
+        with torch.no_grad():
+            current_log_std = self.actor.log_std_base.item()
+            current_std = torch.exp(torch.clamp(torch.tensor(current_log_std), -2.3, -0.5)).item()
+            
+            # 如果标准差异常，强制重置
+            if current_std > 0.8 or current_log_std > -0.3:
+                print(f"⚠️ 检测到异常标准差 {current_std:.4f}，重置参数")
+                self.actor.log_std_base.data.fill_(-1.8)  # 重置到安全值
         
         # 计算最后状态的价值
         if next_obs is not None and next_gnn_embeds is not None:
@@ -464,6 +490,20 @@ class UniversalPPOWithBuffer:
             'learning_rate': self.actor_optimizer.param_groups[0]['lr'],
             'batches_processed': total_batches
         }
+        
+        # 🔧 添加：更新后检查和紧急处理
+        if metrics['entropy'] > 3.0:  # 熵值过高
+            print(f"🚨 熵值异常高 {metrics['entropy']:.2f}，降低学习率")
+            for param_group in self.actor_optimizer.param_groups:
+                param_group['lr'] *= 0.5
+            # 强制重置标准差
+            with torch.no_grad():
+                self.actor.log_std_base.data.fill_(-2.0)
+        
+        if metrics['critic_loss'] > 5.0:  # Critic loss过高
+            print(f"🚨 Critic loss异常高 {metrics['critic_loss']:.2f}，降低学习率")
+            for param_group in self.critic_optimizer.param_groups:
+                param_group['lr'] *= 0.3
         
         return metrics
     

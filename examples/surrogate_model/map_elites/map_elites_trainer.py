@@ -13,11 +13,30 @@ import traceback
 import torch
 import numpy as np
 
+# 导入成功记录系统
+from success_logger import (
+    SuccessLogger, 
+    create_robot_structure, 
+    create_training_params, 
+    create_performance_metrics
+)
+
 import argparse
 from map_elites_core import Individual , RobotGenotype, RobotPhenotype
 from training_adapter import MAPElitesTrainingAdapter
 
 def init_worker_process():
+    import signal
+    import os
+    
+    # 🔧 设置强力信号处理，让子进程能够立即响应Ctrl+C
+    def force_signal_handler(signum, frame):
+        print(f"\n🛑 子进程 {mp.current_process().pid} 收到中断信号，立即退出...")
+        os._exit(1)  # 使用_exit强制退出，不执行清理
+    
+    signal.signal(signal.SIGINT, force_signal_handler)
+    signal.signal(signal.SIGTERM, force_signal_handler)
+    
     process_id = mp.current_process().pid
     torch.manual_seed(42 + process_id)
     np.random.seed(42 + process_id)
@@ -98,24 +117,82 @@ class MAPElitesEvolutionTrainer:
                  silent_mode: bool = True,          # 🆕 是否静默模式
                  use_genetic_fitness: bool = True,  # 🆕 是否使用遗传算法fitness
                  enable_multiprocess: bool = False,
-                 max_workers: int = 4 ):
+                 max_workers: int = 4,
+                 use_shared_ppo: bool = False,      # 🆕 是否使用共享PPO训练
+                 success_threshold: float = 0.7,   # 🆕 成功判定阈值
+                 enable_success_logging: bool = True): # 🆕 是否启用成功记录
         
-        # 初始化组件
-        self.archive = MAPElitesArchive()
-        self.mutator = RobotMutator()
-        self.adapter = MAPElitesTrainingAdapter(
-            base_args, 
-            enable_rendering=enable_rendering,  # 🆕 传递渲染设置
-            silent_mode=silent_mode,           # 🆕 传递静默设置
-            use_genetic_fitness=use_genetic_fitness  # 🆕 传递fitness设置
-        )
-        
+        # 初始化基本属性
         self.num_initial_random = num_initial_random
         self.training_steps_per_individual = training_steps_per_individual
         self.use_genetic_fitness = use_genetic_fitness
         self.enable_multiprocess = enable_multiprocess
         self.max_workers = min(max_workers, mp.cpu_count()) if enable_multiprocess else 1
         self.base_args = base_args
+        self.use_shared_ppo = use_shared_ppo  # 🆕 共享PPO设置
+        self.success_threshold = success_threshold  # 🆕 成功阈值
+        self.enable_success_logging = enable_success_logging  # 🆕 成功记录开关
+
+        # 🆕 初始化成功记录器
+        self.success_logger = None
+        if enable_success_logging:
+            print(f"📊 初始化实验成功记录器 (阈值: {success_threshold})")
+            self.success_logger = SuccessLogger(
+                base_dir="./experiment_results",
+                success_threshold=success_threshold
+            )
+
+        # 🆕 初始化共享PPO训练器
+        self.shared_ppo_trainer = None
+        if use_shared_ppo:
+            print("🚀 初始化共享PPO训练器...")
+            try:
+                # 🔧 启用共享PPO训练器
+                print("🤖 正在导入共享PPO训练器...")
+                
+                # 导入共享PPO训练器
+                import sys
+                import os
+                current_dir = os.path.dirname(os.path.abspath(__file__))
+                sys.path.insert(0, current_dir)
+                
+                from shared_ppo_trainer import SharedPPOTrainer
+                
+                model_config = {
+                    'observation_dim': 14,  # reacher2d观察维度
+                    'action_dim': 3,        # reacher2d动作维度
+                    'hidden_dim': 256
+                }
+                
+                training_config = {
+                    'lr': getattr(base_args, 'lr', 2e-4),
+                    'buffer_size': 20000,
+                    'min_batch_size': 100,  # 🔧 减少批次大小
+                    'model_path': f'{base_args.save_dir}/shared_ppo_model.pth',
+                    'update_interval': 50   # 🔧 减少更新间隔
+                }
+                
+                self.shared_ppo_trainer = SharedPPOTrainer(model_config, training_config)
+                self.shared_ppo_trainer.start_training()
+                print("✅ 共享PPO训练器启动成功")
+                
+            except ImportError as e:
+                print(f"⚠️ 无法导入共享PPO训练器，回退到独立训练: {e}")
+                self.use_shared_ppo = False
+            except Exception as e:
+                print(f"⚠️ 共享PPO训练器初始化失败，回退到独立训练: {e}")
+                self.use_shared_ppo = False
+
+        # 初始化组件（在共享PPO训练器之后）
+        self.archive = MAPElitesArchive()
+        self.mutator = RobotMutator()
+        self.adapter = MAPElitesTrainingAdapter(
+            base_args, 
+            enable_rendering=enable_rendering,  # 🆕 传递渲染设置
+            silent_mode=silent_mode,           # 🆕 传递静默设置
+            use_genetic_fitness=use_genetic_fitness,  # 🆕 传递fitness设置
+            shared_ppo_trainer=self.shared_ppo_trainer  # 🆕 传递共享PPO训练器
+        )
 
         if enable_multiprocess:
             print(f"🔄 启用多进程训练 (最大进程数: {self.max_workers})")
@@ -125,6 +202,7 @@ class MAPElitesEvolutionTrainer:
         print("🧬 MAP-Elites进化训练器已初始化")
         print(f"🎯 Fitness评估: {'遗传算法分层系统' if use_genetic_fitness else '传统平均奖励'}")
         print(f"🎨 可视化: {'启用' if enable_rendering else '禁用'}")
+        print(f"🤝 PPO训练: {'共享模式' if self.use_shared_ppo else '独立模式'}")
 
     
     def run_evolution(self, num_generations: int = 50, individuals_per_generation: int = 10):
@@ -181,6 +259,13 @@ class MAPElitesEvolutionTrainer:
         # 最终结果打印
         print(f"\n🎉 进化完成!")
         self._print_final_results()
+        
+        # 🆕 生成实验总结并关闭成功记录器
+        if self.success_logger:
+            self.success_logger.close()
+        
+        # 🆕 清理共享PPO训练器
+        self._cleanup_shared_ppo()
     def _initialize_random_population(self):
         """初始化随机种群 - 支持并行评估"""
         print(f"🎲 创建 {self.num_initial_random} 个随机个体...")
@@ -291,10 +376,15 @@ class MAPElitesEvolutionTrainer:
         
         # 使用进程池并行评估
         results = []
+        # 🔧 声明全局变量
+        global global_executor
+        
         with ProcessPoolExecutor(
             max_workers=self.max_workers,
             initializer=init_worker_process
         ) as executor:
+            # 🔧 设置全局引用以便信号处理
+            global_executor = executor
             # 提交所有任务
             future_to_data = {
                 executor.submit(
@@ -306,21 +396,32 @@ class MAPElitesEvolutionTrainer:
                 for data in individual_data_list
             }
             
-            # 收集结果
+            # 收集结果 - 🔧 添加KeyboardInterrupt处理
             completed = 0
-            for future in as_completed(future_to_data):
-                data = future_to_data[future]
-                try:
-                    result = future.result(timeout=7200)  # 2小时超时
-                    if result:
-                        results.append(result)
-                        completed += 1
-                        print(f"✅ 完成 {completed}/{len(individuals)} 个个体")
-                    else:
-                        print(f"❌ 个体 {data['individual_id']} 评估失败")
-                        
-                except Exception as e:
-                    print(f"❌ 个体 {data['individual_id']} 异常: {e}")
+            try:
+                for future in as_completed(future_to_data):
+                    data = future_to_data[future]
+                    try:
+                        result = future.result(timeout=7200)  # 2小时超时
+                        if result:
+                            results.append(result)
+                            completed += 1
+                            print(f"✅ 完成 {completed}/{len(individuals)} 个个体")
+                        else:
+                            print(f"❌ 个体 {data['individual_id']} 评估失败")
+                            
+                    except Exception as e:
+                        print(f"❌ 个体 {data['individual_id']} 异常: {e}")
+            except KeyboardInterrupt:
+                print(f"\n⚠️ 检测到中断信号，正在清理进程...")
+                # 取消所有未完成的任务
+                for future in future_to_data:
+                    future.cancel()
+                print(f"🛑 已取消剩余任务，完成了 {completed}/{len(individuals)} 个个体")
+                raise  # 重新抛出KeyboardInterrupt
+            finally:
+                # 🔧 清理全局引用
+                global_executor = None
         
         # 重建Individual对象
         evaluated_individuals = self._reconstruct_individuals_from_results(results, individuals)
@@ -336,6 +437,10 @@ class MAPElitesEvolutionTrainer:
             evaluated_individual = self.adapter.evaluate_individual(
                 individual, self.training_steps_per_individual
             )
+            
+            # 🆕 记录实验结果
+            self._log_experiment_result(evaluated_individual)
+            
             evaluated_individuals.append(evaluated_individual)
         return evaluated_individuals
 
@@ -373,6 +478,9 @@ class MAPElitesEvolutionTrainer:
                 
                 new_individual.fitness = result['fitness']
                 new_individual.fitness_details = result['fitness_details']
+                
+                # 🆕 记录实验结果
+                self._log_experiment_result(new_individual)
                 
                 evaluated.append(new_individual)
             else:
@@ -493,6 +601,65 @@ class MAPElitesEvolutionTrainer:
                 print(f"   原因: {details['reason']}")
                 print(f"   可达性: {details.get('reachable', 'N/A')}")
 
+    def _log_experiment_result(self, individual):
+        """记录实验结果到成功日志"""
+        if not self.success_logger:
+            return
+        
+        try:
+            # 创建机器人结构信息
+            robot_structure = create_robot_structure(
+                num_links=individual.genotype.num_links,
+                link_lengths=individual.genotype.link_lengths
+            )
+            
+            # 创建训练参数信息
+            training_params = create_training_params(
+                lr=individual.genotype.lr,
+                alpha=individual.genotype.alpha,
+                training_steps=self.training_steps_per_individual,
+                buffer_capacity=getattr(self.base_args, 'buffer_capacity', 10000),
+                batch_size=getattr(self.base_args, 'batch_size', 64)
+            )
+            
+            # 创建性能指标信息
+            performance = create_performance_metrics(
+                fitness=individual.fitness,
+                success_rate=individual.phenotype.success_rate,
+                avg_reward=individual.phenotype.avg_reward,
+                training_time=getattr(individual, 'training_time', 0.0),
+                episodes_completed=getattr(individual, 'episodes_completed', 0),
+                final_distance_to_target=individual.phenotype.min_distance,
+                path_efficiency=getattr(individual, 'path_efficiency', None)
+            )
+            
+            # 记录结果
+            is_successful = self.success_logger.log_result(
+                individual_id=individual.individual_id,
+                robot_structure=robot_structure,
+                training_params=training_params,
+                performance=performance,
+                generation=individual.generation,
+                parent_id=individual.parent_id,
+                notes=f"MAP-Elites 第{individual.generation}代"
+            )
+            
+            if is_successful:
+                print(f"🎉 发现成功结构: {individual.individual_id} (fitness: {individual.fitness:.3f})")
+                
+        except Exception as e:
+            print(f"⚠️ 记录实验结果失败: {e}")
+    
+    def _cleanup_shared_ppo(self):
+        """清理共享PPO训练器"""
+        if self.shared_ppo_trainer:
+            print("🧹 清理共享PPO训练器...")
+            try:
+                self.shared_ppo_trainer.stop_training()
+                print("✅ 共享PPO训练器已停止")
+            except Exception as e:
+                print(f"⚠️ 清理共享PPO训练器时出错: {e}")
+
 
 def start_real_training():
     """启动真实的MAP-Elites训练"""
@@ -529,12 +696,12 @@ def start_real_training():
     trainer = MAPElitesEvolutionTrainer(
         base_args=base_args,
         num_initial_random=10,               # 初始随机个体数
-        training_steps_per_individual=120000,  # 每个个体的训练步数
+        training_steps_per_individual=2000,  # 🔧 减少训练步数以便快速测试
         enable_rendering=True,               # 🎨 启用可视化
         silent_mode=False,                   # 🔊 显示详细输出
         use_genetic_fitness=True,             # 🎯 使用遗传算法fitness
         enable_multiprocess=True,             # 🆕 启用多进程
-        max_workers=4  
+        max_workers=1  
     )
     
     try:
@@ -656,6 +823,110 @@ def start_advanced_training():
         traceback.print_exc()
 
 
+def start_shared_ppo_training():
+    """启动共享PPO的MAP-Elites训练"""
+    print("🚀 MAP-Elites + 共享PPO训练")
+    print("=" * 60)
+    
+    # 创建基础参数
+    base_args = argparse.Namespace()
+    
+    # === 环境设置 ===
+    base_args.env_type = 'reacher2d'
+    base_args.num_processes = 1
+    base_args.seed = 42
+    base_args.save_dir = './map_elites_shared_ppo_results'
+    base_args.use_real_training = True
+    
+    # === 学习参数 ===
+    base_args.lr = 2e-4
+    base_args.alpha = 0.2
+    base_args.tau = 0.005
+    base_args.gamma = 0.99
+    base_args.update_frequency = 1
+    
+    # 🔧 解析命令行参数控制可视化和模型加载
+    enable_rendering = True   # 🎨 默认启用可视化
+    silent_mode = False       # 🔇 默认启用详细输出
+    resume_training = False   # 🔄 默认不恢复训练
+    
+    # 检查命令行参数
+    if '--no-render' in sys.argv:
+        enable_rendering = False
+        print("🔧 检测到 --no-render 参数，禁用可视化")
+    if '--silent' in sys.argv:
+        silent_mode = True
+        print("🔧 检测到 --silent 参数，启用静默模式")
+    if '--resume' in sys.argv:
+        resume_training = True
+        print("🔧 检测到 --resume 参数，将尝试加载已保存的模型继续训练")
+    
+    # 🔧 检查是否存在已保存的模型
+    model_path = f'{base_args.save_dir}/shared_ppo_model.pth'
+    if os.path.exists(model_path) and not resume_training:
+        print(f"⚠️ 发现已保存的模型: {model_path}")
+        print("💡 如果要继续之前的训练，请使用 --resume 参数")
+        print("💡 当前将重新开始训练（会覆盖已有模型）")
+    elif os.path.exists(model_path) and resume_training:
+        print(f"🔄 将从已保存的模型继续训练: {model_path}")
+    elif resume_training and not os.path.exists(model_path):
+        print(f"⚠️ 使用了 --resume 参数但未找到模型文件: {model_path}")
+        print("🆕 将开始新的训练")
+    
+    # 🔧 多进程设置
+    enable_multiprocess = True   # 🚀 启用多进程以支持多个individual
+    max_workers = 4              # 🔧 4个并行工作进程
+    
+    print(f"📊 共享PPO训练配置:")
+    print(f"   初始种群: 4个个体 (支持并行可视化)")
+    print(f"   每个体训练步数: 500步")
+    print(f"   进化代数: 3代")
+    print(f"   每代新个体: 2个")
+    print(f"   多进程: {'启用' if enable_multiprocess else '禁用'} ({max_workers}个工作进程)")
+    print(f"   共享PPO: 启用")
+    print(f"   可视化: {'启用' if enable_rendering else '禁用'}")
+    print(f"   详细输出: {'启用' if not silent_mode else '禁用'}")
+    print(f"   保存目录: {base_args.save_dir}")
+    
+    # 创建训练器
+    trainer = MAPElitesEvolutionTrainer(
+        base_args=base_args,
+        num_initial_random=4,                # 🔧 增加到4个个体
+        training_steps_per_individual=500,   # 🔧 减少训练步数
+        enable_rendering=enable_rendering,   # 🎨 启用可视化
+        silent_mode=silent_mode,             # 🔇 启用详细输出
+        use_genetic_fitness=True,            # 🎯 使用遗传算法fitness
+        enable_multiprocess=enable_multiprocess,  # 🚀 启用多进程
+        max_workers=max_workers,             # 🔧 4个工作进程
+        use_shared_ppo=True,                 # 🆕 启用共享PPO
+        success_threshold=0.6,               # 🎯 成功阈值设为0.6 (适合长时间训练)
+        enable_success_logging=True          # 📊 启用实验成功记录
+    )
+    
+    try:
+        # 开始进化
+        trainer.run_evolution(
+            num_generations=3,               # 🔧 减少到3代
+            individuals_per_generation=2    # 🔧 减少到每代2个新个体
+        )
+        
+        print("\n🎉 共享PPO训练完成!")
+        print(f"📁 结果保存在: {base_args.save_dir}")
+        
+    except KeyboardInterrupt:
+        print("\n⚠️ 训练被用户中断")
+        print("📊 当前进度已保存")
+        # 确保清理共享PPO训练器
+        trainer._cleanup_shared_ppo()
+    except Exception as e:
+        print(f"\n❌ 训练过程中出现错误: {e}")
+        import traceback
+        traceback.print_exc()
+        # 确保清理共享PPO训练器
+        if 'trainer' in locals():
+            trainer._cleanup_shared_ppo()
+
+
 # 🧪 测试函数
 def test_map_elites_trainer():
     """测试MAP-Elites训练器 - 包括新fitness系统"""
@@ -689,7 +960,7 @@ def test_map_elites_trainer():
             trainer = MAPElitesEvolutionTrainer(
                 base_args=base_args,
                 num_initial_random=3,  # 使用更少的个体进行快速测试
-                training_steps_per_individual=120000,  # 使用更少的训练步数
+                training_steps_per_individual=2000,  # 🔧 减少训练步数以便快速测试
                 use_genetic_fitness=use_genetic
             )
             print("✅ 训练器创建成功")
@@ -801,8 +1072,65 @@ def main():
 
 
 if __name__ == "__main__":
-    # 可以选择运行完整测试或者真实训练
+    # 🔧 设置主进程信号处理 - 强力版本
+    import signal
     import sys
+    import os
+    import atexit
+    
+    # 全局变量存储进程池引用
+    global_executor = None
+    
+    def emergency_cleanup():
+        """紧急清理函数"""
+        if global_executor is not None:
+            print("🚨 执行紧急清理...")
+            try:
+                global_executor.shutdown(wait=False)
+            except:
+                pass
+    
+    def force_exit_handler(signum, frame):
+        print(f"\n🛑 收到强制中断信号 (信号{signum})，立即终止所有进程...")
+        emergency_cleanup()
+        
+        # 强制终止所有子进程
+        try:
+            import psutil
+            current_process = psutil.Process(os.getpid())
+            children = current_process.children(recursive=True)
+            for child in children:
+                try:
+                    print(f"🔪 强制终止子进程: {child.pid}")
+                    child.terminate()
+                except:
+                    pass
+            # 等待一下让子进程终止
+            gone, alive = psutil.wait_procs(children, timeout=1)
+            # 如果还有进程没有终止，强制杀死
+            for p in alive:
+                try:
+                    print(f"💀 强制杀死顽固进程: {p.pid}")
+                    p.kill()
+                except:
+                    pass
+        except ImportError:
+            # 如果没有psutil，使用系统命令
+            try:
+                print("🔪 使用系统命令终止子进程...")
+                os.system(f"pkill -9 -P {os.getpid()}")
+            except:
+                pass
+        
+        print("💀 强制退出")
+        os._exit(1)
+    
+    # 注册信号处理器
+    signal.signal(signal.SIGINT, force_exit_handler)
+    signal.signal(signal.SIGTERM, force_exit_handler)
+    atexit.register(emergency_cleanup)
+    
+    # 可以选择运行完整测试或者真实训练
     
     if len(sys.argv) > 1:
         if sys.argv[1] == '--demo':
@@ -817,7 +1145,7 @@ if __name__ == "__main__":
             trainer = MAPElitesEvolutionTrainer(
                 base_args=base_args,
                 num_initial_random=5,
-                training_steps_per_individual=120000,
+                training_steps_per_individual=2000,  # 🔧 减少训练步数
                 use_genetic_fitness=True  # 🆕 使用遗传算法fitness
             )
             
@@ -840,12 +1168,30 @@ if __name__ == "__main__":
             print("🚀 启动MAP-Elites高级训练")
             start_advanced_training()
             
+        elif sys.argv[1] == '--train-shared':
+            # 🆕 启动共享PPO训练
+            print("🚀 启动MAP-Elites共享PPO训练")
+            start_shared_ppo_training()
+            
         else:
             print("❌ 未知参数. 可用选项:")
             print("   --demo: 快速演示")
             print("   --test: 运行测试")
             print("   --train: 真实训练")
             print("   --train-advanced: 高级训练")
+            print("   --train-shared: 共享PPO训练")
+            print("")
+            print("🎨 可视化选项 (仅用于 --train-shared):")
+            print("   --no-render: 禁用可视化渲染")
+            print("   --silent: 启用静默模式")
+            print("   --resume: 从已保存的模型继续训练")
+            print("")
+            print("📝 使用示例:")
+            print("   python map_elites_trainer.py --train-shared")
+            print("   python map_elites_trainer.py --train-shared --no-render")
+            print("   python map_elites_trainer.py --train-shared --silent")
+            print("   python map_elites_trainer.py --train-shared --resume")
+            print("   python map_elites_trainer.py --train-shared --resume --no-render")
     else:
         # 默认运行真实训练
         print("🚀 启动MAP-Elites真实训练 (默认模式)")

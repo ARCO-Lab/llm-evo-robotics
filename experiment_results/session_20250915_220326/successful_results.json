@@ -1,0 +1,72 @@
+[
+  {
+    "experiment_id": "test_001",
+    "timestamp": "2025-09-15T22:03:26.249446",
+    "robot_structure": {
+      "num_links": 3,
+      "link_lengths": [
+        60.0,
+        50.0,
+        40.0
+      ],
+      "total_length": 150.0
+    },
+    "training_params": {
+      "lr": 0.001,
+      "alpha": 0.2,
+      "training_steps": 500,
+      "buffer_capacity": 10000,
+      "batch_size": 64
+    },
+    "performance": {
+      "fitness": 0.75,
+      "success_rate": 0.8,
+      "avg_reward": 15.2,
+      "training_time": 45.6,
+      "episodes_completed": 20,
+      "final_distance_to_target": 2.3,
+      "path_efficiency": null
+    },
+    "generation": 1,
+    "parent_id": null,
+    "success_threshold": 0.6,
+    "is_successful": true,
+    "notes": "成功的3关节机器人"
+  },
+  {
+    "experiment_id": "test_003",
+    "timestamp": "2025-09-15T22:03:26.257794",
+    "robot_structure": {
+      "num_links": 5,
+      "link_lengths": [
+        80.0,
+        70.0,
+        60.0,
+        50.0,
+        40.0
+      ],
+      "total_length": 300.0
+    },
+    "training_params": {
+      "lr": 0.002,
+      "alpha": 0.25,
+      "training_steps": 500,
+      "buffer_capacity": 10000,
+      "batch_size": 64
+    },
+    "performance": {
+      "fitness": 0.82,
+      "success_rate": 0.9,
+      "avg_reward": 22.1,
+      "training_time": 38.9,
+      "episodes_completed": 25,
+      "final_distance_to_target": 1.2,
+      "path_efficiency": null
+    },
+    "generation": 1,
+    "parent_id": null,
+    "success_threshold": 0.6,
+    "is_successful": true,
+    "notes": "非常成功的5关节机器人"
+  }
+]

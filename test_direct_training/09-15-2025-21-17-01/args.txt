@@ -1,0 +1,1 @@
+['examples/surrogate_model/enhanced_train.py', '--num-joints', '3', '--link-lengths', '60', '40', '30', '--total-steps', '2000', '--save-dir', './test_direct_training', '--no-render']

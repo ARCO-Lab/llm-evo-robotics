@@ -49,8 +49,8 @@ from attn_dataset.sim_data_handler import DataHandler
 SILENT_MODE = True
 GOAL_THRESHOLD = 20.0
 DEFAULT_CONFIG = {
-    'num_links': 4,
-    'link_lengths': [90,90,90,90],
+    'num_links': 3,
+    'link_lengths': [90,90,90],
     'config_path': None
 }
 
@@ -82,6 +82,11 @@ def create_training_parser():
     # 恢复训练参数
     parser.add_argument('--resume-checkpoint', type=str, default=None, help='检查点路径')
     parser.add_argument('--resume-lr', type=float, default=None, help='恢复时的学习率')
+    
+    # 🔧 MAP-Elites机器人配置参数
+    parser.add_argument('--num-joints', type=int, default=3, help='机器人关节数量')
+    parser.add_argument('--link-lengths', nargs='+', type=float, default=[90.0, 90.0, 90.0], help='机器人链节长度')
+    parser.add_argument('--total-steps', type=int, default=10000, help='总训练步数')
     
     # 兼容性参数（用于其他环境）
     parser.add_argument('--grammar-file', type=str, default='/home/xli149/Documents/repos/RoboGrammar/data/designs/grammar_jan21.dot', help='语法文件')
@@ -384,15 +389,15 @@ class TrainingManager:
 
     def _check_episode_stopping_conditions(self, step):
         """检查是否应该停止训练"""
-        # 完成2个episodes就停止
-        if self.current_episodes >= 2:
+        # 🔧 修复：增加episodes数量，适合MAP-Elites训练
+        if self.current_episodes >= 20:  # 从2增加到20个episodes
             print(f"🏁 完成{self.current_episodes}个episodes，训练结束")
             return True
         
-        # 检查当前episode步数限制
+        # 🔧 修复：减少单个episode步数限制，适合快速评估
         episode_steps = step - self.current_episode_start_step
-        if episode_steps >= 120000:
-            print(f"⏰ 当前episode达到120,000步限制")
+        if episode_steps >= 500:  # 从120,000减少到500步
+            print(f"⏰ 当前episode达到500步限制")
             return False  # 不是整体结束，只是当前episode结束
         
         return False
