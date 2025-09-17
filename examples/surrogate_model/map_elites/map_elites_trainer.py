@@ -63,7 +63,7 @@ def evaluate_individual_isolated(individual_data, base_args_dict, training_steps
 
         process_id = os.getpid()
         enable_rendering = base_args_dict.get('enable_rendering', False)
-        silent_mode = base_args_dict.get('silent_mode', True)
+        silent_mode = base_args_dict.get('silent_mode', False)  # 🔧 修复：默认不静默
         
         print(f"🎨 进程 {process_id} 接收参数: rendering={enable_rendering}, silent={silent_mode}")
         print(f"进程 {process_id}开始训练个体 {individual_data['individual_id']}")
@@ -86,7 +86,7 @@ def evaluate_individual_isolated(individual_data, base_args_dict, training_steps
         adapter = MAPElitesTrainingAdapter(
             base_args,
             enable_rendering = base_args_dict.get('enable_rendering', False),  # 🔧 使用传递的参数
-            silent_mode = base_args_dict.get('silent_mode', True),             # 🔧 使用传递的参数
+            silent_mode = base_args_dict.get('silent_mode', False),            # 🔧 修复：默认不静默
             use_genetic_fitness = True
         )
         result = adapter.evaluate_individual(individual, training_steps)
@@ -123,7 +123,7 @@ class MAPElitesEvolutionTrainer:
     def __init__(self, base_args, num_initial_random: int = 20, 
                  training_steps_per_individual: int = 3000,
                  enable_rendering: bool = False,    # 🆕 是否启用渲染
-                 silent_mode: bool = True,          # 🆕 是否静默模式
+                 silent_mode: bool = False,         # 🔧 修复：默认不静默
                  use_genetic_fitness: bool = True,  # 🆕 是否使用遗传算法fitness
                  enable_multiprocess: bool = False,
                  max_workers: int = 4,
@@ -480,6 +480,10 @@ class MAPElitesEvolutionTrainer:
                 individual, self.training_steps_per_individual
             )
             
+            # 🆕 在无渲染模式下打印个体训练结果
+            if not self.adapter.enable_rendering:
+                self._print_individual_training_result(evaluated_individual, i+1, len(individuals))
+            
             # 🆕 记录实验结果
             self._log_experiment_result(evaluated_individual)
             
@@ -524,6 +528,10 @@ class MAPElitesEvolutionTrainer:
                 # 🆕 记录实验结果
                 self._log_experiment_result(new_individual)
                 
+                # 🆕 在无渲染模式下打印个体训练结果
+                if not self.adapter.enable_rendering:
+                    self._print_individual_training_result(new_individual, len(evaluated)+1, len(original_individuals))
+                
                 evaluated.append(new_individual)
             else:
                 # 评估失败，设置默认fitness
@@ -533,17 +541,151 @@ class MAPElitesEvolutionTrainer:
         
         return evaluated
     
+    def _print_individual_training_result(self, individual, current_idx, total_count):
+        """在无渲染模式下打印个体训练结果"""
+        print(f"\n{'='*50}")
+        print(f"✅ 个体 {current_idx}/{total_count} 训练完成")
+        print(f"{'='*50}")
+        print(f"🤖 个体信息:")
+        print(f"   ID: {individual.individual_id}")
+        print(f"   关节数: {individual.genotype.num_links}")
+        print(f"   总长度: {sum(individual.genotype.link_lengths):.1f}px")
+        print(f"   学习率: {individual.genotype.lr:.2e}")
+        print(f"   Alpha: {individual.genotype.alpha:.3f}")
+        
+        print(f"📊 训练结果:")
+        print(f"   🎯 适应度: {individual.fitness:.4f}")
+        if hasattr(individual, 'fitness_details') and individual.fitness_details:
+            print(f"   📋 类别: {individual.fitness_details.get('category', 'N/A')}")
+            print(f"   🎯 策略: {individual.fitness_details.get('strategy', 'N/A')}")
+        
+        print(f"🏆 性能指标:")
+        if hasattr(individual.phenotype, 'success_rate'):
+            print(f"   ✅ 成功率: {individual.phenotype.success_rate:.1%}")
+        if hasattr(individual.phenotype, 'avg_reward'):
+            print(f"   🎁 平均奖励: {individual.phenotype.avg_reward:.2f}")
+        if hasattr(individual.phenotype, 'min_distance'):
+            print(f"   📏 最佳距离: {individual.phenotype.min_distance:.1f}px")
+        
+        # 如果有训练指标，也显示
+        if hasattr(individual, 'training_metrics') and individual.training_metrics:
+            print(f"🔧 训练指标:")
+            if 'final_loss' in individual.training_metrics:
+                print(f"   📉 最终Loss: {individual.training_metrics['final_loss']:.4f}")
+            if 'training_time' in individual.training_metrics:
+                print(f"   ⏱️  训练时间: {individual.training_metrics['training_time']:.1f}s")
+        
+        print(f"{'='*50}")
+    
+    def _print_training_performance_stats(self, individuals, generation: int):
+        """打印训练性能统计信息 - 包括loss和成功率"""
+        if not individuals:
+            return
+        
+        # 收集训练指标
+        success_rates = []
+        avg_rewards = []
+        min_distances = []
+        training_losses = []  # 如果有的话
+        
+        for ind in individuals:
+            # 成功率统计
+            if hasattr(ind.phenotype, 'success_rate'):
+                success_rates.append(ind.phenotype.success_rate)
+            
+            # 奖励统计
+            if hasattr(ind.phenotype, 'avg_reward'):
+                avg_rewards.append(ind.phenotype.avg_reward)
+            
+            # 距离统计
+            if hasattr(ind.phenotype, 'min_distance'):
+                min_distances.append(ind.phenotype.min_distance)
+            
+            # Loss统计（如果个体有training_metrics）
+            if hasattr(ind, 'training_metrics') and ind.training_metrics:
+                if 'final_loss' in ind.training_metrics:
+                    training_losses.append(ind.training_metrics['final_loss'])
+        
+        # 打印性能统计
+        print(f"\n🎯 训练性能统计:")
+        
+        # 成功率统计
+        if success_rates:
+            avg_success_rate = np.mean(success_rates)
+            max_success_rate = np.max(success_rates)
+            success_individuals = sum(1 for sr in success_rates if sr > 0.5)
+            print(f"   ✅ 成功率: 平均 {avg_success_rate:.1%}, 最高 {max_success_rate:.1%}")
+            print(f"   🏆 成功个体: {success_individuals}/{len(individuals)} ({success_individuals/len(individuals):.1%})")
+        
+        # 奖励统计
+        if avg_rewards:
+            mean_reward = np.mean(avg_rewards)
+            best_reward = np.max(avg_rewards)
+            print(f"   🎁 奖励: 平均 {mean_reward:.2f}, 最佳 {best_reward:.2f}")
+        
+        # 距离统计
+        if min_distances:
+            valid_distances = [d for d in min_distances if d != float('inf')]
+            if valid_distances:
+                avg_distance = np.mean(valid_distances)
+                best_distance = np.min(valid_distances)
+                print(f"   📏 目标距离: 平均 {avg_distance:.1f}px, 最佳 {best_distance:.1f}px")
+        
+        # Loss统计
+        if training_losses:
+            avg_loss = np.mean(training_losses)
+            min_loss = np.min(training_losses)
+            print(f"   📉 训练Loss: 平均 {avg_loss:.4f}, 最低 {min_loss:.4f}")
+        
+        # 🆕 添加当前代的改进情况
+        if generation > 0:
+            print(f"\n📈 第{generation}代改进情况:")
+            # 比较当前代与历史最佳
+            current_best_fitness = np.max([ind.fitness for ind in individuals])
+            if hasattr(self, '_previous_best_fitness'):
+                improvement = current_best_fitness - self._previous_best_fitness
+                if improvement > 0:
+                    print(f"   🚀 适应度提升: +{improvement:.3f}")
+                elif improvement < 0:
+                    print(f"   📉 适应度下降: {improvement:.3f}")
+                else:
+                    print(f"   ➡️  适应度保持: {current_best_fitness:.3f}")
+            self._previous_best_fitness = current_best_fitness
+        
+        # 🆕 添加训练效率分析
+        if success_rates and len(success_rates) > 1:
+            print(f"\n⚡ 训练效率分析:")
+            successful_count = sum(1 for sr in success_rates if sr > 0.3)
+            efficiency = successful_count / len(success_rates)
+            print(f"   🎯 训练效率: {efficiency:.1%} ({successful_count}/{len(success_rates)} 个体达到30%+成功率)")
+            
+            if efficiency >= 0.7:
+                print(f"   💪 训练效果优秀！大部分个体表现良好")
+            elif efficiency >= 0.4:
+                print(f"   👍 训练效果良好，还有提升空间")
+            else:
+                print(f"   ⚠️  训练效果需要改进，考虑调整参数")
+
     def _print_generation_stats(self, generation: int):
-        """打印代际统计信息 - 增强fitness分析"""
+        """打印代际统计信息 - 增强fitness分析和训练指标"""
         stats = self.archive.get_statistics()
         
-        print(f"\n🧬 第{generation}代详细分析:")
-        print(f"📊 基础统计:")
-        print(f"   存档大小: {stats['size']}")
+        print(f"\n{'='*70}")
+        print(f"🧬 第{generation}代训练报告")
+        print(f"{'='*70}")
+        
+        # 基础统计
+        print(f"📊 MAP-Elites存档统计:")
+        print(f"   存档大小: {stats['size']} 个个体")
         print(f"   覆盖率: {stats['coverage']:.3f}")
-        print(f"   最佳适应度: {stats['best_fitness']:.3f}")  # 🆕 增加精度
+        print(f"   最佳适应度: {stats['best_fitness']:.3f}")
         print(f"   平均适应度: {stats['avg_fitness']:.3f}")
         print(f"   改善率: {stats['improvement_rate']:.3f}")
+        
+        # 🆕 添加训练性能统计
+        if self.archive.archive:
+            individuals = list(self.archive.archive.values())
+            self._print_training_performance_stats(individuals, generation)
         
         # 🆕 遗传算法fitness类别分析
         if self.use_genetic_fitness and self.archive.archive:
@@ -611,6 +753,8 @@ class MAPElitesEvolutionTrainer:
                     f"{ind.genotype.num_links}关节, "
                     f"总长{sum(ind.genotype.link_lengths):.0f}px, "
                     f"lr={ind.genotype.lr:.2e}")
+        
+        print(f"{'='*70}")
         
     def _print_final_results(self):
         """打印最终结果"""
@@ -1095,9 +1239,13 @@ def start_shared_ppo_training():
     enable_multiprocess = True   # 🚀 启用多进程以支持多个individual
     max_workers = 4              # 🔧 4个并行工作进程
     
+    # 🔧 如果是测试模式，减少训练步数
+    test_mode = '--test-quick' in sys.argv
+    training_steps = 50 if test_mode else 500
+    
     print(f"📊 共享PPO训练配置:")
     print(f"   初始种群: 4个个体 (支持并行可视化)")
-    print(f"   每个体训练步数: 500步")
+    print(f"   每个体训练步数: {training_steps}步")
     print(f"   进化代数: 3代")
     print(f"   每代新个体: 2个")
     print(f"   多进程: {'启用' if enable_multiprocess else '禁用'} ({max_workers}个工作进程)")
@@ -1110,7 +1258,7 @@ def start_shared_ppo_training():
     trainer = MAPElitesEvolutionTrainer(
         base_args=base_args,
         num_initial_random=4,                # 🔧 增加到4个个体
-        training_steps_per_individual=500,   # 🔧 减少训练步数
+        training_steps_per_individual=training_steps,   # 🔧 使用动态训练步数
         enable_rendering=enable_rendering,   # 🎨 启用可视化
         silent_mode=silent_mode,             # 🔇 启用详细输出
         use_genetic_fitness=True,            # 🎯 使用遗传算法fitness

@@ -46,7 +46,8 @@ from common import *
 from attn_dataset.sim_data_handler import DataHandler
 
 # === 配置常量 ===
-SILENT_MODE = True
+# 🔧 根据环境变量动态设置静默模式
+SILENT_MODE = os.environ.get('TRAIN_SILENT', '0') == '1'
 GOAL_THRESHOLD = 20.0
 DEFAULT_CONFIG = {
     'num_links': 3,
@@ -258,7 +259,7 @@ class EnvironmentSetup:
         env_params = {
             'num_links': num_links,
             'link_lengths': link_lengths,
-            'render_mode': 'human' if args.num_processes == 1 else None,
+            'render_mode': 'human' if should_render and args.num_processes == 1 else None,
             'config_path': DEFAULT_CONFIG['config_path']
         }
         
@@ -1071,10 +1072,38 @@ def run_training_loop(args, envs, sync_env, ppo, single_gnn_embed, training_mana
                         training_manager.best_min_distance = current_best_distance
                         print(f"📈 更新全局最佳距离: {current_best_distance:.1f}px")
 
-                # 低频日志记录
+                # 🔧 定期训练报告 - 每500步打印一次详细信息
+                if global_step % 500 == 0 and global_step > 0:
+                    # 计算当前成功率
+                    if hasattr(training_manager, 'episode_results') and training_manager.episode_results:
+                        success_count = sum(1 for ep in training_manager.episode_results if ep.get('success', False))
+                        current_success_rate = success_count / len(training_manager.episode_results)
+                    else:
+                        current_success_rate = 0.0
+                    
+                    print(f"\n{'='*60}")
+                    print(f"📊 PPO训练进度报告 [Step {global_step}]")
+                    print(f"{'='*60}")
+                    print(f"🎯 当前Episode: {episode_num + 1}/2")
+                    print(f"📈 Episode内步数: {episode_step}")
+                    print(f"🏆 当前最佳距离: {training_manager.best_min_distance:.1f}px")
+                    print(f"📊 当前Episode最佳距离: {training_manager.current_episode_best_distance:.1f}px")
+                    print(f"✅ 当前成功率: {current_success_rate:.1%}")
+                    print(f"🔄 连续成功次数: {training_manager.consecutive_success_count}")
+                    if hasattr(training_manager, 'episode_results'):
+                        print(f"📋 已完成Episodes: {len(training_manager.episode_results)}")
+                    
+                    # PPO模型状态
+                    print(f"🤖 PPO模型状态:")
+                    print(f"   📈 学习率: {training_manager.ppo.actor_optimizer.param_groups[0]['lr']:.2e}")
+                    print(f"   🔄 更新次数: {training_manager.ppo.update_count}")
+                    print(f"   💾 Buffer大小: {len(training_manager.ppo.buffer.experiences)}")
+                    print(f"{'='*60}\n")
+
+                # 低频日志记录和图表生成
                 if global_step % 2000 == 0 and global_step > 0:
                     training_manager.logger.plot_losses(recent_steps=2000, show=False)
-                    print(f"📊 PPO Step {global_step}: 当前最佳距离 {training_manager.best_min_distance:.1f}px")
+                    print(f"📈 损失曲线已更新 (Step {global_step})")
                 
                 episode_step += 1  # episode内步数递增
                 global_step += args.num_processes  # 全局步数递增
