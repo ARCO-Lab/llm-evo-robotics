@@ -13,6 +13,15 @@ import traceback
 import torch
 import numpy as np
 
+# 导入可视化工具
+try:
+    from map_elites_visualizer import MAPElitesVisualizer
+    from network_loss_visualizer import NetworkLossVisualizer
+    VISUALIZATION_AVAILABLE = True
+except ImportError as e:
+    print(f"⚠️  可视化工具导入失败: {e}")
+    VISUALIZATION_AVAILABLE = False
+
 # 导入成功记录系统
 from success_logger import (
     SuccessLogger, 
@@ -120,7 +129,9 @@ class MAPElitesEvolutionTrainer:
                  max_workers: int = 4,
                  use_shared_ppo: bool = False,      # 🆕 是否使用共享PPO训练
                  success_threshold: float = 0.7,   # 🆕 成功判定阈值
-                 enable_success_logging: bool = True): # 🆕 是否启用成功记录
+                 enable_success_logging: bool = True, # 🆕 是否启用成功记录
+                 enable_visualization: bool = True,  # 🆕 是否启用可视化
+                 visualization_interval: int = 5):  # 🆕 可视化更新间隔
         
         # 初始化基本属性
         self.num_initial_random = num_initial_random
@@ -132,6 +143,8 @@ class MAPElitesEvolutionTrainer:
         self.use_shared_ppo = use_shared_ppo  # 🆕 共享PPO设置
         self.success_threshold = success_threshold  # 🆕 成功阈值
         self.enable_success_logging = enable_success_logging  # 🆕 成功记录开关
+        self.enable_visualization = enable_visualization and VISUALIZATION_AVAILABLE  # 🆕 可视化开关
+        self.visualization_interval = visualization_interval  # 🆕 可视化更新间隔
 
         # 🆕 初始化成功记录器
         self.success_logger = None
@@ -183,6 +196,24 @@ class MAPElitesEvolutionTrainer:
                 print(f"⚠️ 共享PPO训练器初始化失败，回退到独立训练: {e}")
                 self.use_shared_ppo = False
 
+        # 🆕 初始化可视化工具
+        self.map_elites_visualizer = None
+        self.loss_visualizer = None
+        if self.enable_visualization:
+            print("🎨 初始化可视化工具...")
+            try:
+                self.map_elites_visualizer = MAPElitesVisualizer(
+                    output_dir=os.path.join(base_args.save_dir, 'visualizations')
+                )
+                self.loss_visualizer = NetworkLossVisualizer(
+                    log_dir=os.path.join(base_args.save_dir, 'training_logs'),
+                    output_dir=os.path.join(base_args.save_dir, 'visualizations')
+                )
+                print("✅ 可视化工具初始化成功")
+            except Exception as e:
+                print(f"⚠️  可视化工具初始化失败: {e}")
+                self.enable_visualization = False
+
         # 初始化组件（在共享PPO训练器之后）
         self.archive = MAPElitesArchive()
         self.mutator = RobotMutator()
@@ -201,7 +232,8 @@ class MAPElitesEvolutionTrainer:
 
         print("🧬 MAP-Elites进化训练器已初始化")
         print(f"🎯 Fitness评估: {'遗传算法分层系统' if use_genetic_fitness else '传统平均奖励'}")
-        print(f"🎨 可视化: {'启用' if enable_rendering else '禁用'}")
+        print(f"🎨 环境渲染: {'启用' if enable_rendering else '禁用'}")
+        print(f"📊 数据可视化: {'启用' if self.enable_visualization else '禁用'}")
         print(f"🤝 PPO训练: {'共享模式' if self.use_shared_ppo else '独立模式'}")
 
     
@@ -255,6 +287,10 @@ class MAPElitesEvolutionTrainer:
             if generation % 5 == 0:
                 self.archive.generation = generation
                 self.archive.save_archive()
+            
+            # 🆕 生成可视化（根据间隔）
+            if self.enable_visualization and generation % self.visualization_interval == 0:
+                self._generate_visualizations(generation)
         
         # 最终结果打印
         print(f"\n🎉 进化完成!")
@@ -263,6 +299,10 @@ class MAPElitesEvolutionTrainer:
         # 🆕 生成实验总结并关闭成功记录器
         if self.success_logger:
             self.success_logger.close()
+        
+        # 🆕 生成最终可视化报告
+        if self.enable_visualization:
+            self._generate_final_visualization_report()
         
         # 🆕 清理共享PPO训练器
         self._cleanup_shared_ppo()
@@ -338,12 +378,14 @@ class MAPElitesEvolutionTrainer:
             parent_id=parent.individual_id
         )
     def _evaluate_individuals_parallel(self, individuals):
-        """并行评估多个个体"""
+        """并行评估多个个体 - 支持多进程渲染"""
         if not self.enable_multiprocess or len(individuals) <= 1:
             # 单进程模式
             return self._evaluate_individuals_sequential(individuals)
         
         print(f"🔄 开始并行评估 {len(individuals)} 个个体 (使用 {self.max_workers} 个进程)")
+        if self.adapter.enable_rendering:
+            print("🎨 多进程渲染模式：每个进程将显示独立的渲染窗口")
         
         # 准备可序列化的数据
         individual_data_list = []
@@ -659,6 +701,86 @@ class MAPElitesEvolutionTrainer:
                 print("✅ 共享PPO训练器已停止")
             except Exception as e:
                 print(f"⚠️ 清理共享PPO训练器时出错: {e}")
+    
+    def _generate_visualizations(self, generation: int):
+        """生成当前代的可视化"""
+        if not self.enable_visualization:
+            return
+        
+        try:
+            print(f"🎨 正在生成第{generation}代可视化...")
+            
+            # 保存当前存档用于可视化
+            temp_archive_path = os.path.join(self.base_args.save_dir, f'temp_archive_gen_{generation}.pkl')
+            self.archive.generation = generation
+            self.archive.save_archive(temp_archive_path)
+            
+            # 加载到可视化器并生成热力图
+            if self.map_elites_visualizer:
+                self.map_elites_visualizer.load_archive(temp_archive_path)
+                heatmap_path = self.map_elites_visualizer.create_fitness_heatmap(
+                    save_path=os.path.join(
+                        self.base_args.save_dir, 'visualizations', 
+                        f'fitness_heatmap_gen_{generation}.png'
+                    )
+                )
+                if heatmap_path:
+                    print(f"✅ 第{generation}代热力图: {heatmap_path}")
+                
+                # 清理临时文件
+                if os.path.exists(temp_archive_path):
+                    os.remove(temp_archive_path)
+            
+            # 生成训练loss可视化（如果有训练日志）
+            if self.loss_visualizer:
+                training_log_dir = os.path.join(self.base_args.save_dir, 'training_logs')
+                if os.path.exists(training_log_dir):
+                    if self.loss_visualizer.load_training_logs(training_log_dir):
+                        loss_curves_path = self.loss_visualizer.create_loss_curves(
+                            save_path=os.path.join(
+                                self.base_args.save_dir, 'visualizations',
+                                f'loss_curves_gen_{generation}.png'
+                            )
+                        )
+                        if loss_curves_path:
+                            print(f"✅ 第{generation}代Loss曲线: {loss_curves_path}")
+            
+        except Exception as e:
+            print(f"⚠️ 生成第{generation}代可视化时出错: {e}")
+    
+    def _generate_final_visualization_report(self):
+        """生成最终可视化报告"""
+        if not self.enable_visualization:
+            return
+        
+        try:
+            print("🎨 正在生成最终可视化报告...")
+            
+            # 生成MAP-Elites综合报告
+            if self.map_elites_visualizer and self.archive.archive:
+                # 保存最终存档
+                final_archive_path = os.path.join(self.base_args.save_dir, 'final_archive.pkl')
+                self.archive.save_archive(final_archive_path)
+                
+                # 加载并生成综合报告
+                self.map_elites_visualizer.load_archive(final_archive_path)
+                map_elites_report = self.map_elites_visualizer.generate_comprehensive_report()
+                if map_elites_report:
+                    print(f"✅ MAP-Elites综合报告: {map_elites_report}")
+            
+            # 生成训练Loss综合报告
+            if self.loss_visualizer:
+                training_log_dir = os.path.join(self.base_args.save_dir, 'training_logs')
+                if os.path.exists(training_log_dir):
+                    if self.loss_visualizer.load_training_logs(training_log_dir):
+                        loss_report = self.loss_visualizer.generate_comprehensive_loss_report()
+                        if loss_report:
+                            print(f"✅ 训练Loss综合报告: {loss_report}")
+            
+            print("🎉 所有可视化报告生成完成!")
+            
+        except Exception as e:
+            print(f"⚠️ 生成最终可视化报告时出错: {e}")
 
 
 def start_real_training():
@@ -695,20 +817,22 @@ def start_real_training():
     # 创建训练器
     trainer = MAPElitesEvolutionTrainer(
         base_args=base_args,
-        num_initial_random=10,               # 初始随机个体数
+        num_initial_random=10,               # 初始随机个体数 🔧 减少以便快速测试
         training_steps_per_individual=2000,  # 🔧 减少训练步数以便快速测试
-        enable_rendering=True,               # 🎨 启用可视化
+        enable_rendering=True,               # 🎨 启用环境渲染
         silent_mode=False,                   # 🔊 显示详细输出
         use_genetic_fitness=True,             # 🎯 使用遗传算法fitness
         enable_multiprocess=True,             # 🆕 启用多进程
-        max_workers=1  
+        max_workers=1,
+        enable_visualization=True,            # 🎨 启用数据可视化
+        visualization_interval=5              # 🎨 每5代生成可视化
     )
     
     try:
         # 开始进化
         trainer.run_evolution(
-            num_generations=20,              # 运行20代
-            individuals_per_generation=5    # 每代5个新个体
+            num_generations=200,              # 运行20代
+            individuals_per_generation=50    # 每代5个新个体
         )
         
         print("\n🎉 训练完成!")
@@ -822,6 +946,100 @@ def start_advanced_training():
         import traceback
         traceback.print_exc()
 
+
+def start_multiprocess_rendering_training():
+    """启动4进程+渲染的MAP-Elites训练"""
+    print("🚀 MAP-Elites多进程渲染训练")
+    print("=" * 60)
+    
+    # 创建基础参数
+    base_args = argparse.Namespace()
+    
+    # === 环境设置 ===
+    base_args.env_type = 'reacher2d'
+    base_args.num_processes = 1
+    base_args.seed = 42
+    base_args.save_dir = './map_elites_multiprocess_render_results'
+    base_args.use_real_training = True
+    
+    # === 学习参数 ===
+    base_args.lr = 2e-4
+    base_args.alpha = 0.2
+    base_args.tau = 0.005
+    base_args.gamma = 0.99
+    base_args.update_frequency = 1
+    
+    # 🎨 解析命令行参数控制渲染和静默模式
+    enable_rendering = True   # 🎨 默认启用渲染
+    silent_mode = False       # 🔇 默认启用详细输出
+    
+    # 检查命令行参数
+    if '--no-render' in sys.argv:
+        enable_rendering = False
+        print("🔧 检测到 --no-render 参数，禁用渲染")
+    if '--silent' in sys.argv:
+        silent_mode = True
+        print("🔧 检测到 --silent 参数，启用静默模式")
+    
+    # 🚀 多进程设置 - 4个进程
+    enable_multiprocess = True
+    max_workers = 4
+    
+    print(f"📊 多进程渲染训练配置:")
+    print(f"   🎨 渲染模式: {'每个进程显示独立窗口' if enable_rendering else '禁用渲染'}")
+    print(f"   🔊 输出模式: {'详细输出' if not silent_mode else '静默模式'}")
+    print(f"   🚀 多进程: {max_workers}个并行工作进程")
+    print(f"   🤝 共享PPO: 启用 - 所有individual共享同一个PPO模型")
+    print(f"   🤖 初始种群: 8个个体")
+    print(f"   ⏱️  每个体训练步数: 20000步")
+    print(f"   🧬 进化代数: 200代")
+    print(f"   👶 每代新个体: 50个")
+    print(f"   🎯 遗传算法Fitness: 启用")
+    print(f"   📊 成功记录: 启用")
+    print(f"   💾 保存目录: {base_args.save_dir}")
+    
+    # 创建训练器
+    trainer = MAPElitesEvolutionTrainer(
+        base_args=base_args,
+        num_initial_random=8,                # 🔧 8个初始个体，确保能充分利用4进程
+        training_steps_per_individual=20000,  # 🔧 适中的训练步数
+        enable_rendering=enable_rendering,   # 🎨 强制启用渲染
+        silent_mode=silent_mode,             # 🔊 显示详细输出
+        use_genetic_fitness=True,            # 🎯 使用遗传算法fitness
+        enable_multiprocess=enable_multiprocess,  # 🚀 启用多进程
+        max_workers=max_workers,             # 🔧 4个工作进程
+        use_shared_ppo=True,                 # 🆕 启用共享PPO - 所有individual共享同一个PPO
+        success_threshold=0.7,               # 🎯 成功阈值
+        enable_success_logging=True,         # 📊 启用实验成功记录
+        enable_visualization=True,           # 🎨 启用数据可视化
+        visualization_interval=2             # 🎨 每2代生成可视化
+    )
+    
+    try:
+        print("\n🎬 准备启动多进程共享PPO训练...")
+        if enable_rendering:
+            print("💡 提示: 将会同时打开4个渲染窗口，每个显示不同机器人的训练过程")
+            print("⚠️  注意: 请确保您的显示器足够大以容纳多个窗口")
+        else:
+            print("💡 提示: 无渲染模式，4个进程将在后台并行训练")
+        print("🤝 共享PPO: 所有机器人将共同训练同一个PPO模型，互相学习经验")
+        
+        # 开始进化
+        trainer.run_evolution(
+            num_generations=200,               # 🔧 5代进化
+            individuals_per_generation=50    # 🔧 每代4个新个体
+        )
+        
+        print("\n🎉 多进程渲染训练完成!")
+        print(f"📁 结果保存在: {base_args.save_dir}")
+        
+    except KeyboardInterrupt:
+        print("\n⚠️ 训练被用户中断")
+        print("📊 当前进度已保存")
+    except Exception as e:
+        print(f"\n❌ 训练过程中出现错误: {e}")
+        import traceback
+        traceback.print_exc()
 
 def start_shared_ppo_training():
     """启动共享PPO的MAP-Elites训练"""
@@ -1144,14 +1362,14 @@ if __name__ == "__main__":
             
             trainer = MAPElitesEvolutionTrainer(
                 base_args=base_args,
-                num_initial_random=5,
-                training_steps_per_individual=2000,  # 🔧 减少训练步数
+                num_initial_random=50,
+                training_steps_per_individual=20000,  # 🔧 减少训练步数
                 use_genetic_fitness=True  # 🆕 使用遗传算法fitness
             )
             
             trainer.run_evolution(
-                num_generations=3,
-                individuals_per_generation=3
+                num_generations=200,
+                individuals_per_generation=50
             )
             
         elif sys.argv[1] == '--test':
@@ -1173,6 +1391,11 @@ if __name__ == "__main__":
             print("🚀 启动MAP-Elites共享PPO训练")
             start_shared_ppo_training()
             
+        elif sys.argv[1] == '--train-multiprocess':
+            # 🆕 启动4进程+渲染训练
+            print("🚀 启动MAP-Elites多进程渲染训练")
+            start_multiprocess_rendering_training()
+            
         else:
             print("❌ 未知参数. 可用选项:")
             print("   --demo: 快速演示")
@@ -1180,18 +1403,21 @@ if __name__ == "__main__":
             print("   --train: 真实训练")
             print("   --train-advanced: 高级训练")
             print("   --train-shared: 共享PPO训练")
+            print("   --train-multiprocess: 4进程+渲染训练")
             print("")
-            print("🎨 可视化选项 (仅用于 --train-shared):")
+            print("🎨 可视化选项 (用于 --train-shared 和 --train-multiprocess):")
             print("   --no-render: 禁用可视化渲染")
             print("   --silent: 启用静默模式")
-            print("   --resume: 从已保存的模型继续训练")
+            print("   --resume: 从已保存的模型继续训练 (仅限 --train-shared)")
             print("")
             print("📝 使用示例:")
             print("   python map_elites_trainer.py --train-shared")
             print("   python map_elites_trainer.py --train-shared --no-render")
             print("   python map_elites_trainer.py --train-shared --silent")
             print("   python map_elites_trainer.py --train-shared --resume")
-            print("   python map_elites_trainer.py --train-shared --resume --no-render")
+            print("   python map_elites_trainer.py --train-multiprocess  # 4进程+渲染")
+            print("   python map_elites_trainer.py --train-multiprocess --no-render  # 4进程无渲染")
+            print("   python map_elites_trainer.py --train-multiprocess --silent  # 4进程静默模式")
     else:
         # 默认运行真实训练
         print("🚀 启动MAP-Elites真实训练 (默认模式)")

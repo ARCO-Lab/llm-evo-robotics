@@ -1,0 +1,33 @@
+[
+  {
+    "experiment_id": "gen_0_18506",
+    "timestamp": "2025-09-17T16:08:38.643421",
+    "robot_structure": {
+      "num_links": 3,
+      "link_lengths": [
+        99.47532375023653,
+        89.03994289367526,
+        59.509642036439814
+      ],
+      "total_length": 248.0249086803516
+    },
+    "training_params": {
+      "lr": 4.586262603762022e-05,
+      "alpha": 0.971724229338204,
+      "training_steps": 500,
+      "buffer_capacity": 10000,
+      "batch_size": 64
+    },
+    "performance": {
+      "fitness": 0.21483940081625363,
+      "success_rate": 0.34239828804643907,
+      "avg_reward": 1.3597432069658604,
+      "training_time": 0.0,
+      "episodes_completed": 0,
+      "final_distance_to_target": Infinity,
+      "path_efficiency": null
+    },
+    "generation": 0,
+    "parent_id": null,
+    "success_threshold": 0.6,
+    "is_successful": 

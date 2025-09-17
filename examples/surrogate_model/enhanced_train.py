@@ -76,7 +76,7 @@ def create_training_parser():
     parser.add_argument('--entropy-coef', type=float, default=0.01, help='熵系数')
     parser.add_argument('--value-coef', type=float, default=0.25, help='值函数损失系数')
     parser.add_argument('--ppo-epochs', type=int, default=4, help='PPO更新轮数')
-    parser.add_argument('--batch-size', type=int, default=64, help='批次大小')
+    parser.add_argument('--batch-size', type=int, default=16, help='批次大小')  # 🔧 减少batch_size以更快看到loss
     parser.add_argument('--buffer-size', type=int, default=2048, help='缓冲区容量')
     
     # 恢复训练参数
@@ -124,12 +124,12 @@ class ModelManager:
                 'success_rate': success_rate,
                 'min_distance': min_distance,
                 'timestamp': timestamp,
-                'actor_state_dict': ppo.actor.state_dict(),
-                'critic_state_dict': ppo.critic.state_dict(),
-                'actor_optimizer_state_dict': ppo.actor_optimizer.state_dict(),
-                'critic_optimizer_state_dict': ppo.critic_optimizer.state_dict(),
-                'update_count': ppo.update_count,
-                'model_type': 'PPO'
+                    'actor_state_dict': ppo.actor.state_dict(),
+                    'critic_state_dict': ppo.critic.state_dict(),
+                    'actor_optimizer_state_dict': ppo.actor_optimizer.state_dict(),
+                    'critic_optimizer_state_dict': ppo.critic_optimizer.state_dict(),
+                    'update_count': ppo.update_count,
+                    'model_type': 'PPO'
             }
             
             model_file = os.path.join(self.best_models_dir, f'best_ppo_model_step_{step}_{timestamp}.pth')
@@ -361,31 +361,30 @@ class TrainingManager:
                     'score': 0.7,
                     'description': '缓慢但成功到达'
                 }
+        elif distance < 50:
+            return {
+                'type': 'NEAR_SUCCESS',
+                'score': 0.5,
+                'description': '接近成功'
+            }
+        elif distance < 100:
+            return {
+                'type': 'TIMEOUT_CLOSE',
+                'score': 0.3,
+                'description': '超时但较接近'
+            }
+        elif reward > -100:
+            return {
+                'type': 'TIMEOUT_MEDIUM',
+                'score': 0.2,
+                'description': '超时中等表现'
+            }
         else:
-            if distance < 50:
-                return {
-                    'type': 'NEAR_SUCCESS',
-                    'score': 0.5,
-                    'description': '接近成功'
-                }
-            elif distance < 100:
-                return {
-                    'type': 'TIMEOUT_CLOSE',
-                    'score': 0.3,
-                    'description': '超时但较接近'
-                }
-            elif reward > -100:
-                return {
-                    'type': 'TIMEOUT_MEDIUM',
-                    'score': 0.2,
-                    'description': '超时中等表现'
-                }
-            else:
-                return {
-                    'type': 'COMPLETE_FAILURE',
-                    'score': 0.0,
-                    'description': '完全失败'
-                }
+            return {
+                'type': 'COMPLETE_FAILURE',
+                'score': 0.0,
+                'description': '完全失败'
+            }
 
     def _check_episode_stopping_conditions(self, step):
         """检查是否应该停止训练"""
@@ -630,7 +629,7 @@ class TrainingManager:
                         trend = "📉 下降"
                     elif recent_losses[-1] > recent_losses[0]:
                         trend = "📈 上升"
-                    else:
+                    else:   
                         trend = "➡️  平稳"
                     print(f"   📈 Loss趋势: {trend}")
             else:
@@ -716,7 +715,7 @@ def main(args):
     ppo = UniversalPPOWithBuffer(
         buffer_size=args.buffer_size, 
         batch_size=args.batch_size,
-        lr=args.lr, 
+                                lr=args.lr,
         gamma=args.gamma,
         gae_lambda=0.95,
         clip_epsilon=args.clip_epsilon,
@@ -803,7 +802,7 @@ def main(args):
                 for param_group in ppo.critic_optimizer.param_groups:
                     param_group['lr'] = args.resume_lr
                 print(f"更新学习率为 {args.resume_lr}")
-            
+
     # 运行训练循环
     run_training_loop(args, envs, sync_env, ppo, single_gnn_embed, training_manager, num_joints, start_step)
     training_results = collect_training_results(training_manager)
@@ -953,7 +952,7 @@ def run_training_loop(args, envs, sync_env, ppo, single_gnn_embed, training_mana
                         actions.append(action)
                         log_probs.append(log_prob)
                         values.append(value)
-                    
+                        
                     action_batch = torch.stack(actions)
                     log_prob_batch = torch.stack(log_probs) if log_probs[0] is not None else None
                     value_batch = torch.stack(values)
@@ -1098,8 +1097,8 @@ def run_training_loop(args, envs, sync_env, ppo, single_gnn_embed, training_mana
 def cleanup_resources(sync_env, logger, model_manager, training_manager):
     """清理资源"""
     if sync_env:
-        sync_env.close()
-    
+            sync_env.close()
+            
     # 🔧 修复：保存最终成功的模型
     if training_manager.best_success_rate > 0:
         print(f"💾 保存最终成功模型...")
@@ -1245,11 +1244,11 @@ def test_trained_model(model_path, num_episodes=10, render=True):
             if step_count % 100 == 0 or step_count < 5:
                 # 在测试循环中使用PPO获取动作
                 action, _, _ = ppo.get_action(
-                    torch.from_numpy(obs).float(),
-                    gnn_embed.squeeze(0),
-                    num_joints=num_joints,
-                    deterministic=True  # 测试时使用确定性策略
-                )
+                torch.from_numpy(obs).float(),
+                gnn_embed.squeeze(0),
+                num_joints=num_joints,
+                deterministic=True  # 测试时使用确定性策略
+            )
                 print(f"   Step {step_count}: PPO Action = {action.detach().cpu().numpy()}")
                 print(f"   Step {step_count}: 末端位置 = {env._get_end_effector_position()}")
                 
@@ -1265,7 +1264,7 @@ def test_trained_model(model_path, num_episodes=10, render=True):
                     gnn_embed.squeeze(0),
                     num_joints=num_joints,
                     deterministic=True
-                )
+            )
             
             # 执行动作
             obs, reward, done, info = env.step(action.cpu().numpy())

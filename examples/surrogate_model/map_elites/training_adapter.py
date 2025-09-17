@@ -18,8 +18,13 @@ try:
     from enhanced_train_interface import MAPElitesTrainingInterface
     REAL_TRAINING_AVAILABLE = True
 except ImportError:
-    print("⚠️  真实训练接口不可用，将使用模拟训练")
-    REAL_TRAINING_AVAILABLE = False
+    try:
+        from enhanced_train_interface_bypass import MAPElitesTrainingInterface
+        REAL_TRAINING_AVAILABLE = True
+        print("⚠️  使用绕过版本的训练接口")
+    except ImportError:
+        print("⚠️  真实训练接口不可用，将使用模拟训练")
+        REAL_TRAINING_AVAILABLE = False
 
 
 class MAPElitesTrainingAdapter:

@@ -1,0 +1,1 @@
+['examples/surrogate_model/enhanced_train.py', '--env-name', 'reacher2d', '--seed', '42', '--num-processes', '1', '--lr', '0.0003', '--gamma', '0.99', '--batch-size', '64', '--total-steps', '200', '--save-dir', './temp_test', '--no-cuda', '--num-joints', '3', '--link-lengths', '60.0', '40.0', '30.0', '--render']
