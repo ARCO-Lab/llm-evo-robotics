@@ -9,6 +9,10 @@ import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
 import os
+
+# 🔇 静默模式控制
+SILENT_MODE = os.environ.get('TRAIN_SILENT', '0') == '1'
+import os
 import sys
 from collections import deque
 from torch.distributions import Normal
@@ -501,7 +505,8 @@ class UniversalPPOWithBuffer:
                 self.actor.log_std_base.data.fill_(-2.0)
         
         if metrics['critic_loss'] > 5.0:  # Critic loss过高
-            print(f"🚨 Critic loss异常高 {metrics['critic_loss']:.2f}，降低学习率")
+            if not SILENT_MODE:
+                print(f"🚨 Critic loss异常高 {metrics['critic_loss']:.2f}，降低学习率")
             for param_group in self.critic_optimizer.param_groups:
                 param_group['lr'] *= 0.3
         

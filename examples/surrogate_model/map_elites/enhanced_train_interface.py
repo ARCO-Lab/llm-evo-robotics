@@ -18,7 +18,11 @@ import tempfile
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 # 由于enhanced_train.py存在语法错误，直接使用subprocess方式调用
-print("🔧 使用subprocess方式调用enhanced_train.py，绕过导入问题")
+# 静默模式检查
+SILENT_MODE = os.environ.get('TRAIN_SILENT', '0') == '1'
+
+if not SILENT_MODE:
+    print("🔧 使用subprocess方式调用enhanced_train.py，绕过导入问题")
 ENHANCED_TRAIN_AVAILABLE = False
 
 
@@ -57,7 +61,8 @@ class MAPElitesTrainingInterface:
         #     return self._call_enhanced_train_subprocess(training_args)
         
         # 🔧 临时解决方案：使用subprocess调用，绕过语法错误
-        print("🔧 使用subprocess方式调用enhanced_train.py进行真实训练")
+        if not SILENT_MODE:
+            print("🔧 使用subprocess方式调用enhanced_train.py进行真实训练")
         return self._call_enhanced_train_subprocess(training_args)
     
     def _call_enhanced_train_directly(self, args) -> Dict[str, Any]:
@@ -66,11 +71,14 @@ class MAPElitesTrainingInterface:
         # 🔧 关键修复：设置正确的数据类型
         torch.set_default_dtype(torch.float64)
         
-        # 🔧 修复：只在真正需要静默时才设置环境变量
+        # 🔧 修复：明确设置静默模式环境变量
         if self.silent_mode:
             os.environ['TRAIN_SILENT'] = '1'
             os.environ['REACHER_LOG_LEVEL'] = 'SILENT'
-        # 如果不是静默模式，不设置任何抑制环境变量，让训练正常输出
+        else:
+            # 🔧 非静默模式时明确设置为允许输出
+            os.environ['TRAIN_SILENT'] = '0'
+            os.environ.pop('REACHER_LOG_LEVEL', None)  # 移除静默设置
         
         try:
             # 创建修改后的参数对象

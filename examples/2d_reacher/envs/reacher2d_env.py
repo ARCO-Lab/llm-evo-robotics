@@ -14,6 +14,10 @@ import pygame
 import math
 import yaml
 import os
+
+# 🔇 静默模式控制
+SILENT_MODE = os.environ.get('TRAIN_SILENT', '0') == '1'
+import os
 import sys
 import logging
 from typing import Optional, Tuple, Dict, Any
@@ -769,7 +773,7 @@ class Reacher2DEnv(Env):
         usage_balance_reward = np.clip(usage_balance_reward, -0.05, 0.1)
         
         # 🔍 调试信息
-        if self.step_count <= 10 or self.step_count % 100 == 0:
+        if not SILENT_MODE and (self.step_count <= 10 or self.step_count % 100 == 0):
             print(f"🔍 [JOINT_USAGE] 第一关节变化={first_joint_change:.4f}, 平衡奖励={usage_balance_reward:.3f}")
         
         return usage_balance_reward

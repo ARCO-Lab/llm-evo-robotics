@@ -139,7 +139,8 @@ class ModelManager:
             latest_file = os.path.join(self.best_models_dir, 'latest_best_model.pth')
             torch.save(model_data, latest_file)
             
-            print(f"🏆 保存最佳PPO模型: 成功率 {success_rate:.3f}, 距离 {min_distance:.1f}, 步骤 {step}")
+            if not SILENT_MODE:
+                print(f"🏆 保存最佳PPO模型: 成功率 {success_rate:.3f}, 距离 {min_distance:.1f}, 步骤 {step}")
             return True
         except Exception as e:
             print(f"❌ 保存PPO模型失败: {e}")
@@ -154,10 +155,12 @@ class ModelManager:
             # 只有在性能改善时才保存
             if current_best_distance < best_min_distance:
                 success_rate = kwargs.get('best_success_rate', 0.0)
-                print(f"🏆 发现更好性能，保存最佳模型: {current_best_distance:.1f}px")
+                if not SILENT_MODE:
+                    print(f"🏆 发现更好性能，保存最佳模型: {current_best_distance:.1f}px")
                 return self.save_best_model(ppo, success_rate, current_best_distance, step)
             else:
-                print(f"⏭️  性能未改善 ({current_best_distance:.1f}px >= {best_min_distance:.1f}px)，跳过保存")
+                if not SILENT_MODE:
+                    print(f"⏭️  性能未改善 ({current_best_distance:.1f}px >= {best_min_distance:.1f}px)，跳过保存")
                 return False
         except Exception as e:
             print(f"❌ 保存失败: {e}")
@@ -595,16 +598,17 @@ class TrainingManager:
             
             self.logger.log_step(step, enhanced_metrics, episode=step//100)
             
-            # 🔧 增强版loss打印 - 每次更新都打印
-            print(f"\n🔥 PPO网络Loss更新 [Step {step}]:")
-            print(f"   📊 Actor Loss: {metrics['actor_loss']:.6f}")
-            print(f"   📊 Critic Loss: {metrics['critic_loss']:.6f}")
-            print(f"   📊 总Loss: {metrics['actor_loss'] + metrics['critic_loss']:.6f}")
-            print(f"   🎭 Entropy: {metrics['entropy']:.6f}")
-            print(f"   📈 学习率: {self.ppo.actor_optimizer.param_groups[0]['lr']:.2e}")
-            print(f"   🔄 更新次数: {metrics['update_count']}")
-            # print(f"   💾 Buffer大小: {len(self.ppo.buffer.joint_q)}")
-            print(f"   💾 Buffer大小: {len(self.ppo.buffer.experiences)}")
+            # 🔧 增强版loss打印 - 每次更新都打印（静默模式下不打印）
+            if not SILENT_MODE:
+                print(f"\n🔥 PPO网络Loss更新 [Step {step}]:")
+                print(f"   📊 Actor Loss: {metrics['actor_loss']:.6f}")
+                print(f"   📊 Critic Loss: {metrics['critic_loss']:.6f}")
+                print(f"   📊 总Loss: {metrics['actor_loss'] + metrics['critic_loss']:.6f}")
+                print(f"   🎭 Entropy: {metrics['entropy']:.6f}")
+                print(f"   📈 学习率: {self.ppo.actor_optimizer.param_groups[0]['lr']:.2e}")
+                print(f"   🔄 更新次数: {metrics['update_count']}")
+                # print(f"   💾 Buffer大小: {len(self.ppo.buffer.joint_q)}")
+                print(f"   💾 Buffer大小: {len(self.ppo.buffer.experiences)}")
             
             # 🔧 添加梯度范数信息（如果可用）
             if 'actor_grad_norm' in metrics:
@@ -905,7 +909,8 @@ def run_training_loop(args, envs, sync_env, ppo, single_gnn_embed, training_mana
     try:
         # Episodes循环
         for episode_num in range(max_episodes):
-            print(f"\n🎯 开始PPO Episode {episode_num + 1}/{max_episodes}")
+            if not SILENT_MODE:
+                print(f"\n🎯 开始PPO Episode {episode_num + 1}/{max_episodes}")
             
             print(f"🔄 重置环境开始Episode {episode_num + 1}...")
             current_obs = envs.reset()
@@ -962,7 +967,8 @@ def run_training_loop(args, envs, sync_env, ppo, single_gnn_embed, training_mana
                 if episode_step % 50 == 0 or episode_step < 20:
                     if hasattr(envs, 'envs') and len(envs.envs) > 0:
                         env_goal = getattr(envs.envs[0], 'goal_pos', 'NOT FOUND')
-                        print(f"🎯 [PPO Episode {episode_num+1}] Step {episode_step} - 环境goal_pos: {env_goal}")
+                        if not SILENT_MODE:
+                            print(f"🎯 [PPO Episode {episode_num+1}] Step {episode_step} - 环境goal_pos: {env_goal}")
 
                 # 执行动作
                 next_obs, reward, done, infos = envs.step(action_batch)
@@ -1070,7 +1076,8 @@ def run_training_loop(args, envs, sync_env, ppo, single_gnn_embed, training_mana
                     # 如果保存成功，更新最佳记录
                     if saved:
                         training_manager.best_min_distance = current_best_distance
-                        print(f"📈 更新全局最佳距离: {current_best_distance:.1f}px")
+                        if not SILENT_MODE:
+                            print(f"📈 更新全局最佳距离: {current_best_distance:.1f}px")
 
                 # 🔧 定期训练报告 - 每500步打印一次详细信息
                 if global_step % 500 == 0 and global_step > 0:
@@ -1081,24 +1088,25 @@ def run_training_loop(args, envs, sync_env, ppo, single_gnn_embed, training_mana
                     else:
                         current_success_rate = 0.0
                     
-                    print(f"\n{'='*60}")
-                    print(f"📊 PPO训练进度报告 [Step {global_step}]")
-                    print(f"{'='*60}")
-                    print(f"🎯 当前Episode: {episode_num + 1}/2")
-                    print(f"📈 Episode内步数: {episode_step}")
-                    print(f"🏆 当前最佳距离: {training_manager.best_min_distance:.1f}px")
-                    print(f"📊 当前Episode最佳距离: {training_manager.current_episode_best_distance:.1f}px")
-                    print(f"✅ 当前成功率: {current_success_rate:.1%}")
-                    print(f"🔄 连续成功次数: {training_manager.consecutive_success_count}")
-                    if hasattr(training_manager, 'episode_results'):
-                        print(f"📋 已完成Episodes: {len(training_manager.episode_results)}")
-                    
-                    # PPO模型状态
-                    print(f"🤖 PPO模型状态:")
-                    print(f"   📈 学习率: {training_manager.ppo.actor_optimizer.param_groups[0]['lr']:.2e}")
-                    print(f"   🔄 更新次数: {training_manager.ppo.update_count}")
-                    print(f"   💾 Buffer大小: {len(training_manager.ppo.buffer.experiences)}")
-                    print(f"{'='*60}\n")
+                    if not SILENT_MODE:
+                        print(f"\n{'='*60}")
+                        print(f"📊 PPO训练进度报告 [Step {global_step}]")
+                        print(f"{'='*60}")
+                        print(f"🎯 当前Episode: {episode_num + 1}/2")
+                        print(f"📈 Episode内步数: {episode_step}")
+                        print(f"🏆 当前最佳距离: {training_manager.best_min_distance:.1f}px")
+                        print(f"📊 当前Episode最佳距离: {training_manager.current_episode_best_distance:.1f}px")
+                        print(f"✅ 当前成功率: {current_success_rate:.1%}")
+                        print(f"🔄 连续成功次数: {training_manager.consecutive_success_count}")
+                        if hasattr(training_manager, 'episode_results'):
+                            print(f"📋 已完成Episodes: {len(training_manager.episode_results)}")
+                        
+                        # PPO模型状态
+                        print(f"🤖 PPO模型状态:")
+                        print(f"   📈 学习率: {training_manager.ppo.actor_optimizer.param_groups[0]['lr']:.2e}")
+                        print(f"   🔄 更新次数: {training_manager.ppo.update_count}")
+                        print(f"   💾 Buffer大小: {len(training_manager.ppo.buffer.experiences)}")
+                        print(f"{'='*60}\n")
 
                 # 低频日志记录和图表生成
                 if global_step % 2000 == 0 and global_step > 0:

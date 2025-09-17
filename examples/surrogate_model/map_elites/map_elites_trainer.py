@@ -34,6 +34,14 @@ import argparse
 from map_elites_core import Individual , RobotGenotype, RobotPhenotype
 from training_adapter import MAPElitesTrainingAdapter
 
+# 🔇 全局静默模式控制
+GLOBAL_SILENT_MODE = False
+
+def silent_print(*args, **kwargs):
+    """静默模式下的打印函数"""
+    if not GLOBAL_SILENT_MODE:
+        print(*args, **kwargs)
+
 def init_worker_process():
     import signal
     import os
@@ -65,8 +73,8 @@ def evaluate_individual_isolated(individual_data, base_args_dict, training_steps
         enable_rendering = base_args_dict.get('enable_rendering', False)
         silent_mode = base_args_dict.get('silent_mode', False)  # 🔧 修复：默认不静默
         
-        print(f"🎨 进程 {process_id} 接收参数: rendering={enable_rendering}, silent={silent_mode}")
-        print(f"进程 {process_id}开始训练个体 {individual_data['individual_id']}")
+        silent_print(f"🎨 进程 {process_id} 接收参数: rendering={enable_rendering}, silent={silent_mode}")
+        silent_print(f"进程 {process_id}开始训练个体 {individual_data['individual_id']}")
         base_args = argparse.Namespace(**base_args_dict)
 
         genotype = RobotGenotype(
@@ -90,7 +98,7 @@ def evaluate_individual_isolated(individual_data, base_args_dict, training_steps
             use_genetic_fitness = True
         )
         result = adapter.evaluate_individual(individual, training_steps)
-        print(f"✅ 进程 {process_id} 完成训练个体 {individual_data['individual_id']}, fitness: {result.fitness:.3f}")
+        silent_print(f"✅ 进程 {process_id} 完成训练个体 {individual_data['individual_id']}, fitness: {result.fitness:.3f}")
 
         return {
             'individual_id': result.individual_id,
@@ -112,7 +120,7 @@ def evaluate_individual_isolated(individual_data, base_args_dict, training_steps
         }
         
     except Exception as e:
-        print(f"❌ 进程 {os.getpid()} 训练个体 {individual_data['individual_id']} 失败: {e}")
+        silent_print(f"❌ 进程 {os.getpid()} 训练个体 {individual_data['individual_id']} 失败: {e}")
         traceback.print_exc()
         return None
 
@@ -226,15 +234,15 @@ class MAPElitesEvolutionTrainer:
         )
 
         if enable_multiprocess:
-            print(f"🔄 启用多进程训练 (最大进程数: {self.max_workers})")
+            silent_print(f"🔄 启用多进程训练 (最大进程数: {self.max_workers})")
         else:
-            print("🔄 使用单进程训练")
+            silent_print("🔄 使用单进程训练")
 
-        print("🧬 MAP-Elites进化训练器已初始化")
-        print(f"🎯 Fitness评估: {'遗传算法分层系统' if use_genetic_fitness else '传统平均奖励'}")
-        print(f"🎨 环境渲染: {'启用' if enable_rendering else '禁用'}")
-        print(f"📊 数据可视化: {'启用' if self.enable_visualization else '禁用'}")
-        print(f"🤝 PPO训练: {'共享模式' if self.use_shared_ppo else '独立模式'}")
+        silent_print("🧬 MAP-Elites进化训练器已初始化")
+        silent_print(f"🎯 Fitness评估: {'遗传算法分层系统' if use_genetic_fitness else '传统平均奖励'}")
+        silent_print(f"🎨 环境渲染: {'启用' if enable_rendering else '禁用'}")
+        silent_print(f"📊 数据可视化: {'启用' if self.enable_visualization else '禁用'}")
+        silent_print(f"🤝 PPO训练: {'共享模式' if self.use_shared_ppo else '独立模式'}")
 
     
     def run_evolution(self, num_generations: int = 50, individuals_per_generation: int = 10):
@@ -1123,7 +1131,11 @@ def start_multiprocess_rendering_training():
         print("🔧 检测到 --no-render 参数，禁用渲染")
     if '--silent' in sys.argv:
         silent_mode = True
-        print("🔧 检测到 --silent 参数，启用静默模式")
+        # 🔇 设置全局静默模式
+        global GLOBAL_SILENT_MODE
+        GLOBAL_SILENT_MODE = True
+        # 在设置静默模式前最后一次输出
+        print("🔇 启用静默模式 - 后续将无输出")
     
     # 🚀 多进程设置 - 4个进程
     enable_multiprocess = True
@@ -1218,7 +1230,11 @@ def start_shared_ppo_training():
         print("🔧 检测到 --no-render 参数，禁用可视化")
     if '--silent' in sys.argv:
         silent_mode = True
-        print("🔧 检测到 --silent 参数，启用静默模式")
+        # 🔇 设置全局静默模式
+        global GLOBAL_SILENT_MODE
+        GLOBAL_SILENT_MODE = True
+        # 在设置静默模式前最后一次输出
+        print("🔇 启用静默模式 - 后续将无输出")
     if '--resume' in sys.argv:
         resume_training = True
         print("🔧 检测到 --resume 参数，将尝试加载已保存的模型继续训练")
@@ -1243,16 +1259,16 @@ def start_shared_ppo_training():
     test_mode = '--test-quick' in sys.argv
     training_steps = 50 if test_mode else 500
     
-    print(f"📊 共享PPO训练配置:")
-    print(f"   初始种群: 4个个体 (支持并行可视化)")
-    print(f"   每个体训练步数: {training_steps}步")
-    print(f"   进化代数: 3代")
-    print(f"   每代新个体: 2个")
-    print(f"   多进程: {'启用' if enable_multiprocess else '禁用'} ({max_workers}个工作进程)")
-    print(f"   共享PPO: 启用")
-    print(f"   可视化: {'启用' if enable_rendering else '禁用'}")
-    print(f"   详细输出: {'启用' if not silent_mode else '禁用'}")
-    print(f"   保存目录: {base_args.save_dir}")
+    silent_print(f"📊 共享PPO训练配置:")
+    silent_print(f"   初始种群: 4个个体 (支持并行可视化)")
+    silent_print(f"   每个体训练步数: {training_steps}步")
+    silent_print(f"   进化代数: 3代")
+    silent_print(f"   每代新个体: 2个")
+    silent_print(f"   多进程: {'启用' if enable_multiprocess else '禁用'} ({max_workers}个工作进程)")
+    silent_print(f"   共享PPO: 启用")
+    silent_print(f"   可视化: {'启用' if enable_rendering else '禁用'}")
+    silent_print(f"   详细输出: {'启用' if not silent_mode else '禁用'}")
+    silent_print(f"   保存目录: {base_args.save_dir}")
     
     # 创建训练器
     trainer = MAPElitesEvolutionTrainer(
@@ -1526,22 +1542,22 @@ if __name__ == "__main__":
             
         elif sys.argv[1] == '--train':
             # 🆕 启动真实训练
-            print("🚀 启动MAP-Elites真实训练")
+            silent_print("🚀 启动MAP-Elites真实训练")
             start_real_training()
             
         elif sys.argv[1] == '--train-advanced':
             # 🆕 启动高级训练
-            print("🚀 启动MAP-Elites高级训练")
+            silent_print("🚀 启动MAP-Elites高级训练")
             start_advanced_training()
             
         elif sys.argv[1] == '--train-shared':
             # 🆕 启动共享PPO训练
-            print("🚀 启动MAP-Elites共享PPO训练")
+            silent_print("🚀 启动MAP-Elites共享PPO训练")
             start_shared_ppo_training()
             
         elif sys.argv[1] == '--train-multiprocess':
             # 🆕 启动4进程+渲染训练
-            print("🚀 启动MAP-Elites多进程渲染训练")
+            silent_print("🚀 启动MAP-Elites多进程渲染训练")
             start_multiprocess_rendering_training()
             
         else:
@@ -1568,5 +1584,5 @@ if __name__ == "__main__":
             print("   python map_elites_trainer.py --train-multiprocess --silent  # 4进程静默模式")
     else:
         # 默认运行真实训练
-        print("🚀 启动MAP-Elites真实训练 (默认模式)")
+        silent_print("🚀 启动MAP-Elites真实训练 (默认模式)")
         start_real_training()
