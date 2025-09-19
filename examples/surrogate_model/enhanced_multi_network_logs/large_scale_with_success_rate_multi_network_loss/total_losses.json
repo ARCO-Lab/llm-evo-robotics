@@ -14686,5 +14686,4285 @@
     "attention_component": 0.6312259524083648,
     "gnn_component": 0.6167816166985904,
     "sac_component": 0.02
+  },
+  {
+    "step": 14000,
+    "timestamp": 1758257953.9564626,
+    "datetime": "2025-09-19T00:59:13.956486",
+    "total_loss": 28.92481315963008,
+    "ppo_component": 27.873107,
+    "attention_component": 0.5690128174933923,
+    "gnn_component": 0.4626933421366898,
+    "sac_component": 0.02
+  },
+  {
+    "step": 14500,
+    "timestamp": 1758257953.956908,
+    "datetime": "2025-09-19T00:59:13.956917",
+    "total_loss": 26.926663276704424,
+    "ppo_component": 25.877485999999998,
+    "attention_component": 0.5792724730012644,
+    "gnn_component": 0.44990480370316255,
+    "sac_component": 0.02
+  },
+  {
+    "step": 15000,
+    "timestamp": 1758257953.9573426,
+    "datetime": "2025-09-19T00:59:13.957351",
+    "total_loss": 29.00424114218607,
+    "ppo_component": 28.182862999999998,
+    "attention_component": 0.5673355088997087,
+    "gnn_component": 0.23404263328636377,
+    "sac_component": 0.02
+  },
+  {
+    "step": 15500,
+    "timestamp": 1758257956.6716533,
+    "datetime": "2025-09-19T00:59:16.671669",
+    "total_loss": 28.41366550086982,
+    "ppo_component": 27.860481,
+    "attention_component": 0.43318450086981763,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 16000,
+    "timestamp": 1758257956.672156,
+    "datetime": "2025-09-19T00:59:16.672166",
+    "total_loss": 28.099707083490145,
+    "ppo_component": 27.482364999999998,
+    "attention_component": 0.49734208349014436,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 16500,
+    "timestamp": 1758257958.698299,
+    "datetime": "2025-09-19T00:59:18.698317",
+    "total_loss": 27.245098327793702,
+    "ppo_component": 26.71659,
+    "attention_component": 0.4085083277937019,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 17000,
+    "timestamp": 1758257958.6987536,
+    "datetime": "2025-09-19T00:59:18.698762",
+    "total_loss": 27.067664293916064,
+    "ppo_component": 26.556766,
+    "attention_component": 0.39089829391606146,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 17500,
+    "timestamp": 1758257958.6991951,
+    "datetime": "2025-09-19T00:59:18.699203",
+    "total_loss": 29.438963474921444,
+    "ppo_component": 28.972607999999997,
+    "attention_component": 0.34635547492144547,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 18000,
+    "timestamp": 1758257961.4052277,
+    "datetime": "2025-09-19T00:59:21.405258",
+    "total_loss": 26.934642486163465,
+    "ppo_component": 26.659103,
+    "attention_component": 0.15553948616346316,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 18500,
+    "timestamp": 1758257961.4057164,
+    "datetime": "2025-09-19T00:59:21.405724",
+    "total_loss": 28.64470811160882,
+    "ppo_component": 28.315602000000002,
+    "attention_component": 0.20910611160881754,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 19000,
+    "timestamp": 1758257963.5686872,
+    "datetime": "2025-09-19T00:59:23.568705",
+    "total_loss": 29.541811212919114,
+    "ppo_component": 29.316276,
+    "attention_component": 0.10553521291911634,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 19500,
+    "timestamp": 1758257963.569196,
+    "datetime": "2025-09-19T00:59:23.569206",
+    "total_loss": 30.589959,
+    "ppo_component": 30.419959,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 20000,
+    "timestamp": 1758257963.5695927,
+    "datetime": "2025-09-19T00:59:23.569601",
+    "total_loss": 30.159972000000003,
+    "ppo_component": 29.989972,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 20500,
+    "timestamp": 1758257966.1468573,
+    "datetime": "2025-09-19T00:59:26.146875",
+    "total_loss": 27.448142,
+    "ppo_component": 27.278142,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 21000,
+    "timestamp": 1758257966.147309,
+    "datetime": "2025-09-19T00:59:26.147319",
+    "total_loss": 28.343863000000002,
+    "ppo_component": 28.173863,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 21500,
+    "timestamp": 1758257968.9231849,
+    "datetime": "2025-09-19T00:59:28.923213",
+    "total_loss": 26.725556,
+    "ppo_component": 26.555556,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 22000,
+    "timestamp": 1758257968.9242587,
+    "datetime": "2025-09-19T00:59:28.924285",
+    "total_loss": 28.386281,
+    "ppo_component": 28.216281,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 22500,
+    "timestamp": 1758257970.9484932,
+    "datetime": "2025-09-19T00:59:30.948514",
+    "total_loss": 26.712458,
+    "ppo_component": 26.542458,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 23000,
+    "timestamp": 1758257970.9490345,
+    "datetime": "2025-09-19T00:59:30.949044",
+    "total_loss": 27.214563000000002,
+    "ppo_component": 27.044563,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 23500,
+    "timestamp": 1758257970.9495184,
+    "datetime": "2025-09-19T00:59:30.949525",
+    "total_loss": 27.507049,
+    "ppo_component": 27.337048999999997,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 24000,
+    "timestamp": 1758257973.7124054,
+    "datetime": "2025-09-19T00:59:33.712424",
+    "total_loss": 27.110128,
+    "ppo_component": 26.940127999999998,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 24500,
+    "timestamp": 1758257973.7128963,
+    "datetime": "2025-09-19T00:59:33.712904",
+    "total_loss": 27.074127,
+    "ppo_component": 26.904127,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 25000,
+    "timestamp": 1758257975.8216877,
+    "datetime": "2025-09-19T00:59:35.821708",
+    "total_loss": 26.356748,
+    "ppo_component": 26.186747999999998,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 25500,
+    "timestamp": 1758257975.8221052,
+    "datetime": "2025-09-19T00:59:35.822113",
+    "total_loss": 26.029923,
+    "ppo_component": 25.859923,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 26000,
+    "timestamp": 1758257978.3993223,
+    "datetime": "2025-09-19T00:59:38.399341",
+    "total_loss": 28.677922000000002,
+    "ppo_component": 28.507922,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 26500,
+    "timestamp": 1758257978.3998551,
+    "datetime": "2025-09-19T00:59:38.399866",
+    "total_loss": 29.304435,
+    "ppo_component": 29.134435,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 27000,
+    "timestamp": 1758257980.6975038,
+    "datetime": "2025-09-19T00:59:40.697530",
+    "total_loss": 29.937002000000003,
+    "ppo_component": 29.767002,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 27500,
+    "timestamp": 1758257980.6980364,
+    "datetime": "2025-09-19T00:59:40.698046",
+    "total_loss": 26.600647000000002,
+    "ppo_component": 26.430647,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 28000,
+    "timestamp": 1758257980.6984866,
+    "datetime": "2025-09-19T00:59:40.698495",
+    "total_loss": 27.12941,
+    "ppo_component": 26.95941,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 28500,
+    "timestamp": 1758257982.8351963,
+    "datetime": "2025-09-19T00:59:42.835213",
+    "total_loss": 28.057075000000005,
+    "ppo_component": 27.887075000000003,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 29000,
+    "timestamp": 1758257982.835841,
+    "datetime": "2025-09-19T00:59:42.835852",
+    "total_loss": 28.582591,
+    "ppo_component": 28.412591,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 29500,
+    "timestamp": 1758257985.350615,
+    "datetime": "2025-09-19T00:59:45.350641",
+    "total_loss": 26.952929000000005,
+    "ppo_component": 26.782929000000003,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 30000,
+    "timestamp": 1758257985.3515627,
+    "datetime": "2025-09-19T00:59:45.351584",
+    "total_loss": 26.599723,
+    "ppo_component": 26.429723,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 30500,
+    "timestamp": 1758257987.1910837,
+    "datetime": "2025-09-19T00:59:47.191116",
+    "total_loss": 26.577821000000004,
+    "ppo_component": 26.407821000000002,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 31000,
+    "timestamp": 1758257987.192119,
+    "datetime": "2025-09-19T00:59:47.192138",
+    "total_loss": 28.292541000000003,
+    "ppo_component": 28.122541000000002,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 31500,
+    "timestamp": 1758257987.193097,
+    "datetime": "2025-09-19T00:59:47.193116",
+    "total_loss": 26.105567,
+    "ppo_component": 25.935567,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 32000,
+    "timestamp": 1758257989.5484295,
+    "datetime": "2025-09-19T00:59:49.548452",
+    "total_loss": 27.242701000000004,
+    "ppo_component": 27.072701000000002,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 32500,
+    "timestamp": 1758257989.5494199,
+    "datetime": "2025-09-19T00:59:49.549441",
+    "total_loss": 28.132106,
+    "ppo_component": 27.962106,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 33000,
+    "timestamp": 1758257991.6516695,
+    "datetime": "2025-09-19T00:59:51.651694",
+    "total_loss": 27.188049,
+    "ppo_component": 27.018048999999998,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 33500,
+    "timestamp": 1758257991.6527355,
+    "datetime": "2025-09-19T00:59:51.652758",
+    "total_loss": 26.876998000000004,
+    "ppo_component": 26.706998000000002,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 34000,
+    "timestamp": 1758257994.1246939,
+    "datetime": "2025-09-19T00:59:54.124712",
+    "total_loss": 26.608174,
+    "ppo_component": 26.438174,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 34500,
+    "timestamp": 1758257994.125226,
+    "datetime": "2025-09-19T00:59:54.125236",
+    "total_loss": 27.330322000000002,
+    "ppo_component": 27.160322,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 35000,
+    "timestamp": 1758257996.0136468,
+    "datetime": "2025-09-19T00:59:56.013670",
+    "total_loss": 28.275913000000003,
+    "ppo_component": 28.105913,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 35500,
+    "timestamp": 1758257996.0141506,
+    "datetime": "2025-09-19T00:59:56.014159",
+    "total_loss": 27.030913,
+    "ppo_component": 26.860913,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 36000,
+    "timestamp": 1758257996.0145595,
+    "datetime": "2025-09-19T00:59:56.014569",
+    "total_loss": 26.160259,
+    "ppo_component": 25.990259,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 36500,
+    "timestamp": 1758257998.6069076,
+    "datetime": "2025-09-19T00:59:58.606926",
+    "total_loss": 27.218405000000004,
+    "ppo_component": 27.048405000000002,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 37000,
+    "timestamp": 1758257998.6073751,
+    "datetime": "2025-09-19T00:59:58.607383",
+    "total_loss": 27.125580000000003,
+    "ppo_component": 26.95558,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 37500,
+    "timestamp": 1758258000.922168,
+    "datetime": "2025-09-19T01:00:00.922226",
+    "total_loss": 29.821634000000003,
+    "ppo_component": 29.651634,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 38000,
+    "timestamp": 1758258000.922709,
+    "datetime": "2025-09-19T01:00:00.922717",
+    "total_loss": 27.052775,
+    "ppo_component": 26.882775,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 38500,
+    "timestamp": 1758258003.0114958,
+    "datetime": "2025-09-19T01:00:03.011520",
+    "total_loss": 27.209480000000003,
+    "ppo_component": 27.03948,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 39000,
+    "timestamp": 1758258003.0124598,
+    "datetime": "2025-09-19T01:00:03.012481",
+    "total_loss": 30.618301000000002,
+    "ppo_component": 30.448301,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 39500,
+    "timestamp": 1758258005.244691,
+    "datetime": "2025-09-19T01:00:05.244720",
+    "total_loss": 27.779933,
+    "ppo_component": 27.609932999999998,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 40000,
+    "timestamp": 1758258005.245172,
+    "datetime": "2025-09-19T01:00:05.245180",
+    "total_loss": 27.946537000000003,
+    "ppo_component": 27.776537,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 40500,
+    "timestamp": 1758258005.2456827,
+    "datetime": "2025-09-19T01:00:05.245690",
+    "total_loss": 27.146980000000003,
+    "ppo_component": 26.97698,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 41000,
+    "timestamp": 1758258007.2445552,
+    "datetime": "2025-09-19T01:00:07.244581",
+    "total_loss": 29.42283,
+    "ppo_component": 29.25283,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 41500,
+    "timestamp": 1758258007.2449865,
+    "datetime": "2025-09-19T01:00:07.244994",
+    "total_loss": 28.214815,
+    "ppo_component": 28.044815,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 42000,
+    "timestamp": 1758258009.8017967,
+    "datetime": "2025-09-19T01:00:09.801814",
+    "total_loss": 26.233033,
+    "ppo_component": 26.063032999999997,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 42500,
+    "timestamp": 1758258009.8022935,
+    "datetime": "2025-09-19T01:00:09.802303",
+    "total_loss": 26.895151000000002,
+    "ppo_component": 26.725151,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 43000,
+    "timestamp": 1758258011.8563416,
+    "datetime": "2025-09-19T01:00:11.856358",
+    "total_loss": 28.296233,
+    "ppo_component": 28.126233,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 43500,
+    "timestamp": 1758258011.8568985,
+    "datetime": "2025-09-19T01:00:11.856910",
+    "total_loss": 26.984505000000002,
+    "ppo_component": 26.814505,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 44000,
+    "timestamp": 1758258014.1052117,
+    "datetime": "2025-09-19T01:00:14.105252",
+    "total_loss": 29.02973,
+    "ppo_component": 28.85973,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 44500,
+    "timestamp": 1758258014.1057723,
+    "datetime": "2025-09-19T01:00:14.105781",
+    "total_loss": 27.584460000000004,
+    "ppo_component": 27.414460000000002,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 45000,
+    "timestamp": 1758258014.1062143,
+    "datetime": "2025-09-19T01:00:14.106224",
+    "total_loss": 26.766669,
+    "ppo_component": 26.596669,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 45500,
+    "timestamp": 1758258016.6110113,
+    "datetime": "2025-09-19T01:00:16.611027",
+    "total_loss": 27.728979000000002,
+    "ppo_component": 27.558979,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 46000,
+    "timestamp": 1758258016.6115177,
+    "datetime": "2025-09-19T01:00:16.611528",
+    "total_loss": 26.181224000000004,
+    "ppo_component": 26.011224000000002,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 46500,
+    "timestamp": 1758258018.8500967,
+    "datetime": "2025-09-19T01:00:18.850117",
+    "total_loss": 27.105374,
+    "ppo_component": 26.935374,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 47000,
+    "timestamp": 1758258018.8505924,
+    "datetime": "2025-09-19T01:00:18.850600",
+    "total_loss": 26.831393000000002,
+    "ppo_component": 26.661393,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 47500,
+    "timestamp": 1758258021.2737854,
+    "datetime": "2025-09-19T01:00:21.273801",
+    "total_loss": 27.631071000000002,
+    "ppo_component": 27.461071,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 48000,
+    "timestamp": 1758258021.2743075,
+    "datetime": "2025-09-19T01:00:21.274317",
+    "total_loss": 26.740552000000005,
+    "ppo_component": 26.570552000000003,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 48500,
+    "timestamp": 1758258023.1885765,
+    "datetime": "2025-09-19T01:00:23.188608",
+    "total_loss": 28.010851,
+    "ppo_component": 27.840850999999997,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 49000,
+    "timestamp": 1758258023.1891208,
+    "datetime": "2025-09-19T01:00:23.189131",
+    "total_loss": 25.350663,
+    "ppo_component": 25.180663,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 49500,
+    "timestamp": 1758258023.1895936,
+    "datetime": "2025-09-19T01:00:23.189602",
+    "total_loss": 28.767691,
+    "ppo_component": 28.597690999999998,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 50000,
+    "timestamp": 1758258025.648721,
+    "datetime": "2025-09-19T01:00:25.648738",
+    "total_loss": 28.533522,
+    "ppo_component": 28.363522,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 50500,
+    "timestamp": 1758258025.6492672,
+    "datetime": "2025-09-19T01:00:25.649276",
+    "total_loss": 25.353474000000002,
+    "ppo_component": 25.183474,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 51000,
+    "timestamp": 1758258027.6172292,
+    "datetime": "2025-09-19T01:00:27.617248",
+    "total_loss": 28.025681000000002,
+    "ppo_component": 27.855681,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 51500,
+    "timestamp": 1758258027.6177394,
+    "datetime": "2025-09-19T01:00:27.617750",
+    "total_loss": 29.691446,
+    "ppo_component": 29.521445999999997,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 52000,
+    "timestamp": 1758258029.9740093,
+    "datetime": "2025-09-19T01:00:29.974035",
+    "total_loss": 26.684262,
+    "ppo_component": 26.514262,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 52500,
+    "timestamp": 1758258029.9745634,
+    "datetime": "2025-09-19T01:00:29.974573",
+    "total_loss": 28.031194,
+    "ppo_component": 27.861193999999998,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 53000,
+    "timestamp": 1758258029.9750123,
+    "datetime": "2025-09-19T01:00:29.975020",
+    "total_loss": 27.568736,
+    "ppo_component": 27.398736,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 53500,
+    "timestamp": 1758258032.38479,
+    "datetime": "2025-09-19T01:00:32.384808",
+    "total_loss": 26.270138000000003,
+    "ppo_component": 26.100138,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 54000,
+    "timestamp": 1758258032.3852632,
+    "datetime": "2025-09-19T01:00:32.385271",
+    "total_loss": 26.280798,
+    "ppo_component": 26.110798,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 54500,
+    "timestamp": 1758258034.363315,
+    "datetime": "2025-09-19T01:00:34.363342",
+    "total_loss": 28.047405000000005,
+    "ppo_component": 27.877405000000003,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 55000,
+    "timestamp": 1758258034.36382,
+    "datetime": "2025-09-19T01:00:34.363828",
+    "total_loss": 26.428907000000002,
+    "ppo_component": 26.258907,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 55500,
+    "timestamp": 1758258036.774823,
+    "datetime": "2025-09-19T01:00:36.774841",
+    "total_loss": 26.099138,
+    "ppo_component": 25.929138,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 56000,
+    "timestamp": 1758258036.7753325,
+    "datetime": "2025-09-19T01:00:36.775344",
+    "total_loss": 27.339193,
+    "ppo_component": 27.169193,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 56500,
+    "timestamp": 1758258038.6733918,
+    "datetime": "2025-09-19T01:00:38.673409",
+    "total_loss": 26.523577000000003,
+    "ppo_component": 26.353577,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 57000,
+    "timestamp": 1758258038.6738608,
+    "datetime": "2025-09-19T01:00:38.673868",
+    "total_loss": 28.004929,
+    "ppo_component": 27.834929,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 57500,
+    "timestamp": 1758258038.6742697,
+    "datetime": "2025-09-19T01:00:38.674278",
+    "total_loss": 26.236107,
+    "ppo_component": 26.066107,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 58000,
+    "timestamp": 1758258041.109151,
+    "datetime": "2025-09-19T01:00:41.109168",
+    "total_loss": 26.663172000000003,
+    "ppo_component": 26.493172,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 58500,
+    "timestamp": 1758258041.1096525,
+    "datetime": "2025-09-19T01:00:41.109661",
+    "total_loss": 29.416895000000004,
+    "ppo_component": 29.246895000000002,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 59000,
+    "timestamp": 1758258043.1580496,
+    "datetime": "2025-09-19T01:00:43.158066",
+    "total_loss": 26.355935000000002,
+    "ppo_component": 26.185935,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 59500,
+    "timestamp": 1758258043.1585228,
+    "datetime": "2025-09-19T01:00:43.158531",
+    "total_loss": 27.313648,
+    "ppo_component": 27.143648,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 60000,
+    "timestamp": 1758258045.707433,
+    "datetime": "2025-09-19T01:00:45.707448",
+    "total_loss": 26.763727,
+    "ppo_component": 26.593726999999998,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 60500,
+    "timestamp": 1758258045.70796,
+    "datetime": "2025-09-19T01:00:45.707968",
+    "total_loss": 29.650102,
+    "ppo_component": 29.480102,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 61000,
+    "timestamp": 1758258047.6221685,
+    "datetime": "2025-09-19T01:00:47.622187",
+    "total_loss": 28.087090000000003,
+    "ppo_component": 27.91709,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 61500,
+    "timestamp": 1758258047.6227064,
+    "datetime": "2025-09-19T01:00:47.622715",
+    "total_loss": 27.817783000000002,
+    "ppo_component": 27.647783,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 62000,
+    "timestamp": 1758258047.6231508,
+    "datetime": "2025-09-19T01:00:47.623159",
+    "total_loss": 28.027671,
+    "ppo_component": 27.857671,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 62500,
+    "timestamp": 1758258050.0841234,
+    "datetime": "2025-09-19T01:00:50.084140",
+    "total_loss": 26.469147000000003,
+    "ppo_component": 26.299147,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 63000,
+    "timestamp": 1758258050.0845907,
+    "datetime": "2025-09-19T01:00:50.084598",
+    "total_loss": 25.860359,
+    "ppo_component": 25.690358999999997,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 63500,
+    "timestamp": 1758258052.5521984,
+    "datetime": "2025-09-19T01:00:52.552223",
+    "total_loss": 26.788578,
+    "ppo_component": 26.618578,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 64000,
+    "timestamp": 1758258052.5526698,
+    "datetime": "2025-09-19T01:00:52.552678",
+    "total_loss": 27.588324,
+    "ppo_component": 27.418324,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 64500,
+    "timestamp": 1758258054.4845688,
+    "datetime": "2025-09-19T01:00:54.484590",
+    "total_loss": 27.809807,
+    "ppo_component": 27.639806999999998,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 65000,
+    "timestamp": 1758258054.485085,
+    "datetime": "2025-09-19T01:00:54.485095",
+    "total_loss": 26.816527000000004,
+    "ppo_component": 26.646527000000003,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 65500,
+    "timestamp": 1758258056.7776408,
+    "datetime": "2025-09-19T01:00:56.777666",
+    "total_loss": 27.168601000000002,
+    "ppo_component": 26.998601,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 66000,
+    "timestamp": 1758258056.7781715,
+    "datetime": "2025-09-19T01:00:56.778180",
+    "total_loss": 26.045411,
+    "ppo_component": 25.875411,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 66500,
+    "timestamp": 1758258056.778652,
+    "datetime": "2025-09-19T01:00:56.778659",
+    "total_loss": 26.807681000000002,
+    "ppo_component": 26.637681,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 67000,
+    "timestamp": 1758258058.7602086,
+    "datetime": "2025-09-19T01:00:58.760230",
+    "total_loss": 25.072792000000003,
+    "ppo_component": 24.902792,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 67500,
+    "timestamp": 1758258058.760715,
+    "datetime": "2025-09-19T01:00:58.760723",
+    "total_loss": 27.639354,
+    "ppo_component": 27.469354,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 68000,
+    "timestamp": 1758258061.1371143,
+    "datetime": "2025-09-19T01:01:01.137134",
+    "total_loss": 26.928765000000002,
+    "ppo_component": 26.758765,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 68500,
+    "timestamp": 1758258061.1376166,
+    "datetime": "2025-09-19T01:01:01.137625",
+    "total_loss": 27.875398,
+    "ppo_component": 27.705398,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 69000,
+    "timestamp": 1758258063.1605136,
+    "datetime": "2025-09-19T01:01:03.160530",
+    "total_loss": 27.082056,
+    "ppo_component": 26.912056,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 69500,
+    "timestamp": 1758258063.161082,
+    "datetime": "2025-09-19T01:01:03.161093",
+    "total_loss": 27.354066,
+    "ppo_component": 27.184065999999998,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 70000,
+    "timestamp": 1758258063.1615574,
+    "datetime": "2025-09-19T01:01:03.161565",
+    "total_loss": 27.339281000000003,
+    "ppo_component": 27.169281,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 70500,
+    "timestamp": 1758258065.5639086,
+    "datetime": "2025-09-19T01:01:05.563926",
+    "total_loss": 28.331817,
+    "ppo_component": 28.161817,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 71000,
+    "timestamp": 1758258065.5644426,
+    "datetime": "2025-09-19T01:01:05.564454",
+    "total_loss": 27.555274,
+    "ppo_component": 27.385274,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 71500,
+    "timestamp": 1758258067.9949772,
+    "datetime": "2025-09-19T01:01:07.994997",
+    "total_loss": 26.937409000000002,
+    "ppo_component": 26.767409,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 72000,
+    "timestamp": 1758258067.99578,
+    "datetime": "2025-09-19T01:01:07.995795",
+    "total_loss": 28.378323,
+    "ppo_component": 28.208323,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 72500,
+    "timestamp": 1758258070.1027992,
+    "datetime": "2025-09-19T01:01:10.102816",
+    "total_loss": 28.009900000000002,
+    "ppo_component": 27.8399,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 73000,
+    "timestamp": 1758258070.1033106,
+    "datetime": "2025-09-19T01:01:10.103320",
+    "total_loss": 28.800534000000003,
+    "ppo_component": 28.630534,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 73500,
+    "timestamp": 1758258072.4572692,
+    "datetime": "2025-09-19T01:01:12.457294",
+    "total_loss": 26.751969000000003,
+    "ppo_component": 26.581969,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 74000,
+    "timestamp": 1758258072.4577408,
+    "datetime": "2025-09-19T01:01:12.457752",
+    "total_loss": 29.23105,
+    "ppo_component": 29.061049999999998,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 74500,
+    "timestamp": 1758258072.4582198,
+    "datetime": "2025-09-19T01:01:12.458227",
+    "total_loss": 26.268012,
+    "ppo_component": 26.098011999999997,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 75000,
+    "timestamp": 1758258074.3640401,
+    "datetime": "2025-09-19T01:01:14.364058",
+    "total_loss": 28.060409000000003,
+    "ppo_component": 27.890409000000002,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 75500,
+    "timestamp": 1758258074.364512,
+    "datetime": "2025-09-19T01:01:14.364520",
+    "total_loss": 27.380165,
+    "ppo_component": 27.210165,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 76000,
+    "timestamp": 1758258076.8619325,
+    "datetime": "2025-09-19T01:01:16.861950",
+    "total_loss": 28.241321,
+    "ppo_component": 28.071320999999998,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 76500,
+    "timestamp": 1758258076.86243,
+    "datetime": "2025-09-19T01:01:16.862439",
+    "total_loss": 27.239203000000003,
+    "ppo_component": 27.069203,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 77000,
+    "timestamp": 1758258079.0429876,
+    "datetime": "2025-09-19T01:01:19.043007",
+    "total_loss": 27.621525000000002,
+    "ppo_component": 27.451525,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 77500,
+    "timestamp": 1758258079.0435147,
+    "datetime": "2025-09-19T01:01:19.043525",
+    "total_loss": 28.038987000000002,
+    "ppo_component": 27.868987,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 78000,
+    "timestamp": 1758258081.3244958,
+    "datetime": "2025-09-19T01:01:21.324516",
+    "total_loss": 28.486662000000003,
+    "ppo_component": 28.316662,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 78500,
+    "timestamp": 1758258081.32493,
+    "datetime": "2025-09-19T01:01:21.324938",
+    "total_loss": 27.421953000000002,
+    "ppo_component": 27.251953,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 79000,
+    "timestamp": 1758258081.3254097,
+    "datetime": "2025-09-19T01:01:21.325417",
+    "total_loss": 26.421473000000002,
+    "ppo_component": 26.251473,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 79500,
+    "timestamp": 1758258083.7634494,
+    "datetime": "2025-09-19T01:01:23.763467",
+    "total_loss": 29.023424000000002,
+    "ppo_component": 28.853424,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 80000,
+    "timestamp": 1758258083.7639062,
+    "datetime": "2025-09-19T01:01:23.763914",
+    "total_loss": 28.659039000000003,
+    "ppo_component": 28.489039000000002,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 80500,
+    "timestamp": 1758258085.7356272,
+    "datetime": "2025-09-19T01:01:25.735645",
+    "total_loss": 27.221789,
+    "ppo_component": 27.051789,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 81000,
+    "timestamp": 1758258085.7361403,
+    "datetime": "2025-09-19T01:01:25.736149",
+    "total_loss": 26.323405000000005,
+    "ppo_component": 26.153405000000003,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 81500,
+    "timestamp": 1758258088.1431825,
+    "datetime": "2025-09-19T01:01:28.143202",
+    "total_loss": 28.361484,
+    "ppo_component": 28.191484,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 82000,
+    "timestamp": 1758258088.1437106,
+    "datetime": "2025-09-19T01:01:28.143720",
+    "total_loss": 26.803876000000002,
+    "ppo_component": 26.633876,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 82500,
+    "timestamp": 1758258089.9411044,
+    "datetime": "2025-09-19T01:01:29.941128",
+    "total_loss": 28.008171,
+    "ppo_component": 27.838171,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 83000,
+    "timestamp": 1758258089.9416332,
+    "datetime": "2025-09-19T01:01:29.941642",
+    "total_loss": 28.234074000000003,
+    "ppo_component": 28.064074,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 83500,
+    "timestamp": 1758258089.9420874,
+    "datetime": "2025-09-19T01:01:29.942097",
+    "total_loss": 28.502515000000002,
+    "ppo_component": 28.332515,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 84000,
+    "timestamp": 1758258092.536041,
+    "datetime": "2025-09-19T01:01:32.536059",
+    "total_loss": 25.542227000000004,
+    "ppo_component": 25.372227000000002,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 84500,
+    "timestamp": 1758258092.5365655,
+    "datetime": "2025-09-19T01:01:32.536575",
+    "total_loss": 28.578321000000003,
+    "ppo_component": 28.408321,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 85000,
+    "timestamp": 1758258094.5451994,
+    "datetime": "2025-09-19T01:01:34.545231",
+    "total_loss": 25.593365000000002,
+    "ppo_component": 25.423365,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 85500,
+    "timestamp": 1758258094.545662,
+    "datetime": "2025-09-19T01:01:34.545670",
+    "total_loss": 26.913799000000004,
+    "ppo_component": 26.743799000000003,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 86000,
+    "timestamp": 1758258094.5460935,
+    "datetime": "2025-09-19T01:01:34.546101",
+    "total_loss": 26.528940000000002,
+    "ppo_component": 26.35894,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 86500,
+    "timestamp": 1758258096.998054,
+    "datetime": "2025-09-19T01:01:36.998073",
+    "total_loss": 25.301471000000003,
+    "ppo_component": 25.131471,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 87000,
+    "timestamp": 1758258096.9985063,
+    "datetime": "2025-09-19T01:01:36.998514",
+    "total_loss": 26.679684,
+    "ppo_component": 26.509684,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 87500,
+    "timestamp": 1758258099.517209,
+    "datetime": "2025-09-19T01:01:39.517233",
+    "total_loss": 26.630088,
+    "ppo_component": 26.460088,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 88000,
+    "timestamp": 1758258099.517674,
+    "datetime": "2025-09-19T01:01:39.517685",
+    "total_loss": 27.5406,
+    "ppo_component": 27.3706,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 88500,
+    "timestamp": 1758258101.4876482,
+    "datetime": "2025-09-19T01:01:41.487664",
+    "total_loss": 28.200129,
+    "ppo_component": 28.030129,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 89000,
+    "timestamp": 1758258101.4881318,
+    "datetime": "2025-09-19T01:01:41.488141",
+    "total_loss": 26.824056,
+    "ppo_component": 26.654055999999997,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 89500,
+    "timestamp": 1758258101.48857,
+    "datetime": "2025-09-19T01:01:41.488579",
+    "total_loss": 27.918298000000004,
+    "ppo_component": 27.748298000000002,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 90000,
+    "timestamp": 1758258104.0122664,
+    "datetime": "2025-09-19T01:01:44.012282",
+    "total_loss": 28.055612000000004,
+    "ppo_component": 27.885612000000002,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 90500,
+    "timestamp": 1758258104.0127635,
+    "datetime": "2025-09-19T01:01:44.012772",
+    "total_loss": 25.804506,
+    "ppo_component": 25.634506,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 91000,
+    "timestamp": 1758258106.1788023,
+    "datetime": "2025-09-19T01:01:46.178818",
+    "total_loss": 27.951603000000002,
+    "ppo_component": 27.781603,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 91500,
+    "timestamp": 1758258106.1792836,
+    "datetime": "2025-09-19T01:01:46.179299",
+    "total_loss": 28.345824,
+    "ppo_component": 28.175824,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 92000,
+    "timestamp": 1758258108.622373,
+    "datetime": "2025-09-19T01:01:48.622393",
+    "total_loss": 29.74359,
+    "ppo_component": 29.57359,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 92500,
+    "timestamp": 1758258108.6228554,
+    "datetime": "2025-09-19T01:01:48.622863",
+    "total_loss": 26.128689,
+    "ppo_component": 25.958689,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 93000,
+    "timestamp": 1758258108.6233025,
+    "datetime": "2025-09-19T01:01:48.623310",
+    "total_loss": 29.140447,
+    "ppo_component": 28.970447,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 93500,
+    "timestamp": 1758258111.0989199,
+    "datetime": "2025-09-19T01:01:51.098935",
+    "total_loss": 27.818326000000003,
+    "ppo_component": 27.648326,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 94000,
+    "timestamp": 1758258111.099367,
+    "datetime": "2025-09-19T01:01:51.099375",
+    "total_loss": 25.336742,
+    "ppo_component": 25.166742,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 94500,
+    "timestamp": 1758258113.2630858,
+    "datetime": "2025-09-19T01:01:53.263102",
+    "total_loss": 27.579507000000003,
+    "ppo_component": 27.409507,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 95000,
+    "timestamp": 1758258113.2635937,
+    "datetime": "2025-09-19T01:01:53.263603",
+    "total_loss": 27.371908,
+    "ppo_component": 27.201908,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 95500,
+    "timestamp": 1758258115.7230341,
+    "datetime": "2025-09-19T01:01:55.723060",
+    "total_loss": 28.206201000000004,
+    "ppo_component": 28.036201000000002,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 96000,
+    "timestamp": 1758258115.7235572,
+    "datetime": "2025-09-19T01:01:55.723566",
+    "total_loss": 27.426888,
+    "ppo_component": 27.256888,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 96500,
+    "timestamp": 1758258115.7239914,
+    "datetime": "2025-09-19T01:01:55.723998",
+    "total_loss": 31.622877000000003,
+    "ppo_component": 31.452877,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 97000,
+    "timestamp": 1758258117.847051,
+    "datetime": "2025-09-19T01:01:57.847077",
+    "total_loss": 27.616806000000004,
+    "ppo_component": 27.446806000000002,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 97500,
+    "timestamp": 1758258117.8475792,
+    "datetime": "2025-09-19T01:01:57.847589",
+    "total_loss": 28.990995,
+    "ppo_component": 28.820995,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 98000,
+    "timestamp": 1758258120.217457,
+    "datetime": "2025-09-19T01:02:00.217475",
+    "total_loss": 27.945047000000002,
+    "ppo_component": 27.775047,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 98500,
+    "timestamp": 1758258120.2179346,
+    "datetime": "2025-09-19T01:02:00.217943",
+    "total_loss": 25.79861,
+    "ppo_component": 25.62861,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 99000,
+    "timestamp": 1758258120.2183619,
+    "datetime": "2025-09-19T01:02:00.218369",
+    "total_loss": 28.960439,
+    "ppo_component": 28.790439,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 99500,
+    "timestamp": 1758258122.6841927,
+    "datetime": "2025-09-19T01:02:02.684211",
+    "total_loss": 26.418487000000002,
+    "ppo_component": 26.248487,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 100000,
+    "timestamp": 1758258122.6845903,
+    "datetime": "2025-09-19T01:02:02.684599",
+    "total_loss": 26.635604,
+    "ppo_component": 26.465604,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 100500,
+    "timestamp": 1758258124.831041,
+    "datetime": "2025-09-19T01:02:04.831057",
+    "total_loss": 28.052013000000002,
+    "ppo_component": 27.882013,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 101000,
+    "timestamp": 1758258124.8315413,
+    "datetime": "2025-09-19T01:02:04.831550",
+    "total_loss": 25.862014000000002,
+    "ppo_component": 25.692014,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 101500,
+    "timestamp": 1758258127.2295163,
+    "datetime": "2025-09-19T01:02:07.229553",
+    "total_loss": 28.557395000000003,
+    "ppo_component": 28.387395,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 102000,
+    "timestamp": 1758258127.2300391,
+    "datetime": "2025-09-19T01:02:07.230050",
+    "total_loss": 27.392430000000004,
+    "ppo_component": 27.222430000000003,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 102500,
+    "timestamp": 1758258127.230499,
+    "datetime": "2025-09-19T01:02:07.230507",
+    "total_loss": 29.95767,
+    "ppo_component": 29.78767,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 103000,
+    "timestamp": 1758258129.4367056,
+    "datetime": "2025-09-19T01:02:09.436725",
+    "total_loss": 27.335089,
+    "ppo_component": 27.165089,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 103500,
+    "timestamp": 1758258129.4372027,
+    "datetime": "2025-09-19T01:02:09.437212",
+    "total_loss": 30.943773000000004,
+    "ppo_component": 30.773773000000002,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 104000,
+    "timestamp": 1758258131.8381047,
+    "datetime": "2025-09-19T01:02:11.838123",
+    "total_loss": 28.443700000000003,
+    "ppo_component": 28.2737,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 104500,
+    "timestamp": 1758258131.8386269,
+    "datetime": "2025-09-19T01:02:11.838636",
+    "total_loss": 25.349593000000002,
+    "ppo_component": 25.179593,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 105000,
+    "timestamp": 1758258131.8390474,
+    "datetime": "2025-09-19T01:02:11.839054",
+    "total_loss": 27.812964,
+    "ppo_component": 27.642964,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 105500,
+    "timestamp": 1758258134.4864192,
+    "datetime": "2025-09-19T01:02:14.486436",
+    "total_loss": 27.288750000000004,
+    "ppo_component": 27.118750000000002,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 106000,
+    "timestamp": 1758258134.4868925,
+    "datetime": "2025-09-19T01:02:14.486902",
+    "total_loss": 27.645398,
+    "ppo_component": 27.475398,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 106500,
+    "timestamp": 1758258136.4903023,
+    "datetime": "2025-09-19T01:02:16.490321",
+    "total_loss": 28.713313,
+    "ppo_component": 28.543312999999998,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 107000,
+    "timestamp": 1758258136.4907491,
+    "datetime": "2025-09-19T01:02:16.490757",
+    "total_loss": 27.714377000000002,
+    "ppo_component": 27.544377,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 107500,
+    "timestamp": 1758258136.4911861,
+    "datetime": "2025-09-19T01:02:16.491193",
+    "total_loss": 27.872851,
+    "ppo_component": 27.702851,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 108000,
+    "timestamp": 1758258139.1107821,
+    "datetime": "2025-09-19T01:02:19.110801",
+    "total_loss": 27.717033000000004,
+    "ppo_component": 27.547033000000003,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 108500,
+    "timestamp": 1758258139.111245,
+    "datetime": "2025-09-19T01:02:19.111259",
+    "total_loss": 27.911874,
+    "ppo_component": 27.741874,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 109000,
+    "timestamp": 1758258141.2737737,
+    "datetime": "2025-09-19T01:02:21.273791",
+    "total_loss": 26.577954000000002,
+    "ppo_component": 26.407954,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 109500,
+    "timestamp": 1758258141.2742574,
+    "datetime": "2025-09-19T01:02:21.274267",
+    "total_loss": 25.420036000000003,
+    "ppo_component": 25.250036,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 110000,
+    "timestamp": 1758258143.756951,
+    "datetime": "2025-09-19T01:02:23.756983",
+    "total_loss": 27.203727,
+    "ppo_component": 27.033727,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 110500,
+    "timestamp": 1758258143.757442,
+    "datetime": "2025-09-19T01:02:23.757452",
+    "total_loss": 27.306863,
+    "ppo_component": 27.136862999999998,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 111000,
+    "timestamp": 1758258143.7578635,
+    "datetime": "2025-09-19T01:02:23.757871",
+    "total_loss": 27.589545,
+    "ppo_component": 27.419545,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 111500,
+    "timestamp": 1758258146.2951636,
+    "datetime": "2025-09-19T01:02:26.295179",
+    "total_loss": 27.468737,
+    "ppo_component": 27.298737,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 112000,
+    "timestamp": 1758258146.295647,
+    "datetime": "2025-09-19T01:02:26.295656",
+    "total_loss": 27.333643000000002,
+    "ppo_component": 27.163643,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 112500,
+    "timestamp": 1758258148.3926418,
+    "datetime": "2025-09-19T01:02:28.392669",
+    "total_loss": 27.438774000000002,
+    "ppo_component": 27.268774,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 113000,
+    "timestamp": 1758258148.3930943,
+    "datetime": "2025-09-19T01:02:28.393102",
+    "total_loss": 27.516320000000004,
+    "ppo_component": 27.346320000000002,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 113500,
+    "timestamp": 1758258148.3935652,
+    "datetime": "2025-09-19T01:02:28.393573",
+    "total_loss": 28.852671,
+    "ppo_component": 28.682671,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 114000,
+    "timestamp": 1758258150.8681023,
+    "datetime": "2025-09-19T01:02:30.868119",
+    "total_loss": 29.370925,
+    "ppo_component": 29.200924999999998,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 114500,
+    "timestamp": 1758258150.8685753,
+    "datetime": "2025-09-19T01:02:30.868583",
+    "total_loss": 27.515345,
+    "ppo_component": 27.345345,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 115000,
+    "timestamp": 1758258152.8388178,
+    "datetime": "2025-09-19T01:02:32.838835",
+    "total_loss": 28.478130000000004,
+    "ppo_component": 28.308130000000002,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 115500,
+    "timestamp": 1758258152.8392875,
+    "datetime": "2025-09-19T01:02:32.839297",
+    "total_loss": 28.032226,
+    "ppo_component": 27.862226,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 116000,
+    "timestamp": 1758258152.83966,
+    "datetime": "2025-09-19T01:02:32.839667",
+    "total_loss": 26.972807000000003,
+    "ppo_component": 26.802807,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 116500,
+    "timestamp": 1758258155.3907177,
+    "datetime": "2025-09-19T01:02:35.390737",
+    "total_loss": 26.745730000000002,
+    "ppo_component": 26.57573,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 117000,
+    "timestamp": 1758258155.3911517,
+    "datetime": "2025-09-19T01:02:35.391160",
+    "total_loss": 29.125901000000002,
+    "ppo_component": 28.955901,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 117500,
+    "timestamp": 1758258157.9159844,
+    "datetime": "2025-09-19T01:02:37.916002",
+    "total_loss": 27.520485000000004,
+    "ppo_component": 27.350485000000003,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 118000,
+    "timestamp": 1758258157.9164908,
+    "datetime": "2025-09-19T01:02:37.916500",
+    "total_loss": 28.149089000000004,
+    "ppo_component": 27.979089000000002,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 118500,
+    "timestamp": 1758258159.830074,
+    "datetime": "2025-09-19T01:02:39.830108",
+    "total_loss": 28.693291000000002,
+    "ppo_component": 28.523291,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 119000,
+    "timestamp": 1758258159.8305976,
+    "datetime": "2025-09-19T01:02:39.830608",
+    "total_loss": 27.349323000000002,
+    "ppo_component": 27.179323,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 119500,
+    "timestamp": 1758258159.8310246,
+    "datetime": "2025-09-19T01:02:39.831032",
+    "total_loss": 28.665248000000002,
+    "ppo_component": 28.495248,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 500,
+    "timestamp": 1758258163.0593877,
+    "datetime": "2025-09-19T01:02:43.059414",
+    "total_loss": 37.238780371735956,
+    "ppo_component": 29.374042,
+    "attention_component": 1.9917776780582854,
+    "gnn_component": 2.357730919486925,
+    "sac_component": 3.515229774190751
+  },
+  {
+    "step": 1000,
+    "timestamp": 1758258163.0596285,
+    "datetime": "2025-09-19T01:02:43.059637",
+    "total_loss": 37.23193591604717,
+    "ppo_component": 29.374042,
+    "attention_component": 1.982385008175847,
+    "gnn_component": 2.4612859768694464,
+    "sac_component": 3.4142229310018783
+  },
+  {
+    "step": 1500,
+    "timestamp": 1758258165.892749,
+    "datetime": "2025-09-19T01:02:45.892777",
+    "total_loss": 38.57246893370677,
+    "ppo_component": 31.179418,
+    "attention_component": 1.909947458138984,
+    "gnn_component": 2.3163559952272452,
+    "sac_component": 3.166747480340536
+  },
+  {
+    "step": 2000,
+    "timestamp": 1758258165.8931446,
+    "datetime": "2025-09-19T01:02:45.893154",
+    "total_loss": 40.28039113859135,
+    "ppo_component": 33.290948,
+    "attention_component": 1.850539813823051,
+    "gnn_component": 2.097289821136255,
+    "sac_component": 3.041613503632041
+  },
+  {
+    "step": 2500,
+    "timestamp": 1758258165.8935118,
+    "datetime": "2025-09-19T01:02:45.893519",
+    "total_loss": 36.97721680807859,
+    "ppo_component": 30.246605000000002,
+    "attention_component": 1.7965565892690425,
+    "gnn_component": 2.0849642579014622,
+    "sac_component": 2.849090960908078
+  },
+  {
+    "step": 3000,
+    "timestamp": 1758258168.5667224,
+    "datetime": "2025-09-19T01:02:48.566742",
+    "total_loss": 38.10034610535152,
+    "ppo_component": 31.692482000000002,
+    "attention_component": 1.6700012155740311,
+    "gnn_component": 2.0160585841486243,
+    "sac_component": 2.7218043056288646
+  },
+  {
+    "step": 3500,
+    "timestamp": 1758258168.5670698,
+    "datetime": "2025-09-19T01:02:48.567077",
+    "total_loss": 37.8886369814034,
+    "ppo_component": 31.836142000000002,
+    "attention_component": 1.6404940121000162,
+    "gnn_component": 1.8926725115827536,
+    "sac_component": 2.519328457720632
+  },
+  {
+    "step": 4000,
+    "timestamp": 1758258168.5674036,
+    "datetime": "2025-09-19T01:02:48.567411",
+    "total_loss": 38.06040613541197,
+    "ppo_component": 32.251319,
+    "attention_component": 1.6316320709358567,
+    "gnn_component": 1.8494657023335757,
+    "sac_component": 2.3279893621425347
+  },
+  {
+    "step": 4500,
+    "timestamp": 1758258170.824015,
+    "datetime": "2025-09-19T01:02:50.824033",
+    "total_loss": 38.247168287323206,
+    "ppo_component": 32.903313999999995,
+    "attention_component": 1.4503625399010454,
+    "gnn_component": 1.7117409100297794,
+    "sac_component": 2.1817508373923893
+  },
+  {
+    "step": 5000,
+    "timestamp": 1758258170.824396,
+    "datetime": "2025-09-19T01:02:50.824406",
+    "total_loss": 35.12898094254084,
+    "ppo_component": 29.721649,
+    "attention_component": 1.57789993749952,
+    "gnn_component": 1.8053126187816875,
+    "sac_component": 2.0241193862596347
+  },
+  {
+    "step": 5500,
+    "timestamp": 1758258170.824709,
+    "datetime": "2025-09-19T01:02:50.824716",
+    "total_loss": 36.21936464222607,
+    "ppo_component": 31.06098,
+    "attention_component": 1.4473706987311032,
+    "gnn_component": 1.8025800756819184,
+    "sac_component": 1.9084338678130415
+  },
+  {
+    "step": 6000,
+    "timestamp": 1758258173.502961,
+    "datetime": "2025-09-19T01:02:53.502979",
+    "total_loss": 36.15962426317101,
+    "ppo_component": 31.556208,
+    "attention_component": 1.3149129158702966,
+    "gnn_component": 1.5246579106371194,
+    "sac_component": 1.7638454366635947
+  },
+  {
+    "step": 6500,
+    "timestamp": 1758258173.503372,
+    "datetime": "2025-09-19T01:02:53.503381",
+    "total_loss": 36.99276660916886,
+    "ppo_component": 32.420662,
+    "attention_component": 1.3367018801036625,
+    "gnn_component": 1.6669061823018836,
+    "sac_component": 1.5684965467633143
+  },
+  {
+    "step": 7000,
+    "timestamp": 1758258173.503705,
+    "datetime": "2025-09-19T01:02:53.503712",
+    "total_loss": 34.0854765364037,
+    "ppo_component": 30.074476,
+    "attention_component": 1.2617847001378288,
+    "gnn_component": 1.3174719995903168,
+    "sac_component": 1.4317438366755533
+  },
+  {
+    "step": 7500,
+    "timestamp": 1758258176.2273228,
+    "datetime": "2025-09-19T01:02:56.227340",
+    "total_loss": 34.94445560430611,
+    "ppo_component": 31.005491000000003,
+    "attention_component": 1.1930587864585722,
+    "gnn_component": 1.473462865757782,
+    "sac_component": 1.2724429520897467
+  },
+  {
+    "step": 8000,
+    "timestamp": 1758258176.2276495,
+    "datetime": "2025-09-19T01:02:56.227658",
+    "total_loss": 35.86716512270849,
+    "ppo_component": 32.256965,
+    "attention_component": 1.172091765183462,
+    "gnn_component": 1.1881131153620432,
+    "sac_component": 1.249995242162987
+  },
+  {
+    "step": 8500,
+    "timestamp": 1758258176.227986,
+    "datetime": "2025-09-19T01:02:56.227993",
+    "total_loss": 35.533790102460095,
+    "ppo_component": 32.226594,
+    "attention_component": 1.1251619885579736,
+    "gnn_component": 1.2338708244684051,
+    "sac_component": 0.9481632894337216
+  },
+  {
+    "step": 9000,
+    "timestamp": 1758258179.0082903,
+    "datetime": "2025-09-19T01:02:59.008307",
+    "total_loss": 35.114307172834984,
+    "ppo_component": 32.273041,
+    "attention_component": 1.0192327421775373,
+    "gnn_component": 1.0440155883903826,
+    "sac_component": 0.7780178422670708
+  },
+  {
+    "step": 9500,
+    "timestamp": 1758258179.0086732,
+    "datetime": "2025-09-19T01:02:59.008682",
+    "total_loss": 34.127874371295505,
+    "ppo_component": 31.223181,
+    "attention_component": 1.1095945642543628,
+    "gnn_component": 1.0269739400865832,
+    "sac_component": 0.7681248669545551
+  },
+  {
+    "step": 10000,
+    "timestamp": 1758258179.0089877,
+    "datetime": "2025-09-19T01:02:59.008994",
+    "total_loss": 33.29462528035036,
+    "ppo_component": 31.043955,
+    "attention_component": 0.9007243073235038,
+    "gnn_component": 0.9568468095200767,
+    "sac_component": 0.3930991635067759
+  },
+  {
+    "step": 10500,
+    "timestamp": 1758258181.294062,
+    "datetime": "2025-09-19T01:03:01.294080",
+    "total_loss": 32.04748137725142,
+    "ppo_component": 29.837998,
+    "attention_component": 0.9856257346531152,
+    "gnn_component": 0.8924808904637314,
+    "sac_component": 0.33137675213457596
+  },
+  {
+    "step": 11000,
+    "timestamp": 1758258181.294438,
+    "datetime": "2025-09-19T01:03:01.294447",
+    "total_loss": 31.853264742656084,
+    "ppo_component": 29.850649999999998,
+    "attention_component": 0.9525443238303776,
+    "gnn_component": 0.9252183886522009,
+    "sac_component": 0.12485203017350768
+  },
+  {
+    "step": 11500,
+    "timestamp": 1758258181.2947586,
+    "datetime": "2025-09-19T01:03:01.294766",
+    "total_loss": 31.459483482494907,
+    "ppo_component": 29.883708000000002,
+    "attention_component": 0.7520840050715507,
+    "gnn_component": 0.7045624279015005,
+    "sac_component": 0.11912904952185095
+  },
+  {
+    "step": 12000,
+    "timestamp": 1758258184.0367599,
+    "datetime": "2025-09-19T01:03:04.036786",
+    "total_loss": 33.288722730451504,
+    "ppo_component": 31.617071,
+    "attention_component": 0.7686244914430547,
+    "gnn_component": 0.7895508538954388,
+    "sac_component": 0.11347638511300913
+  },
+  {
+    "step": 12500,
+    "timestamp": 1758258184.0371413,
+    "datetime": "2025-09-19T01:03:04.037150",
+    "total_loss": 30.542189889147554,
+    "ppo_component": 29.248635,
+    "attention_component": 0.708520808052634,
+    "gnn_component": 0.5650340810949213,
+    "sac_component": 0.02
+  },
+  {
+    "step": 13000,
+    "timestamp": 1758258184.0374863,
+    "datetime": "2025-09-19T01:03:04.037494",
+    "total_loss": 30.11211275487484,
+    "ppo_component": 28.637648,
+    "attention_component": 0.7967050832157396,
+    "gnn_component": 0.6577596716591001,
+    "sac_component": 0.02
+  },
+  {
+    "step": 13500,
+    "timestamp": 1758258184.0377953,
+    "datetime": "2025-09-19T01:03:04.037802",
+    "total_loss": 30.1261140894541,
+    "ppo_component": 29.045195999999997,
+    "attention_component": 0.5805143953817455,
+    "gnn_component": 0.48040369407235717,
+    "sac_component": 0.02
+  },
+  {
+    "step": 14000,
+    "timestamp": 1758258186.6233099,
+    "datetime": "2025-09-19T01:03:06.623326",
+    "total_loss": 29.92278741985188,
+    "ppo_component": 28.880581,
+    "attention_component": 0.693808468642094,
+    "gnn_component": 0.3283979512097859,
+    "sac_component": 0.02
+  },
+  {
+    "step": 14500,
+    "timestamp": 1758258186.6236439,
+    "datetime": "2025-09-19T01:03:06.623652",
+    "total_loss": 30.917204947150488,
+    "ppo_component": 30.063667,
+    "attention_component": 0.6327358620538401,
+    "gnn_component": 0.2008020850966495,
+    "sac_component": 0.02
+  },
+  {
+    "step": 15000,
+    "timestamp": 1758258186.6239586,
+    "datetime": "2025-09-19T01:03:06.623967",
+    "total_loss": 30.22117926520504,
+    "ppo_component": 29.678112,
+    "attention_component": 0.4218398054030532,
+    "gnn_component": 0.10122745980198963,
+    "sac_component": 0.02
+  },
+  {
+    "step": 15500,
+    "timestamp": 1758258189.3213367,
+    "datetime": "2025-09-19T01:03:09.321353",
+    "total_loss": 30.22476459574377,
+    "ppo_component": 29.374058,
+    "attention_component": 0.5262138434722403,
+    "gnn_component": 0.3044927522715293,
+    "sac_component": 0.02
+  },
+  {
+    "step": 16000,
+    "timestamp": 1758258189.3216999,
+    "datetime": "2025-09-19T01:03:09.321710",
+    "total_loss": 30.489819203129844,
+    "ppo_component": 29.868738,
+    "attention_component": 0.4263835361185258,
+    "gnn_component": 0.17469766701131983,
+    "sac_component": 0.02
+  },
+  {
+    "step": 16500,
+    "timestamp": 1758258189.3220465,
+    "datetime": "2025-09-19T01:03:09.322054",
+    "total_loss": 31.261925045987237,
+    "ppo_component": 30.762553,
+    "attention_component": 0.32246082609315924,
+    "gnn_component": 0.15691121989407672,
+    "sac_component": 0.02
+  },
+  {
+    "step": 17000,
+    "timestamp": 1758258192.0928912,
+    "datetime": "2025-09-19T01:03:12.092915",
+    "total_loss": 29.925425058092834,
+    "ppo_component": 29.579296000000003,
+    "attention_component": 0.22612905809283096,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 17500,
+    "timestamp": 1758258192.0932727,
+    "datetime": "2025-09-19T01:03:12.093281",
+    "total_loss": 30.705577541504116,
+    "ppo_component": 30.386534,
+    "attention_component": 0.19904354150411513,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 18000,
+    "timestamp": 1758258192.0935845,
+    "datetime": "2025-09-19T01:03:12.093592",
+    "total_loss": 29.805205813896574,
+    "ppo_component": 29.573842,
+    "attention_component": 0.11136381389657513,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 18500,
+    "timestamp": 1758258194.4406629,
+    "datetime": "2025-09-19T01:03:14.440684",
+    "total_loss": 29.247978806271455,
+    "ppo_component": 29.025818,
+    "attention_component": 0.10216080627145283,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 19000,
+    "timestamp": 1758258194.4409878,
+    "datetime": "2025-09-19T01:03:14.440996",
+    "total_loss": 29.24497925106806,
+    "ppo_component": 28.988346,
+    "attention_component": 0.13663325106805754,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 19500,
+    "timestamp": 1758258194.4413207,
+    "datetime": "2025-09-19T01:03:14.441328",
+    "total_loss": 29.93672704882477,
+    "ppo_component": 29.742757,
+    "attention_component": 0.07397004882476906,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 20000,
+    "timestamp": 1758258197.0376022,
+    "datetime": "2025-09-19T01:03:17.037621",
+    "total_loss": 28.917442,
+    "ppo_component": 28.747442,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 20500,
+    "timestamp": 1758258197.038004,
+    "datetime": "2025-09-19T01:03:17.038014",
+    "total_loss": 30.214452,
+    "ppo_component": 30.044452,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 21000,
+    "timestamp": 1758258197.0383377,
+    "datetime": "2025-09-19T01:03:17.038346",
+    "total_loss": 30.859144,
+    "ppo_component": 30.689144,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 21500,
+    "timestamp": 1758258199.6584435,
+    "datetime": "2025-09-19T01:03:19.658459",
+    "total_loss": 29.50625,
+    "ppo_component": 29.33625,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 22000,
+    "timestamp": 1758258199.658813,
+    "datetime": "2025-09-19T01:03:19.658822",
+    "total_loss": 30.341859,
+    "ppo_component": 30.171858999999998,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 22500,
+    "timestamp": 1758258199.6590874,
+    "datetime": "2025-09-19T01:03:19.659094",
+    "total_loss": 31.223327,
+    "ppo_component": 31.053327,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 23000,
+    "timestamp": 1758258202.277197,
+    "datetime": "2025-09-19T01:03:22.277236",
+    "total_loss": 28.695511,
+    "ppo_component": 28.525510999999998,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 23500,
+    "timestamp": 1758258202.2775598,
+    "datetime": "2025-09-19T01:03:22.277567",
+    "total_loss": 30.489089,
+    "ppo_component": 30.319088999999998,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 24000,
+    "timestamp": 1758258202.2779155,
+    "datetime": "2025-09-19T01:03:22.277923",
+    "total_loss": 31.257847,
+    "ppo_component": 31.087847,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 24500,
+    "timestamp": 1758258204.508803,
+    "datetime": "2025-09-19T01:03:24.508829",
+    "total_loss": 29.696702000000002,
+    "ppo_component": 29.526702,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 25000,
+    "timestamp": 1758258204.5092037,
+    "datetime": "2025-09-19T01:03:24.509213",
+    "total_loss": 30.233259,
+    "ppo_component": 30.063259,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 25500,
+    "timestamp": 1758258204.509524,
+    "datetime": "2025-09-19T01:03:24.509533",
+    "total_loss": 32.205313000000004,
+    "ppo_component": 32.035313,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 26000,
+    "timestamp": 1758258207.0516424,
+    "datetime": "2025-09-19T01:03:27.051668",
+    "total_loss": 29.106881,
+    "ppo_component": 28.936881,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 26500,
+    "timestamp": 1758258207.0520537,
+    "datetime": "2025-09-19T01:03:27.052065",
+    "total_loss": 31.019394000000002,
+    "ppo_component": 30.849394,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 27000,
+    "timestamp": 1758258207.052383,
+    "datetime": "2025-09-19T01:03:27.052390",
+    "total_loss": 30.672383,
+    "ppo_component": 30.502383,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 27500,
+    "timestamp": 1758258207.0526993,
+    "datetime": "2025-09-19T01:03:27.052706",
+    "total_loss": 32.348183,
+    "ppo_component": 32.178183,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 28000,
+    "timestamp": 1758258209.6457055,
+    "datetime": "2025-09-19T01:03:29.645721",
+    "total_loss": 31.504498,
+    "ppo_component": 31.334498,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 28500,
+    "timestamp": 1758258209.6460798,
+    "datetime": "2025-09-19T01:03:29.646088",
+    "total_loss": 32.284361,
+    "ppo_component": 32.114360999999995,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 29000,
+    "timestamp": 1758258209.6463926,
+    "datetime": "2025-09-19T01:03:29.646400",
+    "total_loss": 31.528978,
+    "ppo_component": 31.358977999999997,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 29500,
+    "timestamp": 1758258212.1926062,
+    "datetime": "2025-09-19T01:03:32.192627",
+    "total_loss": 30.955201000000002,
+    "ppo_component": 30.785201,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 30000,
+    "timestamp": 1758258212.1929283,
+    "datetime": "2025-09-19T01:03:32.192936",
+    "total_loss": 31.280878,
+    "ppo_component": 31.110878,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 30500,
+    "timestamp": 1758258212.193261,
+    "datetime": "2025-09-19T01:03:32.193270",
+    "total_loss": 31.128184000000005,
+    "ppo_component": 30.958184000000003,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 31000,
+    "timestamp": 1758258214.900111,
+    "datetime": "2025-09-19T01:03:34.900128",
+    "total_loss": 30.933497000000003,
+    "ppo_component": 30.763497,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 31500,
+    "timestamp": 1758258214.9004993,
+    "datetime": "2025-09-19T01:03:34.900514",
+    "total_loss": 31.037593,
+    "ppo_component": 30.867593,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 32000,
+    "timestamp": 1758258214.9008439,
+    "datetime": "2025-09-19T01:03:34.900852",
+    "total_loss": 31.386986,
+    "ppo_component": 31.216986,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 32500,
+    "timestamp": 1758258217.1816947,
+    "datetime": "2025-09-19T01:03:37.181711",
+    "total_loss": 32.915356,
+    "ppo_component": 32.745356,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 33000,
+    "timestamp": 1758258217.1820543,
+    "datetime": "2025-09-19T01:03:37.182063",
+    "total_loss": 32.94380100000001,
+    "ppo_component": 32.773801000000006,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 33500,
+    "timestamp": 1758258217.1823208,
+    "datetime": "2025-09-19T01:03:37.182328",
+    "total_loss": 32.580219,
+    "ppo_component": 32.410219,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 34000,
+    "timestamp": 1758258219.898603,
+    "datetime": "2025-09-19T01:03:39.898621",
+    "total_loss": 30.849874000000003,
+    "ppo_component": 30.679874,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 34500,
+    "timestamp": 1758258219.8989565,
+    "datetime": "2025-09-19T01:03:39.898965",
+    "total_loss": 31.058628000000002,
+    "ppo_component": 30.888628,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 35000,
+    "timestamp": 1758258219.8993068,
+    "datetime": "2025-09-19T01:03:39.899314",
+    "total_loss": 30.276554,
+    "ppo_component": 30.106554,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 35500,
+    "timestamp": 1758258222.8226821,
+    "datetime": "2025-09-19T01:03:42.822701",
+    "total_loss": 30.503130000000002,
+    "ppo_component": 30.33313,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 36000,
+    "timestamp": 1758258222.8230655,
+    "datetime": "2025-09-19T01:03:42.823075",
+    "total_loss": 31.940834000000002,
+    "ppo_component": 31.770834,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 36500,
+    "timestamp": 1758258222.823408,
+    "datetime": "2025-09-19T01:03:42.823415",
+    "total_loss": 31.154178,
+    "ppo_component": 30.984178,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 37000,
+    "timestamp": 1758258225.5484118,
+    "datetime": "2025-09-19T01:03:45.548440",
+    "total_loss": 31.287704,
+    "ppo_component": 31.117704,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 37500,
+    "timestamp": 1758258225.548808,
+    "datetime": "2025-09-19T01:03:45.548819",
+    "total_loss": 31.591658000000002,
+    "ppo_component": 31.421658,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 38000,
+    "timestamp": 1758258225.5491142,
+    "datetime": "2025-09-19T01:03:45.549121",
+    "total_loss": 32.105231,
+    "ppo_component": 31.935230999999998,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 38500,
+    "timestamp": 1758258227.8146968,
+    "datetime": "2025-09-19T01:03:47.814718",
+    "total_loss": 30.128904000000002,
+    "ppo_component": 29.958904,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 39000,
+    "timestamp": 1758258227.8150373,
+    "datetime": "2025-09-19T01:03:47.815045",
+    "total_loss": 31.835076,
+    "ppo_component": 31.665076,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 39500,
+    "timestamp": 1758258227.8153937,
+    "datetime": "2025-09-19T01:03:47.815402",
+    "total_loss": 29.729795,
+    "ppo_component": 29.559794999999998,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 40000,
+    "timestamp": 1758258230.4711554,
+    "datetime": "2025-09-19T01:03:50.471183",
+    "total_loss": 32.479615,
+    "ppo_component": 32.309615,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 40500,
+    "timestamp": 1758258230.471583,
+    "datetime": "2025-09-19T01:03:50.471592",
+    "total_loss": 30.611389000000003,
+    "ppo_component": 30.441389,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 41000,
+    "timestamp": 1758258230.471902,
+    "datetime": "2025-09-19T01:03:50.471909",
+    "total_loss": 29.770929000000002,
+    "ppo_component": 29.600929,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 41500,
+    "timestamp": 1758258230.4722095,
+    "datetime": "2025-09-19T01:03:50.472218",
+    "total_loss": 30.550689000000002,
+    "ppo_component": 30.380689,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 42000,
+    "timestamp": 1758258233.122477,
+    "datetime": "2025-09-19T01:03:53.122495",
+    "total_loss": 32.328147,
+    "ppo_component": 32.158147,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 42500,
+    "timestamp": 1758258233.1228263,
+    "datetime": "2025-09-19T01:03:53.122834",
+    "total_loss": 30.958002000000004,
+    "ppo_component": 30.788002000000002,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 43000,
+    "timestamp": 1758258233.1231456,
+    "datetime": "2025-09-19T01:03:53.123152",
+    "total_loss": 30.977735000000003,
+    "ppo_component": 30.807735,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 43500,
+    "timestamp": 1758258235.6858456,
+    "datetime": "2025-09-19T01:03:55.685864",
+    "total_loss": 32.109214,
+    "ppo_component": 31.939214,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 44000,
+    "timestamp": 1758258235.6861694,
+    "datetime": "2025-09-19T01:03:55.686178",
+    "total_loss": 31.394402000000003,
+    "ppo_component": 31.224402,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 44500,
+    "timestamp": 1758258235.6864986,
+    "datetime": "2025-09-19T01:03:55.686506",
+    "total_loss": 32.607725,
+    "ppo_component": 32.437725,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 45000,
+    "timestamp": 1758258238.3469026,
+    "datetime": "2025-09-19T01:03:58.346919",
+    "total_loss": 30.689104000000004,
+    "ppo_component": 30.519104000000002,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 45500,
+    "timestamp": 1758258238.347237,
+    "datetime": "2025-09-19T01:03:58.347245",
+    "total_loss": 30.529117000000003,
+    "ppo_component": 30.359117,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 46000,
+    "timestamp": 1758258238.3475883,
+    "datetime": "2025-09-19T01:03:58.347596",
+    "total_loss": 31.174546000000003,
+    "ppo_component": 31.004546,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 46500,
+    "timestamp": 1758258240.595603,
+    "datetime": "2025-09-19T01:04:00.595627",
+    "total_loss": 32.548069000000005,
+    "ppo_component": 32.378069,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 47000,
+    "timestamp": 1758258240.595951,
+    "datetime": "2025-09-19T01:04:00.595959",
+    "total_loss": 31.188002,
+    "ppo_component": 31.018002,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 47500,
+    "timestamp": 1758258240.5962813,
+    "datetime": "2025-09-19T01:04:00.596291",
+    "total_loss": 31.622164,
+    "ppo_component": 31.452164,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 48000,
+    "timestamp": 1758258243.338428,
+    "datetime": "2025-09-19T01:04:03.338444",
+    "total_loss": 29.711033,
+    "ppo_component": 29.541033,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 48500,
+    "timestamp": 1758258243.3388164,
+    "datetime": "2025-09-19T01:04:03.338825",
+    "total_loss": 29.560885000000003,
+    "ppo_component": 29.390885,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 49000,
+    "timestamp": 1758258243.3391242,
+    "datetime": "2025-09-19T01:04:03.339131",
+    "total_loss": 30.777839,
+    "ppo_component": 30.607839,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 49500,
+    "timestamp": 1758258246.065153,
+    "datetime": "2025-09-19T01:04:06.065170",
+    "total_loss": 32.011996,
+    "ppo_component": 31.841996,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 50000,
+    "timestamp": 1758258246.0654888,
+    "datetime": "2025-09-19T01:04:06.065497",
+    "total_loss": 31.076510000000003,
+    "ppo_component": 30.90651,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 50500,
+    "timestamp": 1758258246.0658538,
+    "datetime": "2025-09-19T01:04:06.065861",
+    "total_loss": 30.774867,
+    "ppo_component": 30.604867,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 51000,
+    "timestamp": 1758258248.8003094,
+    "datetime": "2025-09-19T01:04:08.800339",
+    "total_loss": 31.908879000000002,
+    "ppo_component": 31.738879,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 51500,
+    "timestamp": 1758258248.8009875,
+    "datetime": "2025-09-19T01:04:08.801007",
+    "total_loss": 30.924838,
+    "ppo_component": 30.754838,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 52000,
+    "timestamp": 1758258248.8015501,
+    "datetime": "2025-09-19T01:04:08.801561",
+    "total_loss": 31.678770000000004,
+    "ppo_component": 31.508770000000002,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 52500,
+    "timestamp": 1758258251.1227186,
+    "datetime": "2025-09-19T01:04:11.122736",
+    "total_loss": 30.282360000000004,
+    "ppo_component": 30.112360000000002,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 53000,
+    "timestamp": 1758258251.1230936,
+    "datetime": "2025-09-19T01:04:11.123102",
+    "total_loss": 31.602352,
+    "ppo_component": 31.432351999999998,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 53500,
+    "timestamp": 1758258251.1234212,
+    "datetime": "2025-09-19T01:04:11.123428",
+    "total_loss": 30.954438,
+    "ppo_component": 30.784437999999998,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 54000,
+    "timestamp": 1758258253.5737493,
+    "datetime": "2025-09-19T01:04:13.573783",
+    "total_loss": 32.3035,
+    "ppo_component": 32.1335,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 54500,
+    "timestamp": 1758258253.5740705,
+    "datetime": "2025-09-19T01:04:13.574079",
+    "total_loss": 31.249963,
+    "ppo_component": 31.079963,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 55000,
+    "timestamp": 1758258253.5744224,
+    "datetime": "2025-09-19T01:04:13.574430",
+    "total_loss": 31.385083,
+    "ppo_component": 31.215083,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 55500,
+    "timestamp": 1758258253.5747304,
+    "datetime": "2025-09-19T01:04:13.574738",
+    "total_loss": 31.233426,
+    "ppo_component": 31.063426,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 56000,
+    "timestamp": 1758258256.2314153,
+    "datetime": "2025-09-19T01:04:16.231430",
+    "total_loss": 29.87276,
+    "ppo_component": 29.702759999999998,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 56500,
+    "timestamp": 1758258256.231784,
+    "datetime": "2025-09-19T01:04:16.231792",
+    "total_loss": 31.771018,
+    "ppo_component": 31.601018,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 57000,
+    "timestamp": 1758258256.2320962,
+    "datetime": "2025-09-19T01:04:16.232103",
+    "total_loss": 31.977881000000004,
+    "ppo_component": 31.807881000000002,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 57500,
+    "timestamp": 1758258259.0871954,
+    "datetime": "2025-09-19T01:04:19.087226",
+    "total_loss": 33.8711,
+    "ppo_component": 33.7011,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 58000,
+    "timestamp": 1758258259.087563,
+    "datetime": "2025-09-19T01:04:19.087575",
+    "total_loss": 30.958715,
+    "ppo_component": 30.788715,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 58500,
+    "timestamp": 1758258259.0879128,
+    "datetime": "2025-09-19T01:04:19.087920",
+    "total_loss": 31.111857,
+    "ppo_component": 30.941857,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 59000,
+    "timestamp": 1758258261.7452893,
+    "datetime": "2025-09-19T01:04:21.745309",
+    "total_loss": 31.402350000000002,
+    "ppo_component": 31.23235,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 59500,
+    "timestamp": 1758258261.7456663,
+    "datetime": "2025-09-19T01:04:21.745675",
+    "total_loss": 30.773104,
+    "ppo_component": 30.603104,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 60000,
+    "timestamp": 1758258261.7459724,
+    "datetime": "2025-09-19T01:04:21.745979",
+    "total_loss": 31.748459,
+    "ppo_component": 31.578459,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 60500,
+    "timestamp": 1758258264.0045803,
+    "datetime": "2025-09-19T01:04:24.004596",
+    "total_loss": 32.165856000000005,
+    "ppo_component": 31.995856,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 61000,
+    "timestamp": 1758258264.0049448,
+    "datetime": "2025-09-19T01:04:24.004954",
+    "total_loss": 29.818501,
+    "ppo_component": 29.648501,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 61500,
+    "timestamp": 1758258264.0052772,
+    "datetime": "2025-09-19T01:04:24.005285",
+    "total_loss": 29.134783,
+    "ppo_component": 28.964782999999997,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 62000,
+    "timestamp": 1758258266.754467,
+    "datetime": "2025-09-19T01:04:26.754484",
+    "total_loss": 32.120558,
+    "ppo_component": 31.950558,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 62500,
+    "timestamp": 1758258266.7548141,
+    "datetime": "2025-09-19T01:04:26.754822",
+    "total_loss": 29.889319,
+    "ppo_component": 29.719319,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 63000,
+    "timestamp": 1758258266.7551363,
+    "datetime": "2025-09-19T01:04:26.755143",
+    "total_loss": 29.630706000000004,
+    "ppo_component": 29.460706000000002,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 63500,
+    "timestamp": 1758258269.4988172,
+    "datetime": "2025-09-19T01:04:29.498835",
+    "total_loss": 31.541083000000004,
+    "ppo_component": 31.371083000000002,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 64000,
+    "timestamp": 1758258269.4991934,
+    "datetime": "2025-09-19T01:04:29.499202",
+    "total_loss": 29.800112000000002,
+    "ppo_component": 29.630112,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 64500,
+    "timestamp": 1758258269.4995282,
+    "datetime": "2025-09-19T01:04:29.499535",
+    "total_loss": 31.832661,
+    "ppo_component": 31.662661,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 65000,
+    "timestamp": 1758258272.231029,
+    "datetime": "2025-09-19T01:04:32.231047",
+    "total_loss": 31.439612000000004,
+    "ppo_component": 31.269612000000002,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 65500,
+    "timestamp": 1758258272.2313101,
+    "datetime": "2025-09-19T01:04:32.231318",
+    "total_loss": 31.606928,
+    "ppo_component": 31.436927999999998,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 66000,
+    "timestamp": 1758258272.2316651,
+    "datetime": "2025-09-19T01:04:32.231672",
+    "total_loss": 29.794574000000004,
+    "ppo_component": 29.624574000000003,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 66500,
+    "timestamp": 1758258274.4858131,
+    "datetime": "2025-09-19T01:04:34.485841",
+    "total_loss": 31.260849,
+    "ppo_component": 31.090849,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 67000,
+    "timestamp": 1758258274.48618,
+    "datetime": "2025-09-19T01:04:34.486188",
+    "total_loss": 32.345089,
+    "ppo_component": 32.175089,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 67500,
+    "timestamp": 1758258274.4865365,
+    "datetime": "2025-09-19T01:04:34.486547",
+    "total_loss": 31.338415,
+    "ppo_component": 31.168415,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 68000,
+    "timestamp": 1758258274.4868453,
+    "datetime": "2025-09-19T01:04:34.486852",
+    "total_loss": 31.231158,
+    "ppo_component": 31.061158,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 68500,
+    "timestamp": 1758258277.2185113,
+    "datetime": "2025-09-19T01:04:37.218535",
+    "total_loss": 30.57814,
+    "ppo_component": 30.40814,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 69000,
+    "timestamp": 1758258277.2188377,
+    "datetime": "2025-09-19T01:04:37.218845",
+    "total_loss": 30.680120000000002,
+    "ppo_component": 30.51012,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 69500,
+    "timestamp": 1758258277.2191558,
+    "datetime": "2025-09-19T01:04:37.219164",
+    "total_loss": 31.282405,
+    "ppo_component": 31.112405,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 70000,
+    "timestamp": 1758258279.9007683,
+    "datetime": "2025-09-19T01:04:39.900783",
+    "total_loss": 31.923246,
+    "ppo_component": 31.753245999999997,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 70500,
+    "timestamp": 1758258279.9011538,
+    "datetime": "2025-09-19T01:04:39.901162",
+    "total_loss": 29.159305000000003,
+    "ppo_component": 28.989305,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 71000,
+    "timestamp": 1758258279.9014828,
+    "datetime": "2025-09-19T01:04:39.901490",
+    "total_loss": 30.680639,
+    "ppo_component": 30.510638999999998,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 71500,
+    "timestamp": 1758258282.6387117,
+    "datetime": "2025-09-19T01:04:42.638728",
+    "total_loss": 31.174524,
+    "ppo_component": 31.004524,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 72000,
+    "timestamp": 1758258282.6390727,
+    "datetime": "2025-09-19T01:04:42.639081",
+    "total_loss": 32.68465500000001,
+    "ppo_component": 32.514655000000005,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 72500,
+    "timestamp": 1758258282.6394036,
+    "datetime": "2025-09-19T01:04:42.639410",
+    "total_loss": 30.817415,
+    "ppo_component": 30.647415,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 73000,
+    "timestamp": 1758258285.3240895,
+    "datetime": "2025-09-19T01:04:45.324108",
+    "total_loss": 30.042449,
+    "ppo_component": 29.872449,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 73500,
+    "timestamp": 1758258285.32443,
+    "datetime": "2025-09-19T01:04:45.324437",
+    "total_loss": 31.12368,
+    "ppo_component": 30.95368,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 74000,
+    "timestamp": 1758258285.3247497,
+    "datetime": "2025-09-19T01:04:45.324757",
+    "total_loss": 33.492376,
+    "ppo_component": 33.322376,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 74500,
+    "timestamp": 1758258287.6179817,
+    "datetime": "2025-09-19T01:04:47.618010",
+    "total_loss": 32.677365,
+    "ppo_component": 32.507365,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 75000,
+    "timestamp": 1758258287.6183734,
+    "datetime": "2025-09-19T01:04:47.618382",
+    "total_loss": 31.384568,
+    "ppo_component": 31.214568,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 75500,
+    "timestamp": 1758258287.6186984,
+    "datetime": "2025-09-19T01:04:47.618705",
+    "total_loss": 31.063808,
+    "ppo_component": 30.893808,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 76000,
+    "timestamp": 1758258290.2240255,
+    "datetime": "2025-09-19T01:04:50.224052",
+    "total_loss": 31.657435,
+    "ppo_component": 31.487434999999998,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 76500,
+    "timestamp": 1758258290.224448,
+    "datetime": "2025-09-19T01:04:50.224457",
+    "total_loss": 31.790573000000002,
+    "ppo_component": 31.620573,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 77000,
+    "timestamp": 1758258290.2247772,
+    "datetime": "2025-09-19T01:04:50.224784",
+    "total_loss": 29.937451000000003,
+    "ppo_component": 29.767451,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 77500,
+    "timestamp": 1758258292.8420396,
+    "datetime": "2025-09-19T01:04:52.842066",
+    "total_loss": 31.37774,
+    "ppo_component": 31.207739999999998,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 78000,
+    "timestamp": 1758258292.8424013,
+    "datetime": "2025-09-19T01:04:52.842409",
+    "total_loss": 32.636527,
+    "ppo_component": 32.466527,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 78500,
+    "timestamp": 1758258292.8427637,
+    "datetime": "2025-09-19T01:04:52.842771",
+    "total_loss": 31.503531000000002,
+    "ppo_component": 31.333531,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 79000,
+    "timestamp": 1758258295.4374754,
+    "datetime": "2025-09-19T01:04:55.437502",
+    "total_loss": 31.56053,
+    "ppo_component": 31.39053,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 79500,
+    "timestamp": 1758258295.4378767,
+    "datetime": "2025-09-19T01:04:55.437886",
+    "total_loss": 32.221894000000006,
+    "ppo_component": 32.051894000000004,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 80000,
+    "timestamp": 1758258295.4381797,
+    "datetime": "2025-09-19T01:04:55.438187",
+    "total_loss": 30.781729,
+    "ppo_component": 30.611728999999997,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 80500,
+    "timestamp": 1758258297.6213448,
+    "datetime": "2025-09-19T01:04:57.621372",
+    "total_loss": 31.697476,
+    "ppo_component": 31.527476,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 81000,
+    "timestamp": 1758258297.62175,
+    "datetime": "2025-09-19T01:04:57.621760",
+    "total_loss": 31.407509,
+    "ppo_component": 31.237509,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 81500,
+    "timestamp": 1758258297.6220703,
+    "datetime": "2025-09-19T01:04:57.622078",
+    "total_loss": 32.514202,
+    "ppo_component": 32.344201999999996,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 82000,
+    "timestamp": 1758258297.6223946,
+    "datetime": "2025-09-19T01:04:57.622404",
+    "total_loss": 30.988571000000004,
+    "ppo_component": 30.818571000000002,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 82500,
+    "timestamp": 1758258300.3939066,
+    "datetime": "2025-09-19T01:05:00.393922",
+    "total_loss": 29.014978,
+    "ppo_component": 28.844977999999998,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 83000,
+    "timestamp": 1758258300.3942783,
+    "datetime": "2025-09-19T01:05:00.394288",
+    "total_loss": 32.643834,
+    "ppo_component": 32.473834,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 83500,
+    "timestamp": 1758258300.3945873,
+    "datetime": "2025-09-19T01:05:00.394594",
+    "total_loss": 31.108033000000002,
+    "ppo_component": 30.938033,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 84000,
+    "timestamp": 1758258303.058354,
+    "datetime": "2025-09-19T01:05:03.058376",
+    "total_loss": 30.108553,
+    "ppo_component": 29.938553,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 84500,
+    "timestamp": 1758258303.0586948,
+    "datetime": "2025-09-19T01:05:03.058702",
+    "total_loss": 32.123512000000005,
+    "ppo_component": 31.953512,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 85000,
+    "timestamp": 1758258303.0590196,
+    "datetime": "2025-09-19T01:05:03.059027",
+    "total_loss": 30.948936,
+    "ppo_component": 30.778935999999998,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 85500,
+    "timestamp": 1758258305.7669053,
+    "datetime": "2025-09-19T01:05:05.766922",
+    "total_loss": 32.10108,
+    "ppo_component": 31.931079999999998,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 86000,
+    "timestamp": 1758258305.7672462,
+    "datetime": "2025-09-19T01:05:05.767254",
+    "total_loss": 31.077755000000003,
+    "ppo_component": 30.907755,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 86500,
+    "timestamp": 1758258305.7675216,
+    "datetime": "2025-09-19T01:05:05.767528",
+    "total_loss": 32.476631,
+    "ppo_component": 32.306630999999996,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 87000,
+    "timestamp": 1758258308.5740821,
+    "datetime": "2025-09-19T01:05:08.574101",
+    "total_loss": 32.080126,
+    "ppo_component": 31.910125999999998,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 87500,
+    "timestamp": 1758258308.5744967,
+    "datetime": "2025-09-19T01:05:08.574508",
+    "total_loss": 30.624308000000003,
+    "ppo_component": 30.454308,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 88000,
+    "timestamp": 1758258308.5748277,
+    "datetime": "2025-09-19T01:05:08.574836",
+    "total_loss": 31.559470000000005,
+    "ppo_component": 31.389470000000003,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 88500,
+    "timestamp": 1758258311.1322343,
+    "datetime": "2025-09-19T01:05:11.132253",
+    "total_loss": 30.417947,
+    "ppo_component": 30.247947,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 89000,
+    "timestamp": 1758258311.1325762,
+    "datetime": "2025-09-19T01:05:11.132584",
+    "total_loss": 31.251496000000003,
+    "ppo_component": 31.081496,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 89500,
+    "timestamp": 1758258311.132933,
+    "datetime": "2025-09-19T01:05:11.132941",
+    "total_loss": 31.141395,
+    "ppo_component": 30.971394999999998,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 90000,
+    "timestamp": 1758258314.0140507,
+    "datetime": "2025-09-19T01:05:14.014072",
+    "total_loss": 31.801639,
+    "ppo_component": 31.631639,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 90500,
+    "timestamp": 1758258314.014458,
+    "datetime": "2025-09-19T01:05:14.014467",
+    "total_loss": 30.476041000000002,
+    "ppo_component": 30.306041,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 91000,
+    "timestamp": 1758258314.0147874,
+    "datetime": "2025-09-19T01:05:14.014794",
+    "total_loss": 30.892354,
+    "ppo_component": 30.722354,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 91500,
+    "timestamp": 1758258316.855905,
+    "datetime": "2025-09-19T01:05:16.855933",
+    "total_loss": 31.861335000000004,
+    "ppo_component": 31.691335000000002,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 92000,
+    "timestamp": 1758258316.8563068,
+    "datetime": "2025-09-19T01:05:16.856316",
+    "total_loss": 32.222549,
+    "ppo_component": 32.052549,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 92500,
+    "timestamp": 1758258316.8566375,
+    "datetime": "2025-09-19T01:05:16.856645",
+    "total_loss": 32.077155000000005,
+    "ppo_component": 31.907155,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 93000,
+    "timestamp": 1758258319.6372645,
+    "datetime": "2025-09-19T01:05:19.637297",
+    "total_loss": 31.336959,
+    "ppo_component": 31.166959,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 93500,
+    "timestamp": 1758258319.6376216,
+    "datetime": "2025-09-19T01:05:19.637630",
+    "total_loss": 31.196593,
+    "ppo_component": 31.026593,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 94000,
+    "timestamp": 1758258319.6379704,
+    "datetime": "2025-09-19T01:05:19.637979",
+    "total_loss": 31.925211,
+    "ppo_component": 31.755211,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 94500,
+    "timestamp": 1758258322.0260441,
+    "datetime": "2025-09-19T01:05:22.026073",
+    "total_loss": 30.831997000000005,
+    "ppo_component": 30.661997000000003,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 95000,
+    "timestamp": 1758258322.026461,
+    "datetime": "2025-09-19T01:05:22.026473",
+    "total_loss": 31.203811,
+    "ppo_component": 31.033811,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 95500,
+    "timestamp": 1758258322.0268047,
+    "datetime": "2025-09-19T01:05:22.026812",
+    "total_loss": 30.371377000000003,
+    "ppo_component": 30.201377,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 96000,
+    "timestamp": 1758258322.0271122,
+    "datetime": "2025-09-19T01:05:22.027119",
+    "total_loss": 32.03961,
+    "ppo_component": 31.869609999999998,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 96500,
+    "timestamp": 1758258324.8755329,
+    "datetime": "2025-09-19T01:05:24.875552",
+    "total_loss": 30.213385000000002,
+    "ppo_component": 30.043385,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 97000,
+    "timestamp": 1758258324.8758578,
+    "datetime": "2025-09-19T01:05:24.875865",
+    "total_loss": 33.095775,
+    "ppo_component": 32.925775,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 97500,
+    "timestamp": 1758258324.8761215,
+    "datetime": "2025-09-19T01:05:24.876129",
+    "total_loss": 32.393713,
+    "ppo_component": 32.223713,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 98000,
+    "timestamp": 1758258327.629755,
+    "datetime": "2025-09-19T01:05:27.629783",
+    "total_loss": 31.017224000000002,
+    "ppo_component": 30.847224,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 98500,
+    "timestamp": 1758258327.6305437,
+    "datetime": "2025-09-19T01:05:27.630565",
+    "total_loss": 29.867722000000004,
+    "ppo_component": 29.697722000000002,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 99000,
+    "timestamp": 1758258327.6311808,
+    "datetime": "2025-09-19T01:05:27.631206",
+    "total_loss": 29.604255000000002,
+    "ppo_component": 29.434255,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 99500,
+    "timestamp": 1758258330.3664587,
+    "datetime": "2025-09-19T01:05:30.366487",
+    "total_loss": 30.992166000000005,
+    "ppo_component": 30.822166000000003,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 100000,
+    "timestamp": 1758258330.367154,
+    "datetime": "2025-09-19T01:05:30.367175",
+    "total_loss": 30.456683,
+    "ppo_component": 30.286683,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 100500,
+    "timestamp": 1758258330.3678803,
+    "datetime": "2025-09-19T01:05:30.367900",
+    "total_loss": 32.04128300000001,
+    "ppo_component": 31.871283000000002,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 101000,
+    "timestamp": 1758258333.258416,
+    "datetime": "2025-09-19T01:05:33.258445",
+    "total_loss": 29.947670000000002,
+    "ppo_component": 29.77767,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 101500,
+    "timestamp": 1758258333.2590919,
+    "datetime": "2025-09-19T01:05:33.259113",
+    "total_loss": 31.475605,
+    "ppo_component": 31.305605,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 102000,
+    "timestamp": 1758258333.259787,
+    "datetime": "2025-09-19T01:05:33.259804",
+    "total_loss": 31.188258000000005,
+    "ppo_component": 31.018258000000003,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 102500,
+    "timestamp": 1758258335.7395847,
+    "datetime": "2025-09-19T01:05:35.739611",
+    "total_loss": 32.828555,
+    "ppo_component": 32.658555,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 103000,
+    "timestamp": 1758258335.7403286,
+    "datetime": "2025-09-19T01:05:35.740352",
+    "total_loss": 30.177251000000002,
+    "ppo_component": 30.007251,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 103500,
+    "timestamp": 1758258335.740968,
+    "datetime": "2025-09-19T01:05:35.740992",
+    "total_loss": 31.778799,
+    "ppo_component": 31.608798999999998,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 104000,
+    "timestamp": 1758258338.5651665,
+    "datetime": "2025-09-19T01:05:38.565194",
+    "total_loss": 30.695608,
+    "ppo_component": 30.525608,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 104500,
+    "timestamp": 1758258338.5658786,
+    "datetime": "2025-09-19T01:05:38.565905",
+    "total_loss": 32.108717000000006,
+    "ppo_component": 31.938717,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 105000,
+    "timestamp": 1758258338.566574,
+    "datetime": "2025-09-19T01:05:38.566592",
+    "total_loss": 31.697468,
+    "ppo_component": 31.527468,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 105500,
+    "timestamp": 1758258341.3363814,
+    "datetime": "2025-09-19T01:05:41.336405",
+    "total_loss": 32.045461,
+    "ppo_component": 31.875460999999998,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 106000,
+    "timestamp": 1758258341.3367364,
+    "datetime": "2025-09-19T01:05:41.336745",
+    "total_loss": 32.243806,
+    "ppo_component": 32.073806,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 106500,
+    "timestamp": 1758258341.337086,
+    "datetime": "2025-09-19T01:05:41.337105",
+    "total_loss": 31.027131,
+    "ppo_component": 30.857131,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 107000,
+    "timestamp": 1758258344.1528156,
+    "datetime": "2025-09-19T01:05:44.152832",
+    "total_loss": 30.413657000000004,
+    "ppo_component": 30.243657000000002,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 107500,
+    "timestamp": 1758258344.153205,
+    "datetime": "2025-09-19T01:05:44.153225",
+    "total_loss": 30.849875,
+    "ppo_component": 30.679875,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
+  },
+  {
+    "step": 108000,
+    "timestamp": 1758258344.1534677,
+    "datetime": "2025-09-19T01:05:44.153475",
+    "total_loss": 30.84962,
+    "ppo_component": 30.67962,
+    "attention_component": 0.05,
+    "gnn_component": 0.1,
+    "sac_component": 0.02
   }
 ]

@@ -616,6 +616,40 @@ class TrainingManager:
             if 'critic_grad_norm' in metrics:
                 print(f"   ⚡ Critic梯度范数: {metrics['critic_grad_norm']:.6f}")
             
+            # 🆕 添加Attention网络损失信息
+            if any(key.startswith('attention_') for key in metrics.keys()):
+                print(f"\n🔥 Attention网络Loss更新 [Step {step}]:")
+                if 'attention_actor_grad_norm' in metrics:
+                    print(f"   📊 Actor Attention梯度范数: {metrics['attention_actor_grad_norm']:.6f}")
+                if 'attention_critic_grad_norm' in metrics:
+                    print(f"   📊 Critic Attention梯度范数: {metrics['attention_critic_grad_norm']:.6f}")
+                if 'attention_total_loss' in metrics:
+                    print(f"   📊 Attention总损失: {metrics['attention_total_loss']:.6f}")
+                if 'attention_param_mean' in metrics:
+                    print(f"   📊 Attention参数均值: {metrics['attention_param_mean']:.6f}")
+                if 'attention_param_std' in metrics:
+                    print(f"   📊 Attention参数标准差: {metrics['attention_param_std']:.6f}")
+                
+                # 🆕 显示attention关注的关节信息
+                if 'most_attended_joint' in metrics:
+                    print(f"   🎯 最关注关节: Joint {metrics['most_attended_joint']} (强度: {metrics.get('max_joint_attention', 0):.3f})")
+                if 'attention_concentration' in metrics:
+                    print(f"   📊 注意力集中度: {metrics['attention_concentration']:.3f}")
+                if 'attention_entropy' in metrics:
+                    print(f"   📊 注意力熵值: {metrics['attention_entropy']:.3f}")
+                
+                # 显示各关节的注意力分布
+                joint_attentions = []
+                for i in range(6):  # 支持最多6个关节
+                    joint_key = f'joint_{i}_attention'
+                    if joint_key in metrics:
+                        joint_attentions.append(f"J{i}:{metrics[joint_key]:.3f}")
+                
+                if joint_attentions:
+                    print(f"   🔍 关节注意力分布: {', '.join(joint_attentions)}")
+                
+                print(f"   ==================================================")
+            
             # 🔧 添加PPO特定指标
             if 'policy_ratio' in metrics:
                 print(f"   🎯 策略比率: {metrics['policy_ratio']:.4f}")

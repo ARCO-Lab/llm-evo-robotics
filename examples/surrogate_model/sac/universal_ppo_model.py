@@ -437,6 +437,9 @@ class UniversalPPOWithBuffer:
                 # 构建批次数据
                 batch = self._build_batch_from_experiences(experiences)
                 
+                # 🆕 保存最后一个batch用于attention分析
+                self._last_batch_data = batch
+                
                 # 移动到设备
                 for key in batch:
                     if isinstance(batch[key], torch.Tensor):
@@ -485,6 +488,9 @@ class UniversalPPOWithBuffer:
         if total_batches == 0:
             return None
         
+        # 🆕 计算Attention网络的独立损失指标和关节注意力分布
+        attention_metrics = self._calculate_attention_losses_and_focus()
+        
         metrics = {
             'actor_loss': total_actor_loss / total_batches,
             'critic_loss': total_critic_loss / total_batches,
@@ -492,7 +498,10 @@ class UniversalPPOWithBuffer:
             'entropy': total_entropy / total_batches,
             'update_count': self.update_count,
             'learning_rate': self.actor_optimizer.param_groups[0]['lr'],
-            'batches_processed': total_batches
+            'batches_processed': total_batches,
+            
+            # 🆕 添加attention网络的独立损失
+            **attention_metrics
         }
         
         # 🔧 添加：更新后检查和紧急处理
@@ -511,6 +520,118 @@ class UniversalPPOWithBuffer:
                 param_group['lr'] *= 0.3
         
         return metrics
+    
+    def _calculate_attention_losses_and_focus(self):
+        """计算attention网络的独立损失指标和关节注意力分布"""
+        attention_metrics = {}
+        
+        try:
+            # 1. 计算Actor中attention网络的梯度范数
+            actor_attn_grad_norm = 0.0
+            actor_attn_param_count = 0
+            
+            for name, param in self.actor.attn_model.named_parameters():
+                if param.grad is not None:
+                    param_norm = param.grad.data.norm(2).item()
+                    actor_attn_grad_norm += param_norm ** 2
+                    actor_attn_param_count += 1
+            
+            if actor_attn_param_count > 0:
+                actor_attn_grad_norm = (actor_attn_grad_norm ** 0.5) / actor_attn_param_count
+                attention_metrics['attention_actor_grad_norm'] = actor_attn_grad_norm
+            
+            # 2. 计算Critic中attention网络的梯度范数
+            critic_attn_grad_norm = 0.0
+            critic_attn_param_count = 0
+            
+            for name, param in self.critic.attn_model.named_parameters():
+                if param.grad is not None:
+                    param_norm = param.grad.data.norm(2).item()
+                    critic_attn_grad_norm += param_norm ** 2
+                    critic_attn_param_count += 1
+            
+            if critic_attn_param_count > 0:
+                critic_attn_grad_norm = (critic_attn_grad_norm ** 0.5) / critic_attn_param_count
+                attention_metrics['attention_critic_grad_norm'] = critic_attn_grad_norm
+            
+            # 3. 计算总的attention损失（梯度范数之和）
+            total_attn_loss = actor_attn_grad_norm + critic_attn_grad_norm
+            attention_metrics['attention_total_loss'] = total_attn_loss
+            
+            # 4. 计算attention网络参数的统计信息
+            actor_attn_params = list(self.actor.attn_model.parameters())
+            if actor_attn_params:
+                param_values = torch.cat([p.data.flatten() for p in actor_attn_params])
+                attention_metrics['attention_param_mean'] = param_values.mean().item()
+                attention_metrics['attention_param_std'] = param_values.std().item()
+            
+            # 🆕 5. 分析attention网络关注的关节分布
+            joint_focus_metrics = self._analyze_joint_attention_focus()
+            attention_metrics.update(joint_focus_metrics)
+            
+        except Exception as e:
+            attention_metrics['attention_calculation_error'] = str(e)
+        
+        return attention_metrics
+    
+    def _analyze_joint_attention_focus(self):
+        """分析attention网络关注哪些关节"""
+        focus_metrics = {}
+        
+        try:
+            # 获取最近一次的batch数据来分析attention权重
+            if hasattr(self, '_last_batch_data'):
+                batch = self._last_batch_data
+                
+                with torch.no_grad():
+                    joint_q = batch['joint_q']
+                    vertex_k = batch['vertex_k']
+                    vertex_v = batch['vertex_v']
+                    
+                    batch_size, num_joints, _ = joint_q.shape
+                    
+                    # 通过actor的attention模型计算attention权重
+                    joint_q_encoded = self.actor.attn_model.joint_q_encoder(joint_q)
+                    joint_q_encoded = joint_q_encoded.view(batch_size, num_joints, 4, 128)
+                    
+                    # 简化的attention分数计算
+                    scores = torch.matmul(
+                        joint_q_encoded.mean(dim=2),  # [B, J, 128]
+                        vertex_k.transpose(-2, -1)    # [B, 128, N]
+                    )  # [B, J, N]
+                    
+                    attention_weights = torch.softmax(scores, dim=-1)  # [B, J, N]
+                    
+                    # 计算每个关节的平均注意力强度
+                    joint_attention_intensity = attention_weights.sum(dim=-1).mean(dim=0)  # [J]
+                    
+                    # 找出最被关注的关节
+                    most_attended_joint = torch.argmax(joint_attention_intensity).item()
+                    max_attention = joint_attention_intensity[most_attended_joint].item()
+                    
+                    # 计算注意力分布的熵（多样性）
+                    attention_entropy = -(joint_attention_intensity * torch.log(joint_attention_intensity + 1e-8)).sum().item()
+                    
+                    # 计算注意力集中度（最大值与平均值的比率）
+                    attention_concentration = max_attention / (joint_attention_intensity.mean().item() + 1e-8)
+                    
+                    focus_metrics.update({
+                        'most_attended_joint': most_attended_joint,
+                        'max_joint_attention': max_attention,
+                        'attention_entropy': attention_entropy,
+                        'attention_concentration': attention_concentration,
+                        'joint_0_attention': joint_attention_intensity[0].item() if num_joints > 0 else 0,
+                        'joint_1_attention': joint_attention_intensity[1].item() if num_joints > 1 else 0,
+                        'joint_2_attention': joint_attention_intensity[2].item() if num_joints > 2 else 0,
+                        'joint_3_attention': joint_attention_intensity[3].item() if num_joints > 3 else 0,
+                        'joint_4_attention': joint_attention_intensity[4].item() if num_joints > 4 else 0,
+                        'joint_5_attention': joint_attention_intensity[5].item() if num_joints > 5 else 0,
+                    })
+                    
+        except Exception as e:
+            focus_metrics['joint_focus_error'] = str(e)
+        
+        return focus_metrics
     
     def _build_batch_from_experiences(self, experiences):
         """从经验列表构建批次数据"""

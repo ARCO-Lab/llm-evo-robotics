@@ -1,0 +1,84 @@
+[
+  {
+    "step": 1063,
+    "timestamp": 1758305254.6673968,
+    "datetime": "2025-09-19T14:07:34.667397",
+    "actor_loss": 0.354597,
+    "critic_loss": 20.766652,
+    "ppo_total_loss": 21.121249,
+    "entropy": -0.324243,
+    "learning_rate": 4.9e-07,
+    "update_count": 1.0,
+    "buffer_size": 0.0
+  },
+  {
+    "step": 1127,
+    "timestamp": 1758305254.6675494,
+    "datetime": "2025-09-19T14:07:34.667549",
+    "actor_loss": 0.346403,
+    "critic_loss": 22.84705,
+    "ppo_total_loss": 23.193452,
+    "entropy": -0.324235,
+    "learning_rate": 4.9e-07,
+    "update_count": 2.0,
+    "buffer_size": 0.0
+  },
+  {
+    "step": 1191,
+    "timestamp": 1758305254.6676767,
+    "datetime": "2025-09-19T14:07:34.667676",
+    "actor_loss": 0.352316,
+    "critic_loss": 22.247683,
+    "ppo_total_loss": 22.599999,
+    "entropy": -0.324227,
+    "learning_rate": 4.9e-07,
+    "update_count": 3.0,
+    "buffer_size": 0.0
+  },
+  {
+    "step": 1255,
+    "timestamp": 1758305254.667875,
+    "datetime": "2025-09-19T14:07:34.667875",
+    "actor_loss": 0.347181,
+    "critic_loss": 23.408686,
+    "ppo_total_loss": 23.755867,
+    "entropy": -0.324219,
+    "learning_rate": 4.9e-07,
+    "update_count": 4.0,
+    "buffer_size": 0.0
+  },
+  {
+    "step": 1319,
+    "timestamp": 1758305254.6680236,
+    "datetime": "2025-09-19T14:07:34.668023",
+    "actor_loss": 0.367306,
+    "critic_loss": 29.334558,
+    "ppo_total_loss": 29.701863,
+    "entropy": -0.324212,
+    "learning_rate": 4.9e-07,
+    "update_count": 5.0,
+    "buffer_size": 0.0
+  },
+  {
+    "step": 1383,
+    "timestamp": 1758305254.66821,
+    "datetime": "2025-09-19T14:07:34.668210",
+    "actor_loss": 0.372018,
+    "critic_loss": 23.852601,
+    "ppo_total_loss": 24.224619,
+    "entropy": -0.324204,
+    "learning_rate": 4.9e-07,
+    "update_count": 6.0,
+    "buffer_size": 0.0
+  },
+  {
+    "step": 1447,
+    "timestamp": 1758305258.4898412,
+    "datetime": "2025-09-19T14:07:38.489844",
+    "actor_loss": 0.358075,
+    "critic_loss": 28.014984,
+    "ppo_total_loss": 28.373059,
+    "entropy": -0.324196,
+    "learning_rate": 4.9e-07
+  }
+]

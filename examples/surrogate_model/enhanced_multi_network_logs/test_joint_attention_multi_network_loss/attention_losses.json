@@ -1,0 +1,80 @@
+[
+  {
+    "step": 1063,
+    "timestamp": 1758305254.6674953,
+    "datetime": "2025-09-19T14:07:34.667495",
+    "attention_actor_grad_norm": 0.0,
+    "attention_total_loss": 0.0,
+    "attention_param_mean": -0.000129,
+    "attention_param_std": 0.054542,
+    "most_attended_joint": 0.0,
+    "max_joint_attention": 1.0,
+    "attention_concentration": 1.0,
+    "attention_entropy": -0.0
+  },
+  {
+    "step": 1127,
+    "timestamp": 1758305254.6676252,
+    "datetime": "2025-09-19T14:07:34.667625",
+    "attention_actor_grad_norm": 0.0,
+    "attention_total_loss": 0.0,
+    "attention_param_mean": -0.000129,
+    "attention_param_std": 0.054542,
+    "most_attended_joint": 0.0,
+    "max_joint_attention": 1.0,
+    "attention_concentration": 1.0,
+    "attention_entropy": -0.0
+  },
+  {
+    "step": 1191,
+    "timestamp": 1758305254.6677802,
+    "datetime": "2025-09-19T14:07:34.667780",
+    "attention_actor_grad_norm": 0.0,
+    "attention_total_loss": 0.0,
+    "attention_param_mean": -0.000129,
+    "attention_param_std": 0.054542,
+    "most_attended_joint": 0.0,
+    "max_joint_attention": 1.0,
+    "attention_concentration": 1.0,
+    "attention_entropy": -0.0
+  },
+  {
+    "step": 1255,
+    "timestamp": 1758305254.6679714,
+    "datetime": "2025-09-19T14:07:34.667971",
+    "attention_actor_grad_norm": 0.0,
+    "attention_total_loss": 0.0,
+    "attention_param_mean": -0.000129,
+    "attention_param_std": 0.054542,
+    "most_attended_joint": 0.0,
+    "max_joint_attention": 1.0,
+    "attention_concentration": 1.0,
+    "attention_entropy": -0.0
+  },
+  {
+    "step": 1319,
+    "timestamp": 1758305254.6681316,
+    "datetime": "2025-09-19T14:07:34.668131",
+    "attention_actor_grad_norm": 0.0,
+    "attention_total_loss": 0.0,
+    "attention_param_mean": -0.000129,
+    "attention_param_std": 0.054542,
+    "most_attended_joint": 0.0,
+    "max_joint_attention": 1.0,
+    "attention_concentration": 1.0,
+    "attention_entropy": -0.0
+  },
+  {
+    "step": 1383,
+    "timestamp": 1758305254.6684089,
+    "datetime": "2025-09-19T14:07:34.668408",
+    "attention_actor_grad_norm": 0.023566,
+    "attention_total_loss": 0.023566,
+    "attention_param_mean": -0.000129,
+    "attention_param_std": 0.054542,
+    "most_attended_joint": 0.0,
+    "max_joint_attention": 1.0,
+    "attention_concentration": 1.0,
+    "attention_entropy": -0.0
+  }
+]

@@ -27,20 +27,17 @@ class EnhancedMultiNetworkExtractor:
         # 创建目录
         os.makedirs(self.experiment_dir, exist_ok=True)
         
-        # 多网络损失数据存储
+        # 只记录真实存在的网络损失数据
         self.loss_data = {
-            'ppo': [],
-            'attention': [],
-            'gnn': [],
-            'sac': [],
-            'total': [],
-            'performance': []  # 新增：性能指标（成功率、距离等）
+            'ppo': [],           # PPO网络有真实损失输出
+            'performance': []    # 性能指标有真实输出（成功率、距离等）
+            # 注意：只有在训练输出中真实存在时才会动态添加其他网络
         }
         self.running = False
         
-        # 扩展的正则表达式模式
+        # 正则表达式模式 - 只匹配真实存在的输出
         self.patterns = {
-            # PPO网络损失
+            # PPO网络损失（真实存在）
             'ppo_update': re.compile(r'🔥 PPO网络Loss更新 \[Step (\d+)\]:'),
             'actor_loss': re.compile(r'📊 Actor Loss: ([\d\.-]+)'),
             'critic_loss': re.compile(r'📊 Critic Loss: ([\d\.-]+)'),
@@ -50,36 +47,37 @@ class EnhancedMultiNetworkExtractor:
             'update_count': re.compile(r'🔄 更新次数: (\d+)'),
             'buffer_size': re.compile(r'💾 Buffer大小: (\d+)'),
             
-            # Attention网络损失
-            'attention_update': re.compile(r'🔥 Attention网络Loss更新 \[Step (\d+)\]:'),
-            'attention_loss': re.compile(r'📊 Attention Loss: ([\d\.-]+)'),
-            'attention_accuracy': re.compile(r'📊 Attention准确率: ([\d\.-]+)'),
-            'attention_entropy': re.compile(r'📊 Attention熵: ([\d\.-]+)'),
-            
-            # GNN网络损失
-            'gnn_update': re.compile(r'🔥 GNN网络Loss更新 \[Step (\d+)\]:'),
-            'gnn_loss': re.compile(r'📊 GNN Loss: ([\d\.-]+)'),
-            'node_accuracy': re.compile(r'📊 节点准确率: ([\d\.-]+)'),
-            'edge_accuracy': re.compile(r'📊 边准确率: ([\d\.-]+)'),
-            'graph_reconstruction_loss': re.compile(r'📊 图重构损失: ([\d\.-]+)'),
-            
-            # SAC网络损失
-            'sac_update': re.compile(r'🔥 SAC网络Loss更新 \[Step (\d+)\]:'),
-            'sac_critic_loss': re.compile(r'📊 SAC Critic Loss: ([\d\.-]+)'),
-            'sac_actor_loss': re.compile(r'📊 SAC Actor Loss: ([\d\.-]+)'),
-            'alpha_loss': re.compile(r'📊 Alpha Loss: ([\d\.-]+)'),
-            
-            # 通用训练步数提取
-            'training_step': re.compile(r'Step (\d+)/'),
-            'episode_step': re.compile(r'\[PPO Episode \d+\] Step (\d+)'),
-            
-            # 性能指标提取
+            # 性能指标（真实存在）
             'success_rate': re.compile(r'✅ 当前成功率: ([\d\.]+)%'),
             'best_distance': re.compile(r'🏆 当前最佳距离: ([\d\.]+)px'),
             'episode_best_distance': re.compile(r'📊 当前Episode最佳距离: ([\d\.]+)px'),
             'consecutive_success': re.compile(r'🔄 连续成功次数: (\d+)'),
             'completed_episodes': re.compile(r'📋 已完成Episodes: (\d+)'),
             'training_progress_report': re.compile(r'📊 PPO训练进度报告 \[Step (\d+)\]'),
+            
+            # 真实的attention网络损失模式（现在已实现）
+            'attention_update': re.compile(r'🔥 Attention网络Loss更新 \[Step (\d+)\]:'),
+            'attention_actor_grad_norm': re.compile(r'📊 Actor Attention梯度范数: ([\d\.-]+)'),
+            'attention_critic_grad_norm': re.compile(r'📊 Critic Attention梯度范数: ([\d\.-]+)'),
+            'attention_total_loss': re.compile(r'📊 Attention总损失: ([\d\.-]+)'),
+            'attention_param_mean': re.compile(r'📊 Attention参数均值: ([\d\.-]+)'),
+            'attention_param_std': re.compile(r'📊 Attention参数标准差: ([\d\.-]+)'),
+            
+            # 🆕 关节注意力分布模式
+            'most_attended_joint': re.compile(r'🎯 最关注关节: Joint (\d+)'),
+            'max_joint_attention': re.compile(r'最关注关节: Joint \d+ \(强度: ([\d\.-]+)\)'),
+            'attention_concentration': re.compile(r'📊 注意力集中度: ([\d\.-]+)'),
+            'attention_entropy': re.compile(r'📊 注意力熵值: ([\d\.-]+)'),
+            'joint_attention_distribution': re.compile(r'🔍 关节注意力分布: (.+)'),
+            
+            # GNN网络损失模式（如果将来实现）
+            'gnn_update': re.compile(r'🔥 GNN网络Loss更新 \[Step (\d+)\]:'),
+            'gnn_loss': re.compile(r'📊 GNN Loss: ([\d\.-]+)'),
+            'node_accuracy': re.compile(r'📊 节点准确率: ([\d\.-]+)'),
+            
+            # SAC网络损失模式（如果将来实现）
+            'sac_update': re.compile(r'🔥 SAC网络Loss更新 \[Step (\d+)\]:'),
+            'sac_critic_loss': re.compile(r'📊 SAC Critic Loss: ([\d\.-]+)'),
         }
         
         # 当前损失数据缓存
@@ -90,17 +88,11 @@ class EnhancedMultiNetworkExtractor:
         # 性能指标缓存
         self.current_performance = {}
         
-        # 模拟损失生成器
-        self.loss_generators = {
-            'attention': self._generate_attention_loss,
-            'gnn': self._generate_gnn_loss,
-            'sac': self._generate_sac_loss
-        }
-        
-        print(f"📊 增强版多网络损失提取器初始化")
+        print(f"📊 真实数据损失提取器初始化")
         print(f"   实验名称: {experiment_name}")
         print(f"   日志目录: {self.experiment_dir}")
-        print(f"   支持网络: {list(self.loss_data.keys())}")
+        print(f"   🎯 只记录真实存在的网络损失，绝不生成假数据")
+        print(f"   📊 当前支持: PPO网络损失 + Individual Reacher性能指标")
         
     def start_training_with_extraction(self, training_command):
         """启动训练并实时提取多网络损失"""
@@ -125,9 +117,7 @@ class EnhancedMultiNetworkExtractor:
             save_thread = threading.Thread(target=self._auto_save_loop, daemon=True)
             save_thread.start()
             
-            # 启动模拟损失生成线程
-            simulate_thread = threading.Thread(target=self._simulate_network_losses, daemon=True)
-            simulate_thread.start()
+            # 不再启动模拟损失生成线程 - 只记录真实数据
             
             # 实时读取并处理输出
             for line in process.stdout:
@@ -159,63 +149,52 @@ class EnhancedMultiNetworkExtractor:
             print("🧹 增强版提取器已停止")
     
     def _process_line(self, line):
-        """处理单行输出，提取多网络损失数据"""
-        # 检查各种网络的更新步骤
-        network_detected = None
-        step_detected = None
+        """处理单行输出，只提取真实存在的损失数据"""
         
-        # PPO网络更新
+        # 检查PPO网络更新（唯一确认存在的真实网络损失）
         step_match = self.patterns['ppo_update'].search(line)
         if step_match:
-            network_detected = 'ppo'
-            step_detected = int(step_match.group(1))
-        
-        # Attention网络更新
-        step_match = self.patterns['attention_update'].search(line)
-        if step_match:
-            network_detected = 'attention'
-            step_detected = int(step_match.group(1))
-        
-        # GNN网络更新
-        step_match = self.patterns['gnn_update'].search(line)
-        if step_match:
-            network_detected = 'gnn'
-            step_detected = int(step_match.group(1))
-        
-        # SAC网络更新
-        step_match = self.patterns['sac_update'].search(line)
-        if step_match:
-            network_detected = 'sac'
-            step_detected = int(step_match.group(1))
-        
-        # 检查是否是训练进度报告
-        progress_match = self.patterns['training_progress_report'].search(line)
-        if progress_match:
-            # 这是一个性能报告的开始，准备收集性能指标
-            self.current_performance = {}
-            self.current_performance['report_step'] = int(progress_match.group(1))
-            return
-        
-        # 如果检测到网络更新
-        if network_detected and step_detected:
             # 保存之前的数据
             if self.current_step is not None and self.current_losses:
                 self._record_current_loss()
             
-            # 开始新的步骤
-            self.current_step = step_detected
-            self.current_network = network_detected
+            # 开始新的PPO损失记录
+            self.current_step = int(step_match.group(1))
+            self.current_network = 'ppo'
             self.current_losses = {}
             return
         
-        # 提取训练步数用于生成模拟损失
-        if not network_detected:
-            step_match = self.patterns['episode_step'].search(line)
-            if step_match:
-                step_num = int(step_match.group(1))
-                # 每500步生成一次模拟损失
-                if step_num % 500 == 0 and step_num > 0:
-                    self._generate_all_simulated_losses(step_num)
+        # 检查其他网络更新（如果训练输出中真实存在）
+        for network_type in ['attention', 'gnn', 'sac']:
+            update_pattern = f'{network_type}_update'
+            if update_pattern in self.patterns:
+                step_match = self.patterns[update_pattern].search(line)
+                if step_match:
+                    # 保存之前的数据
+                    if self.current_step is not None and self.current_losses:
+                        self._record_current_loss()
+                    
+                    # 开始新的网络损失记录
+                    self.current_step = int(step_match.group(1))
+                    self.current_network = network_type
+                    self.current_losses = {}
+                    
+                    # 动态添加网络到数据存储
+                    if network_type not in self.loss_data:
+                        self.loss_data[network_type] = []
+                        print(f"   🎯 检测到真实{network_type.upper()}网络损失，开始记录")
+                    return
+        
+        # 检查训练进度报告
+        progress_match = self.patterns['training_progress_report'].search(line)
+        if progress_match:
+            # 保存之前的性能数据
+            if self.current_performance:
+                self._record_performance_metrics()
+            
+            # 开始新的性能报告
+            self.current_performance = {'report_step': int(progress_match.group(1))}
+            return
         
         # 提取性能指标
         performance_extracted = False
@@ -237,23 +216,42 @@ class EnhancedMultiNetworkExtractor:
             len(self.current_performance) >= 4):  # 至少有report_step + 3个性能指标
             self._record_performance_metrics()
         
-        # 提取损失值
+        # 提取真实损失值
         if self.current_step is not None:
-            for loss_type, pattern in self.patterns.items():
-                if (loss_type.endswith('_update') or 
-                    loss_type in ['training_step', 'episode_step', 'training_progress_report'] or
-                    loss_type in ['success_rate', 'best_distance', 'episode_best_distance', 
-                                'consecutive_success', 'completed_episodes']):
-                    continue
-                    
-                match = pattern.search(line)
-                if match:
-                    try:
-                        value = float(match.group(1))
-                        self.current_losses[loss_type] = value
-                        print(f"   🎯 提取到 {loss_type}: {value}")
-                    except ValueError:
-                        pass
+            # 根据当前网络类型提取对应的损失值
+            loss_patterns_to_check = []
+            
+            if self.current_network == 'ppo':
+                loss_patterns_to_check = ['actor_loss', 'critic_loss', 'ppo_total_loss', 'entropy', 
+                                        'learning_rate', 'update_count', 'buffer_size']
+            elif self.current_network == 'attention':
+                loss_patterns_to_check = ['attention_actor_grad_norm', 'attention_critic_grad_norm', 
+                                        'attention_total_loss', 'attention_param_mean', 'attention_param_std',
+                                        'most_attended_joint', 'max_joint_attention', 'attention_concentration',
+                                        'attention_entropy', 'joint_attention_distribution']
+            elif self.current_network == 'gnn':
+                loss_patterns_to_check = ['gnn_loss', 'node_accuracy']
+            elif self.current_network == 'sac':
+                loss_patterns_to_check = ['sac_critic_loss', 'sac_actor_loss']
+            
+            for loss_type in loss_patterns_to_check:
+                if loss_type in self.patterns:
+                    match = self.patterns[loss_type].search(line)
+                    if match:
+                        try:
+                            # 特殊处理关节分布字符串
+                            if loss_type == 'joint_attention_distribution':
+                                distribution_str = match.group(1)
+                                # 解析关节分布字符串，例如 "J0:1.000, J1:1.000, J2:1.000, J3:1.000, J4:0.000, J5:0.000"
+                                joint_values = self._parse_joint_distribution(distribution_str)
+                                self.current_losses.update(joint_values)
+                                print(f"   🎯 提取真实{self.current_network.upper()} 关节分布: {distribution_str}")
+                            else:
+                                value = float(match.group(1))
+                                self.current_losses[loss_type] = value
+                                print(f"   🎯 提取真实{self.current_network.upper()} {loss_type}: {value}")
+                        except ValueError:
+                            pass
     
     def _record_current_loss(self):
         """记录当前步骤的损失数据"""
@@ -308,165 +306,53 @@ class EnhancedMultiNetworkExtractor:
         self.current_performance = {}
     
     def _display_recorded_loss(self):
-        """显示记录的损失数据"""
+        """显示记录的真实损失数据"""
         if self.current_network == 'ppo':
             actor_loss = self.current_losses.get('actor_loss', 'N/A')
             critic_loss = self.current_losses.get('critic_loss', 'N/A')
             total_loss = self.current_losses.get('ppo_total_loss', 'N/A')
-            print(f"📊 ✅ 记录PPO损失 [Step {self.current_step}]:")
+            print(f"📊 ✅ 记录真实PPO损失 [Step {self.current_step}]:")
             print(f"     Actor: {actor_loss}, Critic: {critic_loss}, Total: {total_loss}")
             
         elif self.current_network == 'attention':
-            attention_loss = self.current_losses.get('attention_loss', 'N/A')
-            attention_acc = self.current_losses.get('attention_accuracy', 'N/A')
-            print(f"📊 ✅ 记录Attention损失 [Step {self.current_step}]:")
-            print(f"     Loss: {attention_loss}, Accuracy: {attention_acc}")
+            actor_grad = self.current_losses.get('attention_actor_grad_norm', 'N/A')
+            critic_grad = self.current_losses.get('attention_critic_grad_norm', 'N/A')
+            total_loss = self.current_losses.get('attention_total_loss', 'N/A')
+            most_attended = self.current_losses.get('most_attended_joint', 'N/A')
+            concentration = self.current_losses.get('attention_concentration', 'N/A')
+            print(f"📊 ✅ 记录真实Attention损失 [Step {self.current_step}]:")
+            print(f"     Actor梯度: {actor_grad}, Critic梯度: {critic_grad}, 总损失: {total_loss}")
+            print(f"     🎯 最关注关节: Joint {most_attended}, 集中度: {concentration}")
             
         elif self.current_network == 'gnn':
             gnn_loss = self.current_losses.get('gnn_loss', 'N/A')
             node_acc = self.current_losses.get('node_accuracy', 'N/A')
-            edge_acc = self.current_losses.get('edge_accuracy', 'N/A')
-            print(f"📊 ✅ 记录GNN损失 [Step {self.current_step}]:")
-            print(f"     Loss: {gnn_loss}, Node Acc: {node_acc}, Edge Acc: {edge_acc}")
+            print(f"📊 ✅ 记录真实GNN损失 [Step {self.current_step}]:")
+            print(f"     Loss: {gnn_loss}, Node Acc: {node_acc}")
             
         elif self.current_network == 'sac':
             sac_critic = self.current_losses.get('sac_critic_loss', 'N/A')
             sac_actor = self.current_losses.get('sac_actor_loss', 'N/A')
-            alpha_loss = self.current_losses.get('alpha_loss', 'N/A')
-            print(f"📊 ✅ 记录SAC损失 [Step {self.current_step}]:")
-            print(f"     Critic: {sac_critic}, Actor: {sac_actor}, Alpha: {alpha_loss}")
+            print(f"📊 ✅ 记录真实SAC损失 [Step {self.current_step}]:")
+            print(f"     Critic: {sac_critic}, Actor: {sac_actor}")
     
-    def _generate_all_simulated_losses(self, step):
-        """生成所有网络的模拟损失"""
-        timestamp = time.time()
+    def _parse_joint_distribution(self, distribution_str):
+        """解析关节注意力分布字符串"""
+        joint_values = {}
         
-        for network_type in ['attention', 'gnn', 'sac']:
-            if network_type in self.loss_generators:
-                loss_data = self.loss_generators[network_type](step)
-                
-                entry = {
-                    'step': step,
-                    'timestamp': timestamp,
-                    'datetime': datetime.now().isoformat(),
-                    **loss_data
-                }
-                
-                self.loss_data[network_type].append(entry)
+        try:
+            # 解析格式: "J0:1.000, J1:1.000, J2:1.000, J3:1.000, J4:0.000, J5:0.000"
+            parts = distribution_str.split(', ')
+            for part in parts:
+                if ':' in part:
+                    joint_name, value_str = part.split(':')
+                    joint_id = joint_name.strip()  # 例如 "J0"
+                    value = float(value_str.strip())
+                    joint_values[f'{joint_id}_attention'] = value
+        except Exception as e:
+            joint_values['joint_distribution_parse_error'] = str(e)
         
-        # 生成总损失
-        self._generate_total_loss(step, timestamp)
-        
-        print(f"📊 ✅ 生成多网络模拟损失 [Step {step}]")
-    
-    def _generate_attention_loss(self, step):
-        """生成attention网络损失"""
-        progress = min(1.0, step / 10000)
-        
-        return {
-            'attention_loss': max(0.05, 2.0 - step*0.0001 + random.uniform(-0.1, 0.1)),
-            'attention_accuracy': min(1.0, 0.3 + progress*0.6 + random.uniform(-0.05, 0.05)),
-            'attention_entropy': max(0.01, 1.0 - step*0.00008 + random.uniform(-0.02, 0.02))
-        }
-    
-    def _generate_gnn_loss(self, step):
-        """生成GNN网络损失"""
-        progress = min(1.0, step / 10000)
-        
-        return {
-            'gnn_loss': max(0.1, 2.5 - step*0.00015 + random.uniform(-0.15, 0.15)),
-            'node_accuracy': min(1.0, 0.25 + progress*0.7 + random.uniform(-0.03, 0.03)),
-            'edge_accuracy': min(1.0, 0.2 + progress*0.75 + random.uniform(-0.04, 0.04)),
-            'graph_reconstruction_loss': max(0.05, 1.5 - step*0.00012 + random.uniform(-0.08, 0.08))
-        }
-    
-    def _generate_sac_loss(self, step):
-        """生成SAC网络损失"""
-        progress = min(1.0, step / 10000)
-        
-        return {
-            'sac_critic_loss': max(0.01, 2.0 - step*0.00018 + random.uniform(-0.1, 0.1)),
-            'sac_actor_loss': max(0.01, 1.6 - step*0.00013 + random.uniform(-0.07, 0.07)),
-            'alpha_loss': max(0.001, 0.6 - step*0.00003 + random.uniform(-0.02, 0.02))
-        }
-    
-    def _generate_total_loss(self, step, timestamp):
-        """生成总损失"""
-        # 从各网络的最新数据计算总损失
-        total_loss = 0.0
-        components = {}
-        
-        for network_type, data in self.loss_data.items():
-            if network_type == 'total' or not data:
-                continue
-                
-            latest_entry = data[-1]
-            
-            if network_type == 'ppo':
-                actor_loss = latest_entry.get('actor_loss', 0)
-                critic_loss = latest_entry.get('critic_loss', 0)
-                if isinstance(actor_loss, (int, float)) and isinstance(critic_loss, (int, float)):
-                    ppo_total = actor_loss + critic_loss
-                    total_loss += ppo_total
-                    components['ppo_component'] = ppo_total
-            
-            elif network_type == 'attention':
-                attention_loss = latest_entry.get('attention_loss', 0)
-                if isinstance(attention_loss, (int, float)):
-                    total_loss += attention_loss
-                    components['attention_component'] = attention_loss
-            
-            elif network_type == 'gnn':
-                gnn_loss = latest_entry.get('gnn_loss', 0)
-                if isinstance(gnn_loss, (int, float)):
-                    total_loss += gnn_loss
-                    components['gnn_component'] = gnn_loss
-            
-            elif network_type == 'sac':
-                sac_critic = latest_entry.get('sac_critic_loss', 0)
-                sac_actor = latest_entry.get('sac_actor_loss', 0)
-                if isinstance(sac_critic, (int, float)) and isinstance(sac_actor, (int, float)):
-                    sac_total = sac_critic + sac_actor
-                    total_loss += sac_total
-                    components['sac_component'] = sac_total
-        
-        if total_loss > 0:
-            total_entry = {
-                'step': step,
-                'timestamp': timestamp,
-                'datetime': datetime.now().isoformat(),
-                'total_loss': total_loss,
-                **components
-            }
-            
-            self.loss_data['total'].append(total_entry)
-    
-    def _simulate_network_losses(self):
-        """在后台线程中模拟网络损失"""
-        step_counter = 0
-        
-        while self.running:
-            time.sleep(10)  # 每10秒生成一次模拟损失
-            
-            if step_counter % 3 == 0:  # 每30秒生成一次完整的模拟损失
-                current_step = step_counter * 100
-                
-                # 生成模拟的attention和GNN损失
-                for network_type in ['attention', 'gnn', 'sac']:
-                    if network_type in self.loss_generators:
-                        loss_data = self.loss_generators[network_type](current_step)
-                        
-                        entry = {
-                            'step': current_step,
-                            'timestamp': time.time(),
-                            'datetime': datetime.now().isoformat(),
-                            **loss_data
-                        }
-                        
-                        self.loss_data[network_type].append(entry)
-                
-                print(f"🎲 生成模拟网络损失 [Step {current_step}]")
-            
-            step_counter += 1
+        return joint_values
     
     def _auto_save_loop(self):
         """自动保存循环"""
@@ -474,7 +360,7 @@ class EnhancedMultiNetworkExtractor:
             time.sleep(30)  # 每30秒保存一次
             if any(self.loss_data.values()):
                 self._save_all_data()
-                print("💾 自动保存多网络损失数据完成")
+                print("💾 自动保存真实损失数据完成")
     
     def _save_all_data(self):
         """保存所有网络的损失数据"""
@@ -506,7 +392,7 @@ class EnhancedMultiNetworkExtractor:
                     json.dump(data, jsonfile, indent=2)
                 
                 saved_networks.append(network)
-                print(f"💾 保存 {network.upper()} 损失数据: {len(data)} 条记录")
+                print(f"💾 保存真实 {network.upper()} 数据: {len(data)} 条记录")
         
         # 保存统计信息
         if saved_networks:
@@ -515,16 +401,18 @@ class EnhancedMultiNetworkExtractor:
             with open(stats_path, 'w') as f:
                 json.dump(stats, f, indent=2)
             
-            print(f"📈 综合损失统计已保存: {len(saved_networks)} 个网络")
+            print(f"📈 真实损失统计已保存: {len(saved_networks)} 个网络")
     
     def _get_comprehensive_statistics(self):
         """获取所有网络的综合统计信息"""
         stats = {
             'experiment_info': {
                 'experiment_name': self.experiment_name,
+                'data_type': 'real_only',  # 标明这是真实数据
                 'total_networks': len([n for n, d in self.loss_data.items() if d]),
                 'total_records': sum(len(d) for d in self.loss_data.values()),
-                'generation_time': datetime.now().isoformat()
+                'generation_time': datetime.now().isoformat(),
+                'note': 'Only real loss data from training output, no simulated data'
             },
             'network_stats': {}
         }
@@ -657,8 +545,9 @@ if __name__ == "__main__":
             **extra_kwargs
         )
         
-        print(f"\n🎉 多网络损失提取完成！")
-        print(f"📁 损失数据保存在: {log_dir}")
+        print(f"\n🎉 真实损失提取完成！")
+        print(f"📁 真实损失数据保存在: {log_dir}")
+        print(f"📊 只包含训练输出中真实存在的网络损失，无任何模拟数据")
         
     except KeyboardInterrupt:
         print("\n⚠️ 多网络损失提取被中断")

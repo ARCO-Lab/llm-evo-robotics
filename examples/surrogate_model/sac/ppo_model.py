@@ -351,6 +351,9 @@ class AttentionPPOWithBuffer:
         self.buffer.clear()
         self.update_count += 1
         
+        # 🆕 计算Attention网络的独立损失指标
+        attention_metrics = self._calculate_attention_losses()
+        
         # 计算损失趋势
         current_total_loss = total_actor_loss + total_critic_loss
         self.recent_losses.append(current_total_loss)
@@ -367,10 +370,62 @@ class AttentionPPOWithBuffer:
             'entropy': total_entropy / ppo_epochs,
             'update_count': self.update_count,
             'loss_trend': loss_trend,
-            'learning_rate': self.actor_optimizer.param_groups[0]['lr']
+            'learning_rate': self.actor_optimizer.param_groups[0]['lr'],
+            
+            # 🆕 添加attention网络的独立损失
+            **attention_metrics
         }
         
         return metrics
+    
+    def _calculate_attention_losses(self):
+        """计算attention网络的独立损失指标"""
+        attention_metrics = {}
+        
+        try:
+            # 1. 计算Actor中attention网络的梯度范数
+            actor_attn_grad_norm = 0.0
+            actor_attn_param_count = 0
+            
+            for name, param in self.actor.attn_model.named_parameters():
+                if param.grad is not None:
+                    param_norm = param.grad.data.norm(2).item()
+                    actor_attn_grad_norm += param_norm ** 2
+                    actor_attn_param_count += 1
+            
+            if actor_attn_param_count > 0:
+                actor_attn_grad_norm = (actor_attn_grad_norm ** 0.5) / actor_attn_param_count
+                attention_metrics['attention_actor_grad_norm'] = actor_attn_grad_norm
+            
+            # 2. 计算Critic中attention网络的梯度范数
+            critic_attn_grad_norm = 0.0
+            critic_attn_param_count = 0
+            
+            for name, param in self.critic.attn_model.named_parameters():
+                if param.grad is not None:
+                    param_norm = param.grad.data.norm(2).item()
+                    critic_attn_grad_norm += param_norm ** 2
+                    critic_attn_param_count += 1
+            
+            if critic_attn_param_count > 0:
+                critic_attn_grad_norm = (critic_attn_grad_norm ** 0.5) / critic_attn_param_count
+                attention_metrics['attention_critic_grad_norm'] = critic_attn_grad_norm
+            
+            # 3. 计算总的attention损失（梯度范数之和）
+            total_attn_loss = actor_attn_grad_norm + critic_attn_grad_norm
+            attention_metrics['attention_total_loss'] = total_attn_loss
+            
+            # 4. 计算attention网络参数的统计信息
+            actor_attn_params = list(self.actor.attn_model.parameters())
+            if actor_attn_params:
+                param_values = torch.cat([p.data.flatten() for p in actor_attn_params])
+                attention_metrics['attention_param_mean'] = param_values.mean().item()
+                attention_metrics['attention_param_std'] = param_values.std().item()
+            
+        except Exception as e:
+            attention_metrics['attention_calculation_error'] = str(e)
+        
+        return attention_metrics
     
     def _prepare_inputs(self, obs, gnn_embeds, num_joints):
         """准备输入数据 - 修复版"""
