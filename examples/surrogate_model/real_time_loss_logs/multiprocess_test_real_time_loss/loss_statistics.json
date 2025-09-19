@@ -1,0 +1,67 @@
+{
+  "ppo": {
+    "actor_loss": {
+      "count": 134,
+      "min": 0.322506,
+      "max": 0.405582,
+      "avg": 0.35702153731343306,
+      "first": 0.364906,
+      "last": 0.35101,
+      "trend": "decreasing"
+    },
+    "critic_loss": {
+      "count": 133,
+      "min": 17.649765,
+      "max": 37.847502,
+      "avg": 24.99559114285714,
+      "first": 29.908277,
+      "last": 25.851533,
+      "trend": "decreasing"
+    },
+    "total_loss": {
+      "count": 132,
+      "min": 17.99666,
+      "max": 38.202876,
+      "avg": 25.358896674242423,
+      "first": 30.273183,
+      "last": 26.202543,
+      "trend": "decreasing"
+    },
+    "entropy": {
+      "count": 132,
+      "min": -0.324229,
+      "max": -0.184489,
+      "avg": -0.28642458333333315,
+      "first": -0.243181,
+      "last": -0.310989,
+      "trend": "decreasing"
+    },
+    "learning_rate": {
+      "count": 134,
+      "min": 8.39e-07,
+      "max": 0.000252,
+      "avg": 7.503741044776125e-05,
+      "first": 8.39e-07,
+      "last": 2.33e-05,
+      "trend": "increasing"
+    },
+    "update_count": {
+      "count": 134,
+      "min": 0.0,
+      "max": 36.0,
+      "avg": 16.82089552238806,
+      "first": 1.0,
+      "last": 36.0,
+      "trend": "increasing"
+    },
+    "buffer_size": {
+      "count": 133,
+      "min": 0.0,
+      "max": 53.0,
+      "avg": 3.7969924812030076,
+      "first": 0.0,
+      "last": 0.0,
+      "trend": "increasing"
+    }
+  }
+}

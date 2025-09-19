@@ -1,0 +1,116 @@
+{
+  "attention": {
+    "attention_loss": {
+      "count": 2,
+      "min": 1.8423735990559005,
+      "max": 1.9609635274523842,
+      "avg": 1.9016685632541424,
+      "first": 1.9609635274523842,
+      "last": 1.8423735990559005,
+      "trend": "decreasing"
+    },
+    "attention_accuracy": {
+      "count": 2,
+      "min": 0.3152521448070956,
+      "max": 0.3582262111356418,
+      "avg": 0.3367391779713687,
+      "first": 0.3152521448070956,
+      "last": 0.3582262111356418,
+      "trend": "increasing"
+    }
+  },
+  "gnn": {
+    "gnn_loss": {
+      "count": 2,
+      "min": 2.2356293345973435,
+      "max": 2.4052080168798997,
+      "avg": 2.3204186757386216,
+      "first": 2.4052080168798997,
+      "last": 2.2356293345973435,
+      "trend": "decreasing"
+    },
+    "node_accuracy": {
+      "count": 2,
+      "min": 0.268002291967379,
+      "max": 0.29312027376044375,
+      "avg": 0.28056128286391135,
+      "first": 0.268002291967379,
+      "last": 0.29312027376044375,
+      "trend": "increasing"
+    },
+    "edge_accuracy": {
+      "count": 2,
+      "min": 0.18040694822133047,
+      "max": 0.30231372716145755,
+      "avg": 0.241360337691394,
+      "first": 0.18040694822133047,
+      "last": 0.30231372716145755,
+      "trend": "increasing"
+    }
+  },
+  "ppo": {
+    "actor_loss": {
+      "count": 3,
+      "min": 0.332789,
+      "max": 0.36353,
+      "avg": 0.34545066666666663,
+      "first": 0.36353,
+      "last": 0.332789,
+      "trend": "decreasing"
+    },
+    "critic_loss": {
+      "count": 3,
+      "min": 30.100883,
+      "max": 31.119454,
+      "avg": 30.713357333333335,
+      "first": 30.100883,
+      "last": 31.119454,
+      "trend": "increasing"
+    },
+    "total_loss": {
+      "count": 2,
+      "min": 30.464413,
+      "max": 31.259768,
+      "avg": 30.8620905,
+      "first": 30.464413,
+      "last": 31.259768,
+      "trend": "increasing"
+    },
+    "entropy": {
+      "count": 2,
+      "min": -0.243178,
+      "max": -0.243163,
+      "avg": -0.2431705,
+      "first": -0.243178,
+      "last": -0.243163,
+      "trend": "increasing"
+    },
+    "learning_rate": {
+      "count": 2,
+      "min": 1.31e-06,
+      "max": 1.31e-06,
+      "avg": 1.31e-06,
+      "first": 1.31e-06,
+      "last": 1.31e-06,
+      "trend": "increasing"
+    },
+    "update_count": {
+      "count": 2,
+      "min": 1.0,
+      "max": 2.0,
+      "avg": 1.5,
+      "first": 1.0,
+      "last": 2.0,
+      "trend": "increasing"
+    },
+    "buffer_size": {
+      "count": 2,
+      "min": 0.0,
+      "max": 0.0,
+      "avg": 0.0,
+      "first": 0.0,
+      "last": 0.0,
+      "trend": "increasing"
+    }
+  }
+}

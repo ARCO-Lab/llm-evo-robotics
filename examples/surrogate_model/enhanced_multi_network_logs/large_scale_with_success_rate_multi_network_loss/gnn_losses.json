@@ -1,0 +1,1415 @@
+[
+  {
+    "step": 500,
+    "timestamp": 1758256508.7960835,
+    "datetime": "2025-09-19T00:35:08.796112",
+    "gnn_loss": 2.3029970807660516,
+    "node_accuracy": 0.27758837395192354,
+    "edge_accuracy": 0.21979336466905922,
+    "graph_reconstruction_loss": 1.480535995926168
+  },
+  {
+    "step": 1000,
+    "timestamp": 1758256508.7962706,
+    "datetime": "2025-09-19T00:35:08.796275",
+    "gnn_loss": 2.263554721346236,
+    "node_accuracy": 0.3190447448032534,
+    "edge_accuracy": 0.2915374482343104,
+    "graph_reconstruction_loss": 1.3569554013692806
+  },
+  {
+    "step": 1500,
+    "timestamp": 1758256510.4838974,
+    "datetime": "2025-09-19T00:35:10.483914",
+    "gnn_loss": 2.3232198909769624,
+    "node_accuracy": 0.33851228576602715,
+    "edge_accuracy": 0.3182132152040638,
+    "graph_reconstruction_loss": 1.286212961860342
+  },
+  {
+    "step": 2000,
+    "timestamp": 1758256510.484636,
+    "datetime": "2025-09-19T00:35:10.484640",
+    "gnn_loss": 2.1353669885689315,
+    "node_accuracy": 0.3982538121283151,
+    "edge_accuracy": 0.3383752024086009,
+    "graph_reconstruction_loss": 1.2939011026399492
+  },
+  {
+    "step": 2500,
+    "timestamp": 1758256511.5529673,
+    "datetime": "2025-09-19T00:35:11.552976",
+    "gnn_loss": 2.1268848154354276,
+    "node_accuracy": 0.4120627056644879,
+    "edge_accuracy": 0.3712242984719358,
+    "graph_reconstruction_loss": 1.166561204639003
+  },
+  {
+    "step": 3000,
+    "timestamp": 1758256511.5536625,
+    "datetime": "2025-09-19T00:35:11.553665",
+    "gnn_loss": 2.0179787691621143,
+    "node_accuracy": 0.4778621731112733,
+    "edge_accuracy": 0.44762005480260275,
+    "graph_reconstruction_loss": 1.0748671997020836
+  },
+  {
+    "step": 3500,
+    "timestamp": 1758256512.6383042,
+    "datetime": "2025-09-19T00:35:12.638313",
+    "gnn_loss": 2.061173688436388,
+    "node_accuracy": 0.47404744331387727,
+    "edge_accuracy": 0.42761441236166187,
+    "graph_reconstruction_loss": 1.099227701202522
+  },
+  {
+    "step": 4000,
+    "timestamp": 1758256514.232027,
+    "datetime": "2025-09-19T00:35:14.232043",
+    "gnn_loss": 1.8828723238461114,
+    "node_accuracy": 0.5596294802937152,
+    "edge_accuracy": 0.5259318821909404,
+    "graph_reconstruction_loss": 1.0672210418937274
+  },
+  {
+    "step": 4500,
+    "timestamp": 1758256514.232769,
+    "datetime": "2025-09-19T00:35:14.232774",
+    "gnn_loss": 1.887794341979386,
+    "node_accuracy": 0.5605992893089805,
+    "edge_accuracy": 0.5194297050009679,
+    "graph_reconstruction_loss": 0.8827911614663886
+  },
+  {
+    "step": 5000,
+    "timestamp": 1758256515.3361363,
+    "datetime": "2025-09-19T00:35:15.336145",
+    "gnn_loss": 1.877559767189789,
+    "node_accuracy": 0.616364733913891,
+    "edge_accuracy": 0.5662398665682473,
+    "graph_reconstruction_loss": 0.8854300163775307
+  },
+  {
+    "step": 5500,
+    "timestamp": 1758256515.3368416,
+    "datetime": "2025-09-19T00:35:15.336845",
+    "gnn_loss": 1.7545871803686786,
+    "node_accuracy": 0.6578159466335262,
+    "edge_accuracy": 0.5998971102219571,
+    "graph_reconstruction_loss": 0.7902327376298055
+  },
+  {
+    "step": 0,
+    "timestamp": 1758256516.1803586,
+    "datetime": "2025-09-19T00:35:16.180358",
+    "gnn_loss": 2.381383336925728,
+    "node_accuracy": 0.2219865125669367,
+    "edge_accuracy": 0.18629346042331008,
+    "graph_reconstruction_loss": 1.432988111242585
+  },
+  {
+    "step": 6000,
+    "timestamp": 1758256517.00275,
+    "datetime": "2025-09-19T00:35:17.002757",
+    "gnn_loss": 1.4518756134135815,
+    "node_accuracy": 0.6919051869870187,
+    "edge_accuracy": 0.6412031018386452,
+    "graph_reconstruction_loss": 0.8512508750092901
+  },
+  {
+    "step": 6500,
+    "timestamp": 1758256518.082618,
+    "datetime": "2025-09-19T00:35:18.082646",
+    "gnn_loss": 1.6328151548129752,
+    "node_accuracy": 0.6895742674670329,
+    "edge_accuracy": 0.7190400608827969,
+    "graph_reconstruction_loss": 0.7365853750367172
+  },
+  {
+    "step": 7000,
+    "timestamp": 1758256518.0834627,
+    "datetime": "2025-09-19T00:35:18.083469",
+    "gnn_loss": 1.3762109415626496,
+    "node_accuracy": 0.710752501319513,
+    "edge_accuracy": 0.7008846534697628,
+    "graph_reconstruction_loss": 0.6478160273572124
+  },
+  {
+    "step": 7500,
+    "timestamp": 1758256519.625706,
+    "datetime": "2025-09-19T00:35:19.625717",
+    "gnn_loss": 1.340994422397804,
+    "node_accuracy": 0.7966138942698981,
+    "edge_accuracy": 0.7598934911036743,
+    "graph_reconstruction_loss": 0.5250889128251863
+  },
+  {
+    "step": 8000,
+    "timestamp": 1758256519.6263933,
+    "datetime": "2025-09-19T00:35:19.626397",
+    "gnn_loss": 1.1700451092261144,
+    "node_accuracy": 0.8045496297752016,
+    "edge_accuracy": 0.7778782641065723,
+    "graph_reconstruction_loss": 0.5727245808674556
+  },
+  {
+    "step": 8500,
+    "timestamp": 1758256520.64068,
+    "datetime": "2025-09-19T00:35:20.640690",
+    "gnn_loss": 1.1244297204794629,
+    "node_accuracy": 0.838708310767639,
+    "edge_accuracy": 0.8545003289434397,
+    "graph_reconstruction_loss": 0.4122282905784013
+  },
+  {
+    "step": 9000,
+    "timestamp": 1758256520.641359,
+    "datetime": "2025-09-19T00:35:20.641363",
+    "gnn_loss": 1.0302199637406995,
+    "node_accuracy": 0.8587220338536689,
+    "edge_accuracy": 0.8797609207146575,
+    "graph_reconstruction_loss": 0.45298164946078706
+  },
+  {
+    "step": 9500,
+    "timestamp": 1758256521.7992926,
+    "datetime": "2025-09-19T00:35:21.799310",
+    "gnn_loss": 1.1365893558271762,
+    "node_accuracy": 0.9279355128871407,
+    "edge_accuracy": 0.9494853306788679,
+    "graph_reconstruction_loss": 0.35753795042481723
+  },
+  {
+    "step": 10000,
+    "timestamp": 1758256523.3147056,
+    "datetime": "2025-09-19T00:35:23.314717",
+    "gnn_loss": 0.951715664418022,
+    "node_accuracy": 0.9281874776462632,
+    "edge_accuracy": 0.9684678039254068,
+    "graph_reconstruction_loss": 0.27788775995437454
+  },
+  {
+    "step": 10500,
+    "timestamp": 1758256523.3155365,
+    "datetime": "2025-09-19T00:35:23.315543",
+    "gnn_loss": 0.8916367444846862,
+    "node_accuracy": 0.9461058382806141,
+    "edge_accuracy": 0.941278403551475,
+    "graph_reconstruction_loss": 0.3136384292753076
+  },
+  {
+    "step": 11000,
+    "timestamp": 1758256524.3027751,
+    "datetime": "2025-09-19T00:35:24.302783",
+    "gnn_loss": 0.7265685008934986,
+    "node_accuracy": 0.9758917861452073,
+    "edge_accuracy": 0.9562220552729086,
+    "graph_reconstruction_loss": 0.20643918090324612
+  },
+  {
+    "step": 11500,
+    "timestamp": 1758256524.3034768,
+    "datetime": "2025-09-19T00:35:24.303481",
+    "gnn_loss": 0.8220533456234176,
+    "node_accuracy": 0.9489072665939204,
+    "edge_accuracy": 0.9351578816637465,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 12000,
+    "timestamp": 1758256525.9148543,
+    "datetime": "2025-09-19T00:35:25.914865",
+    "gnn_loss": 0.575132135540648,
+    "node_accuracy": 0.9610884454818105,
+    "edge_accuracy": 0.912766399766217,
+    "graph_reconstruction_loss": 0.05942284261837376
+  },
+  {
+    "step": 12500,
+    "timestamp": 1758256526.94076,
+    "datetime": "2025-09-19T00:35:26.940782",
+    "gnn_loss": 0.7363890469973792,
+    "node_accuracy": 0.9278236121738163,
+    "edge_accuracy": 0.914481763121775,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 13000,
+    "timestamp": 1758256526.9415495,
+    "datetime": "2025-09-19T00:35:26.941555",
+    "gnn_loss": 0.4261944952884443,
+    "node_accuracy": 0.9626393808005875,
+    "edge_accuracy": 0.986072510130587,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 13500,
+    "timestamp": 1758256528.408786,
+    "datetime": "2025-09-19T00:35:28.408799",
+    "gnn_loss": 0.44380882347233425,
+    "node_accuracy": 0.9296231344193813,
+    "edge_accuracy": 0.9707891408159967,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 14000,
+    "timestamp": 1758256528.409513,
+    "datetime": "2025-09-19T00:35:28.409517",
+    "gnn_loss": 0.4086380884652828,
+    "node_accuracy": 0.9409766058630331,
+    "edge_accuracy": 0.9479406040375181,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 14500,
+    "timestamp": 1758256529.6800706,
+    "datetime": "2025-09-19T00:35:29.680079",
+    "gnn_loss": 0.4563805837363988,
+    "node_accuracy": 0.9380842655674021,
+    "edge_accuracy": 0.925709362181822,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 15000,
+    "timestamp": 1758256529.6808016,
+    "datetime": "2025-09-19T00:35:29.680807",
+    "gnn_loss": 0.12494045278813071,
+    "node_accuracy": 0.9770375523091903,
+    "edge_accuracy": 0.9378456815035938,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 15500,
+    "timestamp": 1758256530.2011642,
+    "datetime": "2025-09-19T00:35:30.201173",
+    "gnn_loss": 0.21079150151370596,
+    "node_accuracy": 0.9510903693869287,
+    "edge_accuracy": 0.9406270395239342,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 16000,
+    "timestamp": 1758256531.4540083,
+    "datetime": "2025-09-19T00:35:31.454016",
+    "gnn_loss": 0.1312258647138885,
+    "node_accuracy": 0.9365799826645386,
+    "edge_accuracy": 0.9131938734842343,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 16500,
+    "timestamp": 1758256532.1277163,
+    "datetime": "2025-09-19T00:35:32.127726",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9498295083804745,
+    "edge_accuracy": 0.9767935769076341,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 17000,
+    "timestamp": 1758256532.8135338,
+    "datetime": "2025-09-19T00:35:32.813542",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9713413459438057,
+    "edge_accuracy": 0.9364758216834519,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 17500,
+    "timestamp": 1758256533.4200232,
+    "datetime": "2025-09-19T00:35:33.420032",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9366783092856379,
+    "edge_accuracy": 0.9130356217119274,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 18000,
+    "timestamp": 1758256534.6165636,
+    "datetime": "2025-09-19T00:35:34.616574",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9491489773160859,
+    "edge_accuracy": 0.9687961684366978,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 18500,
+    "timestamp": 1758256535.2534208,
+    "datetime": "2025-09-19T00:35:35.253430",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9507159863580454,
+    "edge_accuracy": 0.9175756756930022,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 19000,
+    "timestamp": 1758256535.2541628,
+    "datetime": "2025-09-19T00:35:35.254167",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9421643899924153,
+    "edge_accuracy": 0.9880545776629457,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 19500,
+    "timestamp": 1758256535.8379583,
+    "datetime": "2025-09-19T00:35:35.837967",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9641801465133243,
+    "edge_accuracy": 0.963490432510288,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 20000,
+    "timestamp": 1758256537.1034713,
+    "datetime": "2025-09-19T00:35:37.103480",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9202973334512793,
+    "edge_accuracy": 0.9879423537806932,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 20500,
+    "timestamp": 1758256537.7709155,
+    "datetime": "2025-09-19T00:35:37.770925",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9619682401448353,
+    "edge_accuracy": 0.919336542621065,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 21000,
+    "timestamp": 1758256538.597047,
+    "datetime": "2025-09-19T00:35:38.597056",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9312670032228181,
+    "edge_accuracy": 0.9315502677252987,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 21500,
+    "timestamp": 1758256539.112384,
+    "datetime": "2025-09-19T00:35:39.112392",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9582267596185496,
+    "edge_accuracy": 0.9766822727395058,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 22000,
+    "timestamp": 1758256540.4637127,
+    "datetime": "2025-09-19T00:35:40.463723",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9485432271866224,
+    "edge_accuracy": 0.9325418145832127,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 22500,
+    "timestamp": 1758256540.9376132,
+    "datetime": "2025-09-19T00:35:40.937624",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9568559054359513,
+    "edge_accuracy": 0.9272286300732644,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 23000,
+    "timestamp": 1758256541.9069402,
+    "datetime": "2025-09-19T00:35:41.906949",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9291268319749989,
+    "edge_accuracy": 0.9857718809603506,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 23500,
+    "timestamp": 1758256541.9076722,
+    "datetime": "2025-09-19T00:35:41.907676",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9268361308616057,
+    "edge_accuracy": 0.9644729696662366,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 24000,
+    "timestamp": 1758256543.4842982,
+    "datetime": "2025-09-19T00:35:43.484309",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9642785541267026,
+    "edge_accuracy": 0.9814055332550474,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 24500,
+    "timestamp": 1758256544.0009685,
+    "datetime": "2025-09-19T00:35:44.000986",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9372621557281827,
+    "edge_accuracy": 0.9122997998700125,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 25000,
+    "timestamp": 1758256544.7565575,
+    "datetime": "2025-09-19T00:35:44.756568",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9669836332833283,
+    "edge_accuracy": 0.9705966515541566,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 25500,
+    "timestamp": 1758256544.757255,
+    "datetime": "2025-09-19T00:35:44.757261",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9770678308974466,
+    "edge_accuracy": 0.913719930339121,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 300,
+    "timestamp": 1758256546.2102711,
+    "datetime": "2025-09-19T00:35:46.210271",
+    "gnn_loss": 2.5009545922153755,
+    "node_accuracy": 0.27659226207919096,
+    "edge_accuracy": 0.19067537959281844,
+    "graph_reconstruction_loss": 1.4902651028034843
+  },
+  {
+    "step": 26000,
+    "timestamp": 1758256546.3651447,
+    "datetime": "2025-09-19T00:35:46.365155",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9329312486546432,
+    "edge_accuracy": 0.9523534800669112,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 26500,
+    "timestamp": 1758256546.883691,
+    "datetime": "2025-09-19T00:35:46.883700",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9538632672445204,
+    "edge_accuracy": 0.9122247407687757,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 27000,
+    "timestamp": 1758256547.7119634,
+    "datetime": "2025-09-19T00:35:47.711973",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9594366386245345,
+    "edge_accuracy": 0.9735483100452518,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 27500,
+    "timestamp": 1758256547.7127116,
+    "datetime": "2025-09-19T00:35:47.712716",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9251636182504819,
+    "edge_accuracy": 0.9206423231770521,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 28000,
+    "timestamp": 1758256549.321861,
+    "datetime": "2025-09-19T00:35:49.321870",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9309165024857671,
+    "edge_accuracy": 0.9216815484975793,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 28500,
+    "timestamp": 1758256549.5549371,
+    "datetime": "2025-09-19T00:35:49.554948",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.941727792224338,
+    "edge_accuracy": 0.965215898934142,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 29000,
+    "timestamp": 1758256550.6349375,
+    "datetime": "2025-09-19T00:35:50.634947",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9298120621432403,
+    "edge_accuracy": 0.9626974402840127,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 29500,
+    "timestamp": 1758256550.876322,
+    "datetime": "2025-09-19T00:35:50.876342",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9746254647612064,
+    "edge_accuracy": 0.9196105303364676,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 30000,
+    "timestamp": 1758256552.383133,
+    "datetime": "2025-09-19T00:35:52.383144",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9713268382275718,
+    "edge_accuracy": 0.9782313360419946,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 30500,
+    "timestamp": 1758256552.3838017,
+    "datetime": "2025-09-19T00:35:52.383807",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.943395019345714,
+    "edge_accuracy": 0.9293477873217015,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 31000,
+    "timestamp": 1758256553.4376845,
+    "datetime": "2025-09-19T00:35:53.437693",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9506804871685228,
+    "edge_accuracy": 0.9584206375353902,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 31500,
+    "timestamp": 1758256554.9873724,
+    "datetime": "2025-09-19T00:35:54.987384",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9385159949393295,
+    "edge_accuracy": 0.9205957919239194,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 32000,
+    "timestamp": 1758256554.9880698,
+    "datetime": "2025-09-19T00:35:54.988074",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9250343452596036,
+    "edge_accuracy": 0.9728843316223506,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 32500,
+    "timestamp": 1758256556.0030692,
+    "datetime": "2025-09-19T00:35:56.003079",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9734647014269762,
+    "edge_accuracy": 0.9514464174708992,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 33000,
+    "timestamp": 1758256556.0037847,
+    "datetime": "2025-09-19T00:35:56.003790",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9226667150980489,
+    "edge_accuracy": 0.95122677098022,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 33500,
+    "timestamp": 1758256557.105795,
+    "datetime": "2025-09-19T00:35:57.105804",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9609640361100886,
+    "edge_accuracy": 0.9117307485325797,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 34000,
+    "timestamp": 1758256558.6313958,
+    "datetime": "2025-09-19T00:35:58.631414",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9354401002442101,
+    "edge_accuracy": 0.9766345058548235,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 34500,
+    "timestamp": 1758256558.6321986,
+    "datetime": "2025-09-19T00:35:58.632204",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9522096495703292,
+    "edge_accuracy": 0.9586898159141953,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 35000,
+    "timestamp": 1758256559.6676564,
+    "datetime": "2025-09-19T00:35:59.667666",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9584979864997493,
+    "edge_accuracy": 0.9510577190061908,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 35500,
+    "timestamp": 1758256559.6683714,
+    "datetime": "2025-09-19T00:35:59.668376",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9667593852492623,
+    "edge_accuracy": 0.918269969784938,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 36000,
+    "timestamp": 1758256561.1989014,
+    "datetime": "2025-09-19T00:36:01.198915",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9667998916657773,
+    "edge_accuracy": 0.9131915083693848,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 36500,
+    "timestamp": 1758256561.2003202,
+    "datetime": "2025-09-19T00:36:01.200332",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.954608019929624,
+    "edge_accuracy": 0.9573491797687204,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 37000,
+    "timestamp": 1758256562.2809155,
+    "datetime": "2025-09-19T00:36:02.280931",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9793449529594062,
+    "edge_accuracy": 0.9641517512818496,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 37500,
+    "timestamp": 1758256563.8509502,
+    "datetime": "2025-09-19T00:36:03.850959",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9532275197663221,
+    "edge_accuracy": 0.9637437389497951,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 38000,
+    "timestamp": 1758256563.8516796,
+    "datetime": "2025-09-19T00:36:03.851684",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.940914755263599,
+    "edge_accuracy": 0.9856575376918216,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 38500,
+    "timestamp": 1758256565.0517445,
+    "datetime": "2025-09-19T00:36:05.051754",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9259526616500166,
+    "edge_accuracy": 0.9695662838397343,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 39000,
+    "timestamp": 1758256565.0524907,
+    "datetime": "2025-09-19T00:36:05.052497",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9286765213280784,
+    "edge_accuracy": 0.9892191952788885,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 39500,
+    "timestamp": 1758256566.2126756,
+    "datetime": "2025-09-19T00:36:06.212691",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9570885483988868,
+    "edge_accuracy": 0.9403096606776606,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 40000,
+    "timestamp": 1758256567.9941008,
+    "datetime": "2025-09-19T00:36:07.994122",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9764520846065115,
+    "edge_accuracy": 0.964758838431097,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 40500,
+    "timestamp": 1758256567.9948902,
+    "datetime": "2025-09-19T00:36:07.994896",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9241960727705123,
+    "edge_accuracy": 0.9658185073548509,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 41000,
+    "timestamp": 1758256568.9885366,
+    "datetime": "2025-09-19T00:36:08.988546",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.974318754976685,
+    "edge_accuracy": 0.9700557945944801,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 41500,
+    "timestamp": 1758256568.9891782,
+    "datetime": "2025-09-19T00:36:08.989182",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9231333457149867,
+    "edge_accuracy": 0.9391470910993308,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 42000,
+    "timestamp": 1758256570.552918,
+    "datetime": "2025-09-19T00:36:10.552928",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9423199806002923,
+    "edge_accuracy": 0.9360053359084984,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 42500,
+    "timestamp": 1758256570.553615,
+    "datetime": "2025-09-19T00:36:10.553619",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9203061436794595,
+    "edge_accuracy": 0.9821808830712324,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 43000,
+    "timestamp": 1758256571.6268435,
+    "datetime": "2025-09-19T00:36:11.626851",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9232772766032763,
+    "edge_accuracy": 0.9877772002628035,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 43500,
+    "timestamp": 1758256573.263646,
+    "datetime": "2025-09-19T00:36:13.263659",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.930806073100661,
+    "edge_accuracy": 0.9250505561485906,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 44000,
+    "timestamp": 1758256573.2643604,
+    "datetime": "2025-09-19T00:36:13.264365",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9343176939094631,
+    "edge_accuracy": 0.9814324689615407,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 44500,
+    "timestamp": 1758256574.3524098,
+    "datetime": "2025-09-19T00:36:14.352421",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9771899010526218,
+    "edge_accuracy": 0.9657230893227071,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 45000,
+    "timestamp": 1758256574.3530896,
+    "datetime": "2025-09-19T00:36:14.353093",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9765179963922307,
+    "edge_accuracy": 0.9608126661277492,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 45500,
+    "timestamp": 1758256575.5547094,
+    "datetime": "2025-09-19T00:36:15.554720",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9695103413261759,
+    "edge_accuracy": 0.9208328011424496,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 600,
+    "timestamp": 1758256576.236301,
+    "datetime": "2025-09-19T00:36:16.236301",
+    "gnn_loss": 2.305423031487783,
+    "node_accuracy": 0.3026992460156517,
+    "edge_accuracy": 0.23432118578503572,
+    "graph_reconstruction_loss": 1.3750168783782524
+  },
+  {
+    "step": 46000,
+    "timestamp": 1758256577.124049,
+    "datetime": "2025-09-19T00:36:17.124065",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9702077575776828,
+    "edge_accuracy": 0.9721359304413106,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 46500,
+    "timestamp": 1758256577.1247606,
+    "datetime": "2025-09-19T00:36:17.124765",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9757088702786081,
+    "edge_accuracy": 0.9675929311579549,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 47000,
+    "timestamp": 1758256578.22978,
+    "datetime": "2025-09-19T00:36:18.229791",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9262633366141891,
+    "edge_accuracy": 0.9877228112153421,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 47500,
+    "timestamp": 1758256578.2305331,
+    "datetime": "2025-09-19T00:36:18.230539",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.945982625741011,
+    "edge_accuracy": 0.9560718402333992,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 48000,
+    "timestamp": 1758256579.8613474,
+    "datetime": "2025-09-19T00:36:19.861360",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.976220452289708,
+    "edge_accuracy": 0.9406895964005245,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 48500,
+    "timestamp": 1758256579.8621128,
+    "datetime": "2025-09-19T00:36:19.862119",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9749716189638751,
+    "edge_accuracy": 0.9440100592062979,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 49000,
+    "timestamp": 1758256581.0410478,
+    "datetime": "2025-09-19T00:36:21.041059",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9767116004638746,
+    "edge_accuracy": 0.9256371297078839,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 49500,
+    "timestamp": 1758256582.6408453,
+    "datetime": "2025-09-19T00:36:22.640854",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.946633441137048,
+    "edge_accuracy": 0.9508706971571447,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 50000,
+    "timestamp": 1758256582.6416354,
+    "datetime": "2025-09-19T00:36:22.641641",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9429370464750556,
+    "edge_accuracy": 0.9284986959950059,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 50500,
+    "timestamp": 1758256583.7152116,
+    "datetime": "2025-09-19T00:36:23.715227",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9691903017729514,
+    "edge_accuracy": 0.9179908653750921,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 51000,
+    "timestamp": 1758256583.7159107,
+    "datetime": "2025-09-19T00:36:23.715915",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9207321858843383,
+    "edge_accuracy": 0.9824040906882934,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 51500,
+    "timestamp": 1758256584.9163444,
+    "datetime": "2025-09-19T00:36:24.916353",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9488726069300174,
+    "edge_accuracy": 0.9199834169513678,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 52000,
+    "timestamp": 1758256586.5214972,
+    "datetime": "2025-09-19T00:36:26.521516",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9666768323745872,
+    "edge_accuracy": 0.9642251670294276,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 52500,
+    "timestamp": 1758256586.5222821,
+    "datetime": "2025-09-19T00:36:26.522288",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.971437242980783,
+    "edge_accuracy": 0.9480044529123773,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 53000,
+    "timestamp": 1758256587.6069293,
+    "datetime": "2025-09-19T00:36:27.606939",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9401278905203805,
+    "edge_accuracy": 0.9206989435244016,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 53500,
+    "timestamp": 1758256587.607664,
+    "datetime": "2025-09-19T00:36:27.607668",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9608618858840282,
+    "edge_accuracy": 0.9544392153159036,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 54000,
+    "timestamp": 1758256589.3011734,
+    "datetime": "2025-09-19T00:36:29.301182",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9254860422200848,
+    "edge_accuracy": 0.9155822311951919,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 54500,
+    "timestamp": 1758256589.3018324,
+    "datetime": "2025-09-19T00:36:29.301836",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.962766424464159,
+    "edge_accuracy": 0.9733188743057799,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 55000,
+    "timestamp": 1758256590.4964352,
+    "datetime": "2025-09-19T00:36:30.496448",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9671976529910293,
+    "edge_accuracy": 0.9786394887416922,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 55500,
+    "timestamp": 1758256592.0674171,
+    "datetime": "2025-09-19T00:36:32.067425",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9218179331592783,
+    "edge_accuracy": 0.9857095393344976,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 56000,
+    "timestamp": 1758256592.0681324,
+    "datetime": "2025-09-19T00:36:32.068137",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9589680520901999,
+    "edge_accuracy": 0.9771396370975021,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 56500,
+    "timestamp": 1758256593.2606971,
+    "datetime": "2025-09-19T00:36:33.260706",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9513566463088332,
+    "edge_accuracy": 0.9258268571011926,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 57000,
+    "timestamp": 1758256593.261448,
+    "datetime": "2025-09-19T00:36:33.261452",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9277876081449871,
+    "edge_accuracy": 0.9376757804918616,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 57500,
+    "timestamp": 1758256594.4608274,
+    "datetime": "2025-09-19T00:36:34.460840",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9675025309116214,
+    "edge_accuracy": 0.9613608547449137,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 58000,
+    "timestamp": 1758256596.1126685,
+    "datetime": "2025-09-19T00:36:36.112689",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9783410837143924,
+    "edge_accuracy": 0.9790982368351122,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 58500,
+    "timestamp": 1758256596.1134531,
+    "datetime": "2025-09-19T00:36:36.113458",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9221857400226837,
+    "edge_accuracy": 0.9753317853263155,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 59000,
+    "timestamp": 1758256597.2654781,
+    "datetime": "2025-09-19T00:36:37.265487",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.947565010182947,
+    "edge_accuracy": 0.9582793144156768,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 59500,
+    "timestamp": 1758256597.2662482,
+    "datetime": "2025-09-19T00:36:37.266254",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9415012593714145,
+    "edge_accuracy": 0.9514893351662448,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 60000,
+    "timestamp": 1758256599.06551,
+    "datetime": "2025-09-19T00:36:39.065531",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.952516279245052,
+    "edge_accuracy": 0.9444347346138875,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 60500,
+    "timestamp": 1758256599.0669332,
+    "datetime": "2025-09-19T00:36:39.066947",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.93515822194361,
+    "edge_accuracy": 0.926251491041637,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 61000,
+    "timestamp": 1758256600.3127818,
+    "datetime": "2025-09-19T00:36:40.312793",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9541237271165031,
+    "edge_accuracy": 0.9820637398666773,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 61500,
+    "timestamp": 1758256602.055439,
+    "datetime": "2025-09-19T00:36:42.055449",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9680569753794044,
+    "edge_accuracy": 0.9846045174810714,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 62000,
+    "timestamp": 1758256602.056154,
+    "datetime": "2025-09-19T00:36:42.056159",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9307452346561901,
+    "edge_accuracy": 0.914506777945403,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 62500,
+    "timestamp": 1758256603.1885738,
+    "datetime": "2025-09-19T00:36:43.188583",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9326004173269705,
+    "edge_accuracy": 0.9248274369797226,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 63000,
+    "timestamp": 1758256603.189293,
+    "datetime": "2025-09-19T00:36:43.189298",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9747330992999839,
+    "edge_accuracy": 0.962876308494722,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 63500,
+    "timestamp": 1758256604.4685555,
+    "datetime": "2025-09-19T00:36:44.468565",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9717648761830288,
+    "edge_accuracy": 0.9620262820068812,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 64000,
+    "timestamp": 1758256606.0342586,
+    "datetime": "2025-09-19T00:36:46.034269",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9336213653985945,
+    "edge_accuracy": 0.93653623347347,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 64500,
+    "timestamp": 1758256606.0349946,
+    "datetime": "2025-09-19T00:36:46.034999",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9662761130053208,
+    "edge_accuracy": 0.9680660965491902,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 900,
+    "timestamp": 1758256606.266506,
+    "datetime": "2025-09-19T00:36:46.266506",
+    "gnn_loss": 2.342087913599853,
+    "node_accuracy": 0.31637559381156677,
+    "edge_accuracy": 0.22777972787381195,
+    "graph_reconstruction_loss": 1.3658583847082548
+  },
+  {
+    "step": 65000,
+    "timestamp": 1758256607.1307821,
+    "datetime": "2025-09-19T00:36:47.130792",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9306006501698502,
+    "edge_accuracy": 0.974385059951623,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 65500,
+    "timestamp": 1758256607.131444,
+    "datetime": "2025-09-19T00:36:47.131448",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9743170378682063,
+    "edge_accuracy": 0.9299520560157569,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 66000,
+    "timestamp": 1758256608.8715775,
+    "datetime": "2025-09-19T00:36:48.871585",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9239790736369613,
+    "edge_accuracy": 0.9712423894501937,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 66500,
+    "timestamp": 1758256608.872313,
+    "datetime": "2025-09-19T00:36:48.872319",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9431701047974901,
+    "edge_accuracy": 0.9663527298290738,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 67000,
+    "timestamp": 1758256610.0454934,
+    "datetime": "2025-09-19T00:36:50.045503",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9354097834957931,
+    "edge_accuracy": 0.962370468680991,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 67500,
+    "timestamp": 1758256611.7640138,
+    "datetime": "2025-09-19T00:36:51.764025",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9602967155233033,
+    "edge_accuracy": 0.9177359873173803,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 68000,
+    "timestamp": 1758256611.7647047,
+    "datetime": "2025-09-19T00:36:51.764710",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9657828605614956,
+    "edge_accuracy": 0.9607348668445104,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 68500,
+    "timestamp": 1758256613.038173,
+    "datetime": "2025-09-19T00:36:53.038182",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.958973683999419,
+    "edge_accuracy": 0.9828699424612867,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 69000,
+    "timestamp": 1758256613.0389135,
+    "datetime": "2025-09-19T00:36:53.038919",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9609548909308563,
+    "edge_accuracy": 0.9898115981555392,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 69500,
+    "timestamp": 1758256614.3910446,
+    "datetime": "2025-09-19T00:36:54.391055",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9468244768897238,
+    "edge_accuracy": 0.9325002716227156,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 70000,
+    "timestamp": 1758256616.159541,
+    "datetime": "2025-09-19T00:36:56.159552",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9541243433663866,
+    "edge_accuracy": 0.9225159791148245,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 70500,
+    "timestamp": 1758256616.1602395,
+    "datetime": "2025-09-19T00:36:56.160244",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9637948448225768,
+    "edge_accuracy": 0.9558445214024212,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 71000,
+    "timestamp": 1758256617.4032407,
+    "datetime": "2025-09-19T00:36:57.403250",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9463330193970558,
+    "edge_accuracy": 0.9739499692399236,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 71500,
+    "timestamp": 1758256617.403965,
+    "datetime": "2025-09-19T00:36:57.403969",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9640060736468203,
+    "edge_accuracy": 0.9388192304679243,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 72000,
+    "timestamp": 1758256619.157991,
+    "datetime": "2025-09-19T00:36:59.158001",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.966062398284795,
+    "edge_accuracy": 0.9463062886845879,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 72500,
+    "timestamp": 1758256620.3551323,
+    "datetime": "2025-09-19T00:37:00.355150",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9799457252158189,
+    "edge_accuracy": 0.9665854709719208,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 73000,
+    "timestamp": 1758256620.3558726,
+    "datetime": "2025-09-19T00:37:00.355878",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9375885639031684,
+    "edge_accuracy": 0.9136964300280327,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 73500,
+    "timestamp": 1758256622.0949178,
+    "datetime": "2025-09-19T00:37:02.094928",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.970290598574629,
+    "edge_accuracy": 0.9807070464157002,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 74000,
+    "timestamp": 1758256622.095609,
+    "datetime": "2025-09-19T00:37:02.095612",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9680846093373571,
+    "edge_accuracy": 0.949334444831072,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 74500,
+    "timestamp": 1758256623.3091788,
+    "datetime": "2025-09-19T00:37:03.309187",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9543799819215462,
+    "edge_accuracy": 0.9737368397130188,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 75000,
+    "timestamp": 1758256623.3098757,
+    "datetime": "2025-09-19T00:37:03.309879",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9357694476712712,
+    "edge_accuracy": 0.9879736887158858,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 75500,
+    "timestamp": 1758256624.6347659,
+    "datetime": "2025-09-19T00:37:04.634774",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9261160329959904,
+    "edge_accuracy": 0.9846144470625504,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 76000,
+    "timestamp": 1758256626.3289454,
+    "datetime": "2025-09-19T00:37:06.328963",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9557310451880748,
+    "edge_accuracy": 0.9453212757273407,
+    "graph_reconstruction_loss": 0.05
+  },
+  {
+    "step": 76500,
+    "timestamp": 1758256626.3296857,
+    "datetime": "2025-09-19T00:37:06.329692",
+    "gnn_loss": 0.1,
+    "node_accuracy": 0.9413749669718962,
+    "edge_accuracy": 0.9553737192253474,
+    "graph_reconstruction_loss": 0.05
+  }
+]

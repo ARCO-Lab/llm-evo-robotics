@@ -1,0 +1,245 @@
+{
+  "experiment_info": {
+    "experiment_name": "enhanced_test",
+    "total_networks": 5,
+    "total_records": 13,
+    "generation_time": "2025-09-19T00:25:08.547802"
+  },
+  "network_stats": {
+    "ppo": {
+      "total_records": 2,
+      "metrics": {
+        "actor_loss": {
+          "count": 2,
+          "min": 0.359751,
+          "max": 0.375448,
+          "avg": 0.36759949999999997,
+          "first": 0.359751,
+          "last": 0.375448,
+          "trend": "increasing",
+          "std": 0.007848500000000008
+        },
+        "critic_loss": {
+          "count": 2,
+          "min": 28.07564,
+          "max": 29.77011,
+          "avg": 28.922874999999998,
+          "first": 28.07564,
+          "last": 29.77011,
+          "trend": "increasing",
+          "std": 0.8472349999999995
+        },
+        "ppo_total_loss": {
+          "count": 2,
+          "min": 28.435391,
+          "max": 30.145558,
+          "avg": 29.290474500000002,
+          "first": 28.435391,
+          "last": 30.145558,
+          "trend": "increasing",
+          "std": 0.855083500000001
+        },
+        "entropy": {
+          "count": 1,
+          "min": -0.486364,
+          "max": -0.486364,
+          "avg": -0.486364,
+          "first": -0.486364,
+          "last": -0.486364,
+          "trend": "increasing",
+          "std": 0
+        },
+        "learning_rate": {
+          "count": 1,
+          "min": 4.92e-07,
+          "max": 4.92e-07,
+          "avg": 4.92e-07,
+          "first": 4.92e-07,
+          "last": 4.92e-07,
+          "trend": "increasing",
+          "std": 0
+        },
+        "update_count": {
+          "count": 1,
+          "min": 1.0,
+          "max": 1.0,
+          "avg": 1.0,
+          "first": 1.0,
+          "last": 1.0,
+          "trend": "increasing",
+          "std": 0
+        },
+        "buffer_size": {
+          "count": 1,
+          "min": 0.0,
+          "max": 0.0,
+          "avg": 0.0,
+          "first": 0.0,
+          "last": 0.0,
+          "trend": "increasing",
+          "std": 0
+        }
+      }
+    },
+    "attention": {
+      "total_records": 3,
+      "metrics": {
+        "attention_loss": {
+          "count": 3,
+          "min": 1.8354319596413389,
+          "max": 2.016997814404216,
+          "avg": 1.9200331705631877,
+          "first": 1.9076697376440082,
+          "last": 1.8354319596413389,
+          "trend": "decreasing",
+          "std": 0.07463770610580078
+        },
+        "attention_accuracy": {
+          "count": 3,
+          "min": 0.3109231514724526,
+          "max": 0.4022502616449332,
+          "avg": 0.3560566023845599,
+          "first": 0.3109231514724526,
+          "last": 0.4022502616449332,
+          "trend": "increasing",
+          "std": 0.03729167283653196
+        },
+        "attention_entropy": {
+          "count": 3,
+          "min": 0.9279302746991499,
+          "max": 1.0053939022466056,
+          "avg": 0.9591960060132604,
+          "first": 1.0053939022466056,
+          "last": 0.9279302746991499,
+          "trend": "decreasing",
+          "std": 0.03334047150320621
+        }
+      }
+    },
+    "gnn": {
+      "total_records": 3,
+      "metrics": {
+        "gnn_loss": {
+          "count": 3,
+          "min": 2.3191345281342657,
+          "max": 2.4272650988304063,
+          "avg": 2.372299537884391,
+          "first": 2.4272650988304063,
+          "last": 2.370498986688501,
+          "trend": "decreasing",
+          "std": 0.04416247704575331
+        },
+        "node_accuracy": {
+          "count": 3,
+          "min": 0.24557520780110542,
+          "max": 0.34482400644706473,
+          "avg": 0.29396911955931576,
+          "first": 0.24557520780110542,
+          "last": 0.34482400644706473,
+          "trend": "increasing",
+          "std": 0.040555503589588586
+        },
+        "edge_accuracy": {
+          "count": 3,
+          "min": 0.20487815276429025,
+          "max": 0.2846564591328727,
+          "avg": 0.24273082422579298,
+          "first": 0.20487815276429025,
+          "last": 0.2846564591328727,
+          "trend": "increasing",
+          "std": 0.03269644542537312
+        },
+        "graph_reconstruction_loss": {
+          "count": 3,
+          "min": 1.3187778134213564,
+          "max": 1.4694798848607442,
+          "avg": 1.4072107417972262,
+          "first": 1.4333745271095781,
+          "last": 1.3187778134213564,
+          "trend": "decreasing",
+          "std": 0.06424529207360241
+        }
+      }
+    },
+    "sac": {
+      "total_records": 3,
+      "metrics": {
+        "sac_critic_loss": {
+          "count": 3,
+          "min": 1.8335061710336924,
+          "max": 1.9127628323894383,
+          "avg": 1.868438172596263,
+          "first": 1.9127628323894383,
+          "last": 1.859045514365659,
+          "trend": "decreasing",
+          "std": 0.033031006784459874
+        },
+        "sac_actor_loss": {
+          "count": 3,
+          "min": 1.416693402195705,
+          "max": 1.654565484419411,
+          "avg": 1.5478441316652667,
+          "first": 1.654565484419411,
+          "last": 1.416693402195705,
+          "trend": "decreasing",
+          "std": 0.0986352800654622
+        },
+        "alpha_loss": {
+          "count": 3,
+          "min": 0.5781943673249346,
+          "max": 0.6014440237152956,
+          "avg": 0.5893513507125937,
+          "first": 0.6014440237152956,
+          "last": 0.588415661097551,
+          "trend": "decreasing",
+          "std": 0.00951466471152953
+        }
+      }
+    },
+    "total": {
+      "total_records": 2,
+      "metrics": {
+        "total_loss": {
+          "count": 2,
+          "min": 7.481669862891204,
+          "max": 7.741912021952859,
+          "avg": 7.611790942422031,
+          "first": 7.741912021952859,
+          "last": 7.481669862891204,
+          "trend": "decreasing",
+          "std": 0.13012107953082763
+        },
+        "attention_component": {
+          "count": 2,
+          "min": 1.8354319596413389,
+          "max": 2.016997814404216,
+          "avg": 1.9262148870227773,
+          "first": 2.016997814404216,
+          "last": 1.8354319596413389,
+          "trend": "decreasing",
+          "std": 0.09078292738143856
+        },
+        "gnn_component": {
+          "count": 2,
+          "min": 2.3191345281342657,
+          "max": 2.370498986688501,
+          "avg": 2.344816757411383,
+          "first": 2.3191345281342657,
+          "last": 2.370498986688501,
+          "trend": "increasing",
+          "std": 0.02568222927711772
+        },
+        "sac_component": {
+          "count": 2,
+          "min": 3.275738916561364,
+          "max": 3.405779679414377,
+          "avg": 3.3407592979878706,
+          "first": 3.405779679414377,
+          "last": 3.275738916561364,
+          "trend": "decreasing",
+          "std": 0.06502038142650646
+        }
+      }
+    }
+  }
+}

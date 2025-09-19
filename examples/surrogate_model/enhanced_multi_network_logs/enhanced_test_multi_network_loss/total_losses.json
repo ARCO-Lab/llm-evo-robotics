@@ -1,0 +1,20 @@
+[
+  {
+    "step": 500,
+    "timestamp": 1758255899.9755363,
+    "datetime": "2025-09-19T00:24:59.975564",
+    "total_loss": 7.741912021952859,
+    "attention_component": 2.016997814404216,
+    "gnn_component": 2.3191345281342657,
+    "sac_component": 3.405779679414377
+  },
+  {
+    "step": 1000,
+    "timestamp": 1758255899.9756734,
+    "datetime": "2025-09-19T00:24:59.975680",
+    "total_loss": 7.481669862891204,
+    "attention_component": 1.8354319596413389,
+    "gnn_component": 2.370498986688501,
+    "sac_component": 3.275738916561364
+  }
+]

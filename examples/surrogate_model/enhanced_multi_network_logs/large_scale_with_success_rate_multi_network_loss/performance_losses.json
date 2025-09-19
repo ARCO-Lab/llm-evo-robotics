@@ -1,0 +1,1379 @@
+[
+  {
+    "step": 500,
+    "timestamp": 1758256508.7961624,
+    "datetime": "2025-09-19T00:35:08.796162",
+    "report_step": 500,
+    "best_distance": 274.6,
+    "episode_best_distance": 274.6,
+    "success_rate": 0.0
+  },
+  {
+    "step": 1000,
+    "timestamp": 1758256508.7963068,
+    "datetime": "2025-09-19T00:35:08.796307",
+    "report_step": 1000,
+    "best_distance": 180.7,
+    "episode_best_distance": 180.7,
+    "success_rate": 0.0
+  },
+  {
+    "step": 1500,
+    "timestamp": 1758256510.483975,
+    "datetime": "2025-09-19T00:35:10.483975",
+    "report_step": 1500,
+    "best_distance": 170.8,
+    "episode_best_distance": 170.8,
+    "success_rate": 0.0
+  },
+  {
+    "step": 2000,
+    "timestamp": 1758256510.4847088,
+    "datetime": "2025-09-19T00:35:10.484709",
+    "report_step": 2000,
+    "best_distance": 166.0,
+    "episode_best_distance": 166.0,
+    "success_rate": 0.0
+  },
+  {
+    "step": 2500,
+    "timestamp": 1758256511.5530348,
+    "datetime": "2025-09-19T00:35:11.553034",
+    "report_step": 2500,
+    "best_distance": 164.0,
+    "episode_best_distance": 164.0,
+    "success_rate": 0.0
+  },
+  {
+    "step": 3000,
+    "timestamp": 1758256512.6376047,
+    "datetime": "2025-09-19T00:35:12.637606",
+    "report_step": 3000,
+    "best_distance": 164.0,
+    "episode_best_distance": 164.0,
+    "success_rate": 0.0
+  },
+  {
+    "step": 3500,
+    "timestamp": 1758256512.6383731,
+    "datetime": "2025-09-19T00:35:12.638373",
+    "report_step": 3500,
+    "best_distance": 164.0,
+    "episode_best_distance": 164.0,
+    "success_rate": 0.0
+  },
+  {
+    "step": 4000,
+    "timestamp": 1758256514.2321148,
+    "datetime": "2025-09-19T00:35:14.232114",
+    "report_step": 4000,
+    "best_distance": 164.0,
+    "episode_best_distance": 164.0,
+    "success_rate": 0.0
+  },
+  {
+    "step": 4500,
+    "timestamp": 1758256514.232826,
+    "datetime": "2025-09-19T00:35:14.232826",
+    "report_step": 4500,
+    "best_distance": 164.0,
+    "episode_best_distance": 164.0,
+    "success_rate": 0.0
+  },
+  {
+    "step": 5000,
+    "timestamp": 1758256515.3362129,
+    "datetime": "2025-09-19T00:35:15.336213",
+    "report_step": 5000,
+    "best_distance": 164.0,
+    "episode_best_distance": 164.0,
+    "success_rate": 0.0
+  },
+  {
+    "step": 5500,
+    "timestamp": 1758256515.3368995,
+    "datetime": "2025-09-19T00:35:15.336899",
+    "report_step": 5500,
+    "best_distance": 164.0,
+    "episode_best_distance": 164.0,
+    "success_rate": 0.0
+  },
+  {
+    "step": 6000,
+    "timestamp": 1758256517.0028195,
+    "datetime": "2025-09-19T00:35:17.002819",
+    "report_step": 6000,
+    "best_distance": 164.0,
+    "episode_best_distance": 164.0,
+    "success_rate": 0.0
+  },
+  {
+    "step": 6500,
+    "timestamp": 1758256518.0827382,
+    "datetime": "2025-09-19T00:35:18.082738",
+    "report_step": 6500,
+    "best_distance": 164.0,
+    "episode_best_distance": 164.0,
+    "success_rate": 0.0
+  },
+  {
+    "step": 7000,
+    "timestamp": 1758256518.083531,
+    "datetime": "2025-09-19T00:35:18.083531",
+    "report_step": 7000,
+    "best_distance": 164.0,
+    "episode_best_distance": 164.0,
+    "success_rate": 0.0
+  },
+  {
+    "step": 7500,
+    "timestamp": 1758256519.6257794,
+    "datetime": "2025-09-19T00:35:19.625779",
+    "report_step": 7500,
+    "best_distance": 164.0,
+    "episode_best_distance": 164.0,
+    "success_rate": 0.0
+  },
+  {
+    "step": 8000,
+    "timestamp": 1758256519.6264522,
+    "datetime": "2025-09-19T00:35:19.626452",
+    "report_step": 8000,
+    "best_distance": 164.0,
+    "episode_best_distance": 164.0,
+    "success_rate": 0.0
+  },
+  {
+    "step": 8500,
+    "timestamp": 1758256520.6407495,
+    "datetime": "2025-09-19T00:35:20.640749",
+    "report_step": 8500,
+    "best_distance": 164.0,
+    "episode_best_distance": 164.0,
+    "success_rate": 0.0
+  },
+  {
+    "step": 9000,
+    "timestamp": 1758256520.641419,
+    "datetime": "2025-09-19T00:35:20.641419",
+    "report_step": 9000,
+    "best_distance": 164.0,
+    "episode_best_distance": 164.0,
+    "success_rate": 0.0
+  },
+  {
+    "step": 9500,
+    "timestamp": 1758256521.7994165,
+    "datetime": "2025-09-19T00:35:21.799416",
+    "report_step": 9500,
+    "best_distance": 164.0,
+    "episode_best_distance": 164.0,
+    "success_rate": 0.0
+  },
+  {
+    "step": 10000,
+    "timestamp": 1758256523.3148272,
+    "datetime": "2025-09-19T00:35:23.314827",
+    "report_step": 10000,
+    "best_distance": 164.0,
+    "episode_best_distance": 164.0,
+    "success_rate": 0.0
+  },
+  {
+    "step": 10500,
+    "timestamp": 1758256523.3156006,
+    "datetime": "2025-09-19T00:35:23.315600",
+    "report_step": 10500,
+    "best_distance": 164.0,
+    "episode_best_distance": 164.0,
+    "success_rate": 0.0
+  },
+  {
+    "step": 11000,
+    "timestamp": 1758256524.302851,
+    "datetime": "2025-09-19T00:35:24.302851",
+    "report_step": 11000,
+    "best_distance": 164.0,
+    "episode_best_distance": 164.0,
+    "success_rate": 0.0
+  },
+  {
+    "step": 11500,
+    "timestamp": 1758256524.3035362,
+    "datetime": "2025-09-19T00:35:24.303536",
+    "report_step": 11500,
+    "best_distance": 164.0,
+    "episode_best_distance": 164.0,
+    "success_rate": 0.0
+  },
+  {
+    "step": 12000,
+    "timestamp": 1758256525.9149365,
+    "datetime": "2025-09-19T00:35:25.914936",
+    "report_step": 12000,
+    "best_distance": 164.0,
+    "episode_best_distance": 164.0,
+    "success_rate": 0.0
+  },
+  {
+    "step": 12500,
+    "timestamp": 1758256526.9408605,
+    "datetime": "2025-09-19T00:35:26.940860",
+    "report_step": 12500,
+    "best_distance": 164.0,
+    "episode_best_distance": 164.0,
+    "success_rate": 0.0
+  },
+  {
+    "step": 13000,
+    "timestamp": 1758256526.9416292,
+    "datetime": "2025-09-19T00:35:26.941629",
+    "report_step": 13000,
+    "best_distance": 164.0,
+    "episode_best_distance": 164.0,
+    "success_rate": 0.0
+  },
+  {
+    "step": 13500,
+    "timestamp": 1758256528.4088616,
+    "datetime": "2025-09-19T00:35:28.408861",
+    "report_step": 13500,
+    "best_distance": 125.8,
+    "episode_best_distance": 115.9,
+    "success_rate": 0.0
+  },
+  {
+    "step": 14000,
+    "timestamp": 1758256528.4095845,
+    "datetime": "2025-09-19T00:35:28.409584",
+    "report_step": 14000,
+    "best_distance": 54.6,
+    "episode_best_distance": 54.6,
+    "success_rate": 0.0
+  },
+  {
+    "step": 14500,
+    "timestamp": 1758256529.6801362,
+    "datetime": "2025-09-19T00:35:29.680136",
+    "report_step": 14500,
+    "best_distance": 19.9,
+    "episode_best_distance": 256.9,
+    "success_rate": 100.0
+  },
+  {
+    "step": 15000,
+    "timestamp": 1758256529.6808612,
+    "datetime": "2025-09-19T00:35:29.680861",
+    "report_step": 15000,
+    "best_distance": 19.9,
+    "episode_best_distance": 179.4,
+    "success_rate": 100.0
+  },
+  {
+    "step": 15500,
+    "timestamp": 1758256530.2012317,
+    "datetime": "2025-09-19T00:35:30.201231",
+    "report_step": 15500,
+    "best_distance": 19.9,
+    "episode_best_distance": 52.7,
+    "success_rate": 100.0
+  },
+  {
+    "step": 16000,
+    "timestamp": 1758256531.4540765,
+    "datetime": "2025-09-19T00:35:31.454076",
+    "report_step": 16000,
+    "best_distance": 19.8,
+    "episode_best_distance": 218.9,
+    "success_rate": 100.0
+  },
+  {
+    "step": 16500,
+    "timestamp": 1758256532.1277826,
+    "datetime": "2025-09-19T00:35:32.127782",
+    "report_step": 16500,
+    "best_distance": 19.8,
+    "episode_best_distance": 94.9,
+    "success_rate": 100.0
+  },
+  {
+    "step": 17000,
+    "timestamp": 1758256532.8136015,
+    "datetime": "2025-09-19T00:35:32.813601",
+    "report_step": 17000,
+    "best_distance": 19.8,
+    "episode_best_distance": 249.5,
+    "success_rate": 100.0
+  },
+  {
+    "step": 17500,
+    "timestamp": 1758256533.4201224,
+    "datetime": "2025-09-19T00:35:33.420122",
+    "report_step": 17500,
+    "best_distance": 19.8,
+    "episode_best_distance": 132.4,
+    "success_rate": 100.0
+  },
+  {
+    "step": 18000,
+    "timestamp": 1758256534.6166751,
+    "datetime": "2025-09-19T00:35:34.616675",
+    "report_step": 18000,
+    "best_distance": 19.8,
+    "episode_best_distance": 265.5,
+    "success_rate": 100.0
+  },
+  {
+    "step": 18500,
+    "timestamp": 1758256535.2534895,
+    "datetime": "2025-09-19T00:35:35.253489",
+    "report_step": 18500,
+    "best_distance": 19.8,
+    "episode_best_distance": 156.4,
+    "success_rate": 100.0
+  },
+  {
+    "step": 19000,
+    "timestamp": 1758256535.2542276,
+    "datetime": "2025-09-19T00:35:35.254227",
+    "report_step": 19000,
+    "best_distance": 19.8,
+    "episode_best_distance": 22.3,
+    "success_rate": 100.0
+  },
+  {
+    "step": 19500,
+    "timestamp": 1758256537.102849,
+    "datetime": "2025-09-19T00:35:37.102850",
+    "report_step": 19500,
+    "best_distance": 19.8,
+    "episode_best_distance": 174.0,
+    "success_rate": 100.0
+  },
+  {
+    "step": 20000,
+    "timestamp": 1758256537.1035364,
+    "datetime": "2025-09-19T00:35:37.103536",
+    "report_step": 20000,
+    "best_distance": 19.8,
+    "episode_best_distance": 38.0,
+    "success_rate": 100.0
+  },
+  {
+    "step": 20500,
+    "timestamp": 1758256537.7709792,
+    "datetime": "2025-09-19T00:35:37.770979",
+    "report_step": 20500,
+    "best_distance": 19.8,
+    "episode_best_distance": 218.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 21000,
+    "timestamp": 1758256538.5971222,
+    "datetime": "2025-09-19T00:35:38.597122",
+    "report_step": 21000,
+    "best_distance": 19.8,
+    "episode_best_distance": 88.5,
+    "success_rate": 100.0
+  },
+  {
+    "step": 21500,
+    "timestamp": 1758256539.112447,
+    "datetime": "2025-09-19T00:35:39.112447",
+    "report_step": 21500,
+    "best_distance": 19.8,
+    "episode_best_distance": 237.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 22000,
+    "timestamp": 1758256540.463786,
+    "datetime": "2025-09-19T00:35:40.463786",
+    "report_step": 22000,
+    "best_distance": 19.8,
+    "episode_best_distance": 117.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 22500,
+    "timestamp": 1758256540.937681,
+    "datetime": "2025-09-19T00:35:40.937681",
+    "report_step": 22500,
+    "best_distance": 19.8,
+    "episode_best_distance": 255.4,
+    "success_rate": 100.0
+  },
+  {
+    "step": 23000,
+    "timestamp": 1758256541.907045,
+    "datetime": "2025-09-19T00:35:41.907045",
+    "report_step": 23000,
+    "best_distance": 19.8,
+    "episode_best_distance": 191.0,
+    "success_rate": 100.0
+  },
+  {
+    "step": 23500,
+    "timestamp": 1758256541.907725,
+    "datetime": "2025-09-19T00:35:41.907725",
+    "report_step": 23500,
+    "best_distance": 19.8,
+    "episode_best_distance": 152.5,
+    "success_rate": 100.0
+  },
+  {
+    "step": 24000,
+    "timestamp": 1758256543.4843733,
+    "datetime": "2025-09-19T00:35:43.484373",
+    "report_step": 24000,
+    "best_distance": 19.8,
+    "episode_best_distance": 122.3,
+    "success_rate": 100.0
+  },
+  {
+    "step": 24500,
+    "timestamp": 1758256544.001051,
+    "datetime": "2025-09-19T00:35:44.001051",
+    "report_step": 24500,
+    "best_distance": 19.8,
+    "episode_best_distance": 75.3,
+    "success_rate": 100.0
+  },
+  {
+    "step": 25000,
+    "timestamp": 1758256544.7566311,
+    "datetime": "2025-09-19T00:35:44.756631",
+    "report_step": 25000,
+    "best_distance": 19.8,
+    "episode_best_distance": 265.8,
+    "success_rate": 100.0
+  },
+  {
+    "step": 25500,
+    "timestamp": 1758256544.7573116,
+    "datetime": "2025-09-19T00:35:44.757311",
+    "report_step": 25500,
+    "best_distance": 19.8,
+    "episode_best_distance": 222.0,
+    "success_rate": 100.0
+  },
+  {
+    "step": 26000,
+    "timestamp": 1758256546.3652241,
+    "datetime": "2025-09-19T00:35:46.365224",
+    "report_step": 26000,
+    "best_distance": 19.8,
+    "episode_best_distance": 154.9,
+    "success_rate": 100.0
+  },
+  {
+    "step": 26500,
+    "timestamp": 1758256546.8837976,
+    "datetime": "2025-09-19T00:35:46.883798",
+    "report_step": 26500,
+    "best_distance": 19.8,
+    "episode_best_distance": 76.7,
+    "success_rate": 100.0
+  },
+  {
+    "step": 27000,
+    "timestamp": 1758256547.7120748,
+    "datetime": "2025-09-19T00:35:47.712074",
+    "report_step": 27000,
+    "best_distance": 19.8,
+    "episode_best_distance": 254.1,
+    "success_rate": 100.0
+  },
+  {
+    "step": 27500,
+    "timestamp": 1758256549.3211253,
+    "datetime": "2025-09-19T00:35:49.321127",
+    "report_step": 27500,
+    "best_distance": 19.8,
+    "episode_best_distance": 188.0,
+    "success_rate": 100.0
+  },
+  {
+    "step": 28000,
+    "timestamp": 1758256549.3219304,
+    "datetime": "2025-09-19T00:35:49.321930",
+    "report_step": 28000,
+    "best_distance": 19.8,
+    "episode_best_distance": 108.9,
+    "success_rate": 100.0
+  },
+  {
+    "step": 28500,
+    "timestamp": 1758256549.555005,
+    "datetime": "2025-09-19T00:35:49.555005",
+    "report_step": 28500,
+    "best_distance": 19.8,
+    "episode_best_distance": 32.5,
+    "success_rate": 100.0
+  },
+  {
+    "step": 29000,
+    "timestamp": 1758256550.6350079,
+    "datetime": "2025-09-19T00:35:50.635007",
+    "report_step": 29000,
+    "best_distance": 19.8,
+    "episode_best_distance": 186.9,
+    "success_rate": 100.0
+  },
+  {
+    "step": 29500,
+    "timestamp": 1758256550.8764088,
+    "datetime": "2025-09-19T00:35:50.876409",
+    "report_step": 29500,
+    "best_distance": 19.8,
+    "episode_best_distance": 42.8,
+    "success_rate": 100.0
+  },
+  {
+    "step": 30000,
+    "timestamp": 1758256552.3832045,
+    "datetime": "2025-09-19T00:35:52.383204",
+    "report_step": 30000,
+    "best_distance": 19.8,
+    "episode_best_distance": 200.8,
+    "success_rate": 100.0
+  },
+  {
+    "step": 30500,
+    "timestamp": 1758256552.383855,
+    "datetime": "2025-09-19T00:35:52.383855",
+    "report_step": 30500,
+    "best_distance": 19.8,
+    "episode_best_distance": 63.3,
+    "success_rate": 100.0
+  },
+  {
+    "step": 31000,
+    "timestamp": 1758256553.4377499,
+    "datetime": "2025-09-19T00:35:53.437750",
+    "report_step": 31000,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 31500,
+    "timestamp": 1758256554.9874446,
+    "datetime": "2025-09-19T00:35:54.987444",
+    "report_step": 31500,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 32000,
+    "timestamp": 1758256554.9881275,
+    "datetime": "2025-09-19T00:35:54.988127",
+    "report_step": 32000,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 32500,
+    "timestamp": 1758256556.0031385,
+    "datetime": "2025-09-19T00:35:56.003138",
+    "report_step": 32500,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 33000,
+    "timestamp": 1758256556.0038426,
+    "datetime": "2025-09-19T00:35:56.003842",
+    "report_step": 33000,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 33500,
+    "timestamp": 1758256557.1058583,
+    "datetime": "2025-09-19T00:35:57.105858",
+    "report_step": 33500,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 34000,
+    "timestamp": 1758256558.631492,
+    "datetime": "2025-09-19T00:35:58.631492",
+    "report_step": 34000,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 34500,
+    "timestamp": 1758256558.6322625,
+    "datetime": "2025-09-19T00:35:58.632262",
+    "report_step": 34500,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 35000,
+    "timestamp": 1758256559.6677284,
+    "datetime": "2025-09-19T00:35:59.667728",
+    "report_step": 35000,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 35500,
+    "timestamp": 1758256559.6684258,
+    "datetime": "2025-09-19T00:35:59.668425",
+    "report_step": 35500,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 36000,
+    "timestamp": 1758256561.1990237,
+    "datetime": "2025-09-19T00:36:01.199024",
+    "report_step": 36000,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 36500,
+    "timestamp": 1758256561.2004285,
+    "datetime": "2025-09-19T00:36:01.200428",
+    "report_step": 36500,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 37000,
+    "timestamp": 1758256562.2810414,
+    "datetime": "2025-09-19T00:36:02.281041",
+    "report_step": 37000,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 37500,
+    "timestamp": 1758256563.8510525,
+    "datetime": "2025-09-19T00:36:03.851052",
+    "report_step": 37500,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 38000,
+    "timestamp": 1758256563.8517373,
+    "datetime": "2025-09-19T00:36:03.851737",
+    "report_step": 38000,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 38500,
+    "timestamp": 1758256565.0518095,
+    "datetime": "2025-09-19T00:36:05.051809",
+    "report_step": 38500,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 39000,
+    "timestamp": 1758256565.0525513,
+    "datetime": "2025-09-19T00:36:05.052551",
+    "report_step": 39000,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 39500,
+    "timestamp": 1758256566.2127495,
+    "datetime": "2025-09-19T00:36:06.212749",
+    "report_step": 39500,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 40000,
+    "timestamp": 1758256567.9942005,
+    "datetime": "2025-09-19T00:36:07.994200",
+    "report_step": 40000,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 40500,
+    "timestamp": 1758256567.9949558,
+    "datetime": "2025-09-19T00:36:07.994956",
+    "report_step": 40500,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 41000,
+    "timestamp": 1758256568.9886103,
+    "datetime": "2025-09-19T00:36:08.988610",
+    "report_step": 41000,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 41500,
+    "timestamp": 1758256568.9892373,
+    "datetime": "2025-09-19T00:36:08.989237",
+    "report_step": 41500,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 42000,
+    "timestamp": 1758256570.5529892,
+    "datetime": "2025-09-19T00:36:10.552989",
+    "report_step": 42000,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 42500,
+    "timestamp": 1758256571.6261406,
+    "datetime": "2025-09-19T00:36:11.626142",
+    "report_step": 42500,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 43000,
+    "timestamp": 1758256571.6269102,
+    "datetime": "2025-09-19T00:36:11.626910",
+    "report_step": 43000,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 43500,
+    "timestamp": 1758256573.2637818,
+    "datetime": "2025-09-19T00:36:13.263782",
+    "report_step": 43500,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 44000,
+    "timestamp": 1758256573.2644317,
+    "datetime": "2025-09-19T00:36:13.264431",
+    "report_step": 44000,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 44500,
+    "timestamp": 1758256574.352477,
+    "datetime": "2025-09-19T00:36:14.352477",
+    "report_step": 44500,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 45000,
+    "timestamp": 1758256574.3531442,
+    "datetime": "2025-09-19T00:36:14.353144",
+    "report_step": 45000,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 45500,
+    "timestamp": 1758256575.5547755,
+    "datetime": "2025-09-19T00:36:15.554775",
+    "report_step": 45500,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 46000,
+    "timestamp": 1758256577.1241345,
+    "datetime": "2025-09-19T00:36:17.124134",
+    "report_step": 46000,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 46500,
+    "timestamp": 1758256577.124814,
+    "datetime": "2025-09-19T00:36:17.124814",
+    "report_step": 46500,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 47000,
+    "timestamp": 1758256578.2298985,
+    "datetime": "2025-09-19T00:36:18.229898",
+    "report_step": 47000,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 47500,
+    "timestamp": 1758256578.2305877,
+    "datetime": "2025-09-19T00:36:18.230587",
+    "report_step": 47500,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 48000,
+    "timestamp": 1758256579.861425,
+    "datetime": "2025-09-19T00:36:19.861425",
+    "report_step": 48000,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 48500,
+    "timestamp": 1758256581.0403574,
+    "datetime": "2025-09-19T00:36:21.040359",
+    "report_step": 48500,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 49000,
+    "timestamp": 1758256581.041116,
+    "datetime": "2025-09-19T00:36:21.041116",
+    "report_step": 49000,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 49500,
+    "timestamp": 1758256582.6409087,
+    "datetime": "2025-09-19T00:36:22.640908",
+    "report_step": 49500,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 50000,
+    "timestamp": 1758256582.641698,
+    "datetime": "2025-09-19T00:36:22.641698",
+    "report_step": 50000,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 50500,
+    "timestamp": 1758256583.7152853,
+    "datetime": "2025-09-19T00:36:23.715285",
+    "report_step": 50500,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 51000,
+    "timestamp": 1758256583.7159665,
+    "datetime": "2025-09-19T00:36:23.715966",
+    "report_step": 51000,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 51500,
+    "timestamp": 1758256584.9164102,
+    "datetime": "2025-09-19T00:36:24.916410",
+    "report_step": 51500,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 52000,
+    "timestamp": 1758256586.5215874,
+    "datetime": "2025-09-19T00:36:26.521587",
+    "report_step": 52000,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 52500,
+    "timestamp": 1758256586.5223365,
+    "datetime": "2025-09-19T00:36:26.522336",
+    "report_step": 52500,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 53000,
+    "timestamp": 1758256587.6069973,
+    "datetime": "2025-09-19T00:36:27.606997",
+    "report_step": 53000,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 53500,
+    "timestamp": 1758256587.607717,
+    "datetime": "2025-09-19T00:36:27.607717",
+    "report_step": 53500,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 54000,
+    "timestamp": 1758256589.301249,
+    "datetime": "2025-09-19T00:36:29.301249",
+    "report_step": 54000,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 54500,
+    "timestamp": 1758256589.3018863,
+    "datetime": "2025-09-19T00:36:29.301886",
+    "report_step": 54500,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 55000,
+    "timestamp": 1758256590.4965098,
+    "datetime": "2025-09-19T00:36:30.496509",
+    "report_step": 55000,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 55500,
+    "timestamp": 1758256592.0674791,
+    "datetime": "2025-09-19T00:36:32.067479",
+    "report_step": 55500,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 56000,
+    "timestamp": 1758256592.0681908,
+    "datetime": "2025-09-19T00:36:32.068191",
+    "report_step": 56000,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 56500,
+    "timestamp": 1758256593.260812,
+    "datetime": "2025-09-19T00:36:33.260812",
+    "report_step": 56500,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 57000,
+    "timestamp": 1758256593.2615044,
+    "datetime": "2025-09-19T00:36:33.261504",
+    "report_step": 57000,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 57500,
+    "timestamp": 1758256594.4608989,
+    "datetime": "2025-09-19T00:36:34.460899",
+    "report_step": 57500,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 58000,
+    "timestamp": 1758256596.1127555,
+    "datetime": "2025-09-19T00:36:36.112755",
+    "report_step": 58000,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 58500,
+    "timestamp": 1758256596.113507,
+    "datetime": "2025-09-19T00:36:36.113507",
+    "report_step": 58500,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 59000,
+    "timestamp": 1758256597.2655494,
+    "datetime": "2025-09-19T00:36:37.265549",
+    "report_step": 59000,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 59500,
+    "timestamp": 1758256597.2663152,
+    "datetime": "2025-09-19T00:36:37.266315",
+    "report_step": 59500,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 60000,
+    "timestamp": 1758256599.0656588,
+    "datetime": "2025-09-19T00:36:39.065659",
+    "report_step": 60000,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 60500,
+    "timestamp": 1758256600.3120472,
+    "datetime": "2025-09-19T00:36:40.312050",
+    "report_step": 60500,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 61000,
+    "timestamp": 1758256600.3128536,
+    "datetime": "2025-09-19T00:36:40.312853",
+    "report_step": 61000,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 61500,
+    "timestamp": 1758256602.0555046,
+    "datetime": "2025-09-19T00:36:42.055504",
+    "report_step": 61500,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 62000,
+    "timestamp": 1758256602.056211,
+    "datetime": "2025-09-19T00:36:42.056211",
+    "report_step": 62000,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 62500,
+    "timestamp": 1758256603.188637,
+    "datetime": "2025-09-19T00:36:43.188637",
+    "report_step": 62500,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 63000,
+    "timestamp": 1758256603.18936,
+    "datetime": "2025-09-19T00:36:43.189360",
+    "report_step": 63000,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 63500,
+    "timestamp": 1758256604.4686217,
+    "datetime": "2025-09-19T00:36:44.468622",
+    "report_step": 63500,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 64000,
+    "timestamp": 1758256606.0343323,
+    "datetime": "2025-09-19T00:36:46.034332",
+    "report_step": 64000,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 64500,
+    "timestamp": 1758256606.0350485,
+    "datetime": "2025-09-19T00:36:46.035048",
+    "report_step": 64500,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 65000,
+    "timestamp": 1758256607.130852,
+    "datetime": "2025-09-19T00:36:47.130852",
+    "report_step": 65000,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 65500,
+    "timestamp": 1758256607.1314962,
+    "datetime": "2025-09-19T00:36:47.131496",
+    "report_step": 65500,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 66000,
+    "timestamp": 1758256608.871674,
+    "datetime": "2025-09-19T00:36:48.871674",
+    "report_step": 66000,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 66500,
+    "timestamp": 1758256610.044779,
+    "datetime": "2025-09-19T00:36:50.044781",
+    "report_step": 66500,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 67000,
+    "timestamp": 1758256610.045563,
+    "datetime": "2025-09-19T00:36:50.045563",
+    "report_step": 67000,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 67500,
+    "timestamp": 1758256611.7640822,
+    "datetime": "2025-09-19T00:36:51.764082",
+    "report_step": 67500,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 68000,
+    "timestamp": 1758256611.7647636,
+    "datetime": "2025-09-19T00:36:51.764763",
+    "report_step": 68000,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 68500,
+    "timestamp": 1758256613.0382423,
+    "datetime": "2025-09-19T00:36:53.038242",
+    "report_step": 68500,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 69000,
+    "timestamp": 1758256613.0389757,
+    "datetime": "2025-09-19T00:36:53.038976",
+    "report_step": 69000,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 69500,
+    "timestamp": 1758256614.391111,
+    "datetime": "2025-09-19T00:36:54.391111",
+    "report_step": 69500,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 70000,
+    "timestamp": 1758256616.1596138,
+    "datetime": "2025-09-19T00:36:56.159614",
+    "report_step": 70000,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 70500,
+    "timestamp": 1758256616.160294,
+    "datetime": "2025-09-19T00:36:56.160294",
+    "report_step": 70500,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 71000,
+    "timestamp": 1758256617.4033103,
+    "datetime": "2025-09-19T00:36:57.403310",
+    "report_step": 71000,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 71500,
+    "timestamp": 1758256617.4040182,
+    "datetime": "2025-09-19T00:36:57.404018",
+    "report_step": 71500,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 72000,
+    "timestamp": 1758256619.1580596,
+    "datetime": "2025-09-19T00:36:59.158059",
+    "report_step": 72000,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 72500,
+    "timestamp": 1758256620.3552136,
+    "datetime": "2025-09-19T00:37:00.355213",
+    "report_step": 72500,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 73000,
+    "timestamp": 1758256620.3559325,
+    "datetime": "2025-09-19T00:37:00.355932",
+    "report_step": 73000,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 73500,
+    "timestamp": 1758256622.0949843,
+    "datetime": "2025-09-19T00:37:02.094984",
+    "report_step": 73500,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 74000,
+    "timestamp": 1758256622.0956626,
+    "datetime": "2025-09-19T00:37:02.095662",
+    "report_step": 74000,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 74500,
+    "timestamp": 1758256623.309254,
+    "datetime": "2025-09-19T00:37:03.309254",
+    "report_step": 74500,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 75000,
+    "timestamp": 1758256623.3099327,
+    "datetime": "2025-09-19T00:37:03.309933",
+    "report_step": 75000,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 75500,
+    "timestamp": 1758256624.6423652,
+    "datetime": "2025-09-19T00:37:04.642366",
+    "report_step": 75500,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 76000,
+    "timestamp": 1758256626.3290305,
+    "datetime": "2025-09-19T00:37:06.329030",
+    "report_step": 76000,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  },
+  {
+    "step": 76500,
+    "timestamp": 1758256626.3297417,
+    "datetime": "2025-09-19T00:37:06.329742",
+    "report_step": 76500,
+    "best_distance": 19.8,
+    "episode_best_distance": 21.6,
+    "success_rate": 100.0
+  }
+]

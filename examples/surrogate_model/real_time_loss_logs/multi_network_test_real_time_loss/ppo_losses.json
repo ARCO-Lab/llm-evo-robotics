@@ -1,0 +1,33 @@
+[
+  {
+    "step": 1063,
+    "timestamp": 1758255720.143151,
+    "datetime": "2025-09-19T00:22:00.143151",
+    "actor_loss": 0.36353,
+    "critic_loss": 30.100883,
+    "total_loss": 30.464413,
+    "entropy": -0.243178,
+    "learning_rate": 1.31e-06,
+    "update_count": 1.0,
+    "buffer_size": 0.0
+  },
+  {
+    "step": 1127,
+    "timestamp": 1758255720.1432343,
+    "datetime": "2025-09-19T00:22:00.143234",
+    "actor_loss": 0.340033,
+    "critic_loss": 30.919735,
+    "total_loss": 31.259768,
+    "entropy": -0.243163,
+    "learning_rate": 1.31e-06,
+    "update_count": 2.0,
+    "buffer_size": 0.0
+  },
+  {
+    "step": 1191,
+    "timestamp": 1758255727.7115202,
+    "datetime": "2025-09-19T00:22:07.711522",
+    "actor_loss": 0.332789,
+    "critic_loss": 31.119454
+  }
+]
