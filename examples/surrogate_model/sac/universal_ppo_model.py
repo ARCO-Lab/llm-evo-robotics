@@ -602,30 +602,44 @@ class UniversalPPOWithBuffer:
                     
                     attention_weights = torch.softmax(scores, dim=-1)  # [B, J, N]
                     
-                    # 计算每个关节的平均注意力强度
-                    joint_attention_intensity = attention_weights.sum(dim=-1).mean(dim=0)  # [J]
+                    # 🔧 修正：分析attention权重的方差来判断关节重要性
+                    # attention_weights: [B, J, N] - 每个关节对图节点的注意力
                     
-                    # 找出最被关注的关节
-                    most_attended_joint = torch.argmax(joint_attention_intensity).item()
-                    max_attention = joint_attention_intensity[most_attended_joint].item()
+                    # 计算每个关节注意力权重的方差（方差大说明注意力更集中/重要）
+                    attention_variance = attention_weights.var(dim=-1).mean(dim=0)  # [J]
                     
-                    # 计算注意力分布的熵（多样性）
-                    attention_entropy = -(joint_attention_intensity * torch.log(joint_attention_intensity + 1e-8)).sum().item()
+                    # 计算每个关节注意力权重的最大值（最大值大说明有强注意力）
+                    attention_max = attention_weights.max(dim=-1)[0].mean(dim=0)  # [J]
                     
-                    # 计算注意力集中度（最大值与平均值的比率）
-                    attention_concentration = max_attention / (joint_attention_intensity.mean().item() + 1e-8)
+                    # 找出最重要的关节（方差最大的）
+                    most_important_joint = torch.argmax(attention_variance).item()
+                    max_importance = attention_variance[most_important_joint].item()
+                    
+                    # 计算关节重要性分布的熵
+                    normalized_variance = attention_variance / (attention_variance.sum() + 1e-8)
+                    attention_entropy = -(normalized_variance * torch.log(normalized_variance + 1e-8)).sum().item()
+                    
+                    # 计算注意力集中度（最大方差与平均方差的比率）
+                    attention_concentration = max_importance / (attention_variance.mean().item() + 1e-8)
                     
                     focus_metrics.update({
-                        'most_attended_joint': most_attended_joint,
-                        'max_joint_attention': max_attention,
+                        'most_attended_joint': most_important_joint,
+                        'max_joint_attention': max_importance,
                         'attention_entropy': attention_entropy,
                         'attention_concentration': attention_concentration,
-                        'joint_0_attention': joint_attention_intensity[0].item() if num_joints > 0 else 0,
-                        'joint_1_attention': joint_attention_intensity[1].item() if num_joints > 1 else 0,
-                        'joint_2_attention': joint_attention_intensity[2].item() if num_joints > 2 else 0,
-                        'joint_3_attention': joint_attention_intensity[3].item() if num_joints > 3 else 0,
-                        'joint_4_attention': joint_attention_intensity[4].item() if num_joints > 4 else 0,
-                        'joint_5_attention': joint_attention_intensity[5].item() if num_joints > 5 else 0,
+                        'joint_0_attention': attention_variance[0].item() if num_joints > 0 else 0,
+                        'joint_1_attention': attention_variance[1].item() if num_joints > 1 else 0,
+                        'joint_2_attention': attention_variance[2].item() if num_joints > 2 else 0,
+                        'joint_3_attention': attention_variance[3].item() if num_joints > 3 else 0,
+                        'joint_4_attention': attention_variance[4].item() if num_joints > 4 else 0,
+                        'joint_5_attention': attention_variance[5].item() if num_joints > 5 else 0,
+                        # 🆕 添加最大注意力权重信息
+                        'joint_0_max_attention': attention_max[0].item() if num_joints > 0 else 0,
+                        'joint_1_max_attention': attention_max[1].item() if num_joints > 1 else 0,
+                        'joint_2_max_attention': attention_max[2].item() if num_joints > 2 else 0,
+                        'joint_3_max_attention': attention_max[3].item() if num_joints > 3 else 0,
+                        'joint_4_max_attention': attention_max[4].item() if num_joints > 4 else 0,
+                        'joint_5_max_attention': attention_max[5].item() if num_joints > 5 else 0,
                     })
                     
         except Exception as e:
