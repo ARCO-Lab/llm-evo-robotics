@@ -1,0 +1,82 @@
+[
+  {
+    "step": 1063,
+    "timestamp": 1758311072.5091765,
+    "datetime": "2025-09-19T15:44:32.509176",
+    "generation": 0,
+    "individual_id": null,
+    "actor_loss": 0.350574,
+    "critic_loss": 23.933344,
+    "ppo_total_loss": 24.283918,
+    "entropy": -0.324244,
+    "learning_rate": 3.78e-07,
+    "update_count": 1.0,
+    "buffer_size": 0.0
+  },
+  {
+    "step": 1127,
+    "timestamp": 1758311072.5093527,
+    "datetime": "2025-09-19T15:44:32.509352",
+    "generation": 0,
+    "individual_id": null,
+    "actor_loss": 0.344494,
+    "critic_loss": 22.517284,
+    "ppo_total_loss": 22.861778,
+    "entropy": -0.324238,
+    "learning_rate": 3.78e-07,
+    "update_count": 2.0,
+    "buffer_size": 0.0
+  },
+  {
+    "step": 1191,
+    "timestamp": 1758311072.5094993,
+    "datetime": "2025-09-19T15:44:32.509499",
+    "generation": 0,
+    "individual_id": null,
+    "actor_loss": 0.353437,
+    "critic_loss": 22.233662,
+    "ppo_total_loss": 22.587098,
+    "entropy": -0.324232,
+    "learning_rate": 3.78e-07,
+    "update_count": 3.0,
+    "buffer_size": 0.0
+  },
+  {
+    "step": 1255,
+    "timestamp": 1758311072.5096729,
+    "datetime": "2025-09-19T15:44:32.509672",
+    "generation": 0,
+    "individual_id": null,
+    "actor_loss": 0.35557,
+    "critic_loss": 23.561858,
+    "ppo_total_loss": 23.917429,
+    "entropy": -0.324225,
+    "learning_rate": 3.78e-07,
+    "update_count": 4.0,
+    "buffer_size": 0.0
+  },
+  {
+    "step": 1319,
+    "timestamp": 1758311072.509831,
+    "datetime": "2025-09-19T15:44:32.509830",
+    "generation": 0,
+    "individual_id": null,
+    "actor_loss": 0.36597,
+    "critic_loss": 28.545126,
+    "ppo_total_loss": 28.911096,
+    "entropy": -0.324219,
+    "learning_rate": 3.78e-07,
+    "update_count": 5.0,
+    "buffer_size": 0.0
+  },
+  {
+    "step": 1383,
+    "timestamp": 1758311076.6849842,
+    "datetime": "2025-09-19T15:44:36.684990",
+    "generation": 0,
+    "individual_id": null,
+    "actor_loss": 0.386223,
+    "critic_loss": 23.496549,
+    "ppo_total_loss": 23.882772
+  }
+]

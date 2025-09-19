@@ -1,0 +1,57 @@
+[
+  {
+    "step": 1063,
+    "timestamp": 1758311072.5092957,
+    "datetime": "2025-09-19T15:44:32.509295",
+    "generation": 0,
+    "individual_id": null,
+    "attention_actor_grad_norm": 0.0,
+    "attention_total_loss": 0.0,
+    "attention_param_mean": -0.000129,
+    "attention_param_std": 0.054542
+  },
+  {
+    "step": 1127,
+    "timestamp": 1758311072.509446,
+    "datetime": "2025-09-19T15:44:32.509445",
+    "generation": 0,
+    "individual_id": null,
+    "attention_actor_grad_norm": 0.0,
+    "attention_total_loss": 0.0,
+    "attention_param_mean": -0.000129,
+    "attention_param_std": 0.054542
+  },
+  {
+    "step": 1191,
+    "timestamp": 1758311072.5096195,
+    "datetime": "2025-09-19T15:44:32.509619",
+    "generation": 0,
+    "individual_id": null,
+    "attention_actor_grad_norm": 0.0,
+    "attention_total_loss": 0.0,
+    "attention_param_mean": -0.000129,
+    "attention_param_std": 0.054542
+  },
+  {
+    "step": 1255,
+    "timestamp": 1758311072.5097792,
+    "datetime": "2025-09-19T15:44:32.509779",
+    "generation": 0,
+    "individual_id": null,
+    "attention_actor_grad_norm": 0.0,
+    "attention_total_loss": 0.0,
+    "attention_param_mean": -0.000129,
+    "attention_param_std": 0.054542
+  },
+  {
+    "step": 1319,
+    "timestamp": 1758311072.509925,
+    "datetime": "2025-09-19T15:44:32.509924",
+    "generation": 0,
+    "individual_id": null,
+    "attention_actor_grad_norm": 0.0,
+    "attention_total_loss": 0.0,
+    "attention_param_mean": -0.000129,
+    "attention_param_std": 0.054542
+  }
+]

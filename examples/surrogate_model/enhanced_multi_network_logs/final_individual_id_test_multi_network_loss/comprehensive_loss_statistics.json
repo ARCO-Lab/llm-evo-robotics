@@ -1,0 +1,227 @@
+{
+  "experiment_info": {
+    "experiment_name": "final_individual_id_test",
+    "data_type": "real_only",
+    "total_networks": 3,
+    "total_records": 17,
+    "generation_time": "2025-09-19T15:58:51.402751",
+    "note": "Only real loss data from training output, no simulated data"
+  },
+  "network_stats": {
+    "ppo": {
+      "total_records": 7,
+      "metrics": {
+        "generation": {
+          "count": 7,
+          "min": 0,
+          "max": 0,
+          "avg": 0.0,
+          "first": 0,
+          "last": 0,
+          "trend": "increasing",
+          "std": 0.0
+        },
+        "actor_loss": {
+          "count": 7,
+          "min": 0.33839,
+          "max": 0.40193,
+          "avg": 0.35632371428571435,
+          "first": 0.36581,
+          "last": 0.343907,
+          "trend": "decreasing",
+          "std": 0.02025635359030618
+        },
+        "critic_loss": {
+          "count": 7,
+          "min": 25.093561,
+          "max": 33.197342,
+          "avg": 27.891857285714284,
+          "first": 33.197342,
+          "last": 26.600675,
+          "trend": "decreasing",
+          "std": 2.5093669953225657
+        },
+        "ppo_total_loss": {
+          "count": 7,
+          "min": 25.44518,
+          "max": 33.563152,
+          "avg": 28.248181,
+          "first": 33.563152,
+          "last": 26.944582,
+          "trend": "decreasing",
+          "std": 2.507384751949045
+        },
+        "entropy": {
+          "count": 7,
+          "min": -0.242599,
+          "max": -0.238445,
+          "avg": -0.239798,
+          "first": -0.242599,
+          "last": -0.239033,
+          "trend": "increasing",
+          "std": 0.0013723677141557775
+        },
+        "learning_rate": {
+          "count": 7,
+          "min": 0.00013,
+          "max": 0.00013,
+          "avg": 0.00013,
+          "first": 0.00013,
+          "last": 0.00013,
+          "trend": "increasing",
+          "std": 0.0
+        },
+        "update_count": {
+          "count": 7,
+          "min": 1.0,
+          "max": 7.0,
+          "avg": 4.0,
+          "first": 1.0,
+          "last": 7.0,
+          "trend": "increasing",
+          "std": 2.0
+        },
+        "buffer_size": {
+          "count": 7,
+          "min": 0.0,
+          "max": 0.0,
+          "avg": 0.0,
+          "first": 0.0,
+          "last": 0.0,
+          "trend": "increasing",
+          "std": 0.0
+        }
+      }
+    },
+    "performance": {
+      "total_records": 3,
+      "metrics": {
+        "generation": {
+          "count": 3,
+          "min": 0,
+          "max": 0,
+          "avg": 0.0,
+          "first": 0,
+          "last": 0,
+          "trend": "increasing",
+          "std": 0.0
+        },
+        "report_step": {
+          "count": 2,
+          "min": 500,
+          "max": 1000,
+          "avg": 750.0,
+          "first": 500,
+          "last": 1000,
+          "trend": "increasing",
+          "std": 250.0
+        },
+        "best_distance": {
+          "count": 2,
+          "min": 180.1,
+          "max": 254.3,
+          "avg": 217.2,
+          "first": 254.3,
+          "last": 180.1,
+          "trend": "decreasing",
+          "std": 37.10000000000001
+        },
+        "episode_best_distance": {
+          "count": 2,
+          "min": 180.1,
+          "max": 249.2,
+          "avg": 214.64999999999998,
+          "first": 249.2,
+          "last": 180.1,
+          "trend": "decreasing",
+          "std": 34.55
+        },
+        "success_rate": {
+          "count": 2,
+          "min": 0.0,
+          "max": 0.0,
+          "avg": 0.0,
+          "first": 0.0,
+          "last": 0.0,
+          "trend": "increasing",
+          "std": 0.0
+        },
+        "consecutive_success": {
+          "count": 1,
+          "min": 0.0,
+          "max": 0.0,
+          "avg": 0.0,
+          "first": 0.0,
+          "last": 0.0,
+          "trend": "increasing",
+          "std": 0
+        },
+        "completed_episodes": {
+          "count": 1,
+          "min": 0.0,
+          "max": 0.0,
+          "avg": 0.0,
+          "first": 0.0,
+          "last": 0.0,
+          "trend": "increasing",
+          "std": 0
+        }
+      }
+    },
+    "attention": {
+      "total_records": 7,
+      "metrics": {
+        "generation": {
+          "count": 7,
+          "min": 0,
+          "max": 0,
+          "avg": 0.0,
+          "first": 0,
+          "last": 0,
+          "trend": "increasing",
+          "std": 0.0
+        },
+        "attention_actor_grad_norm": {
+          "count": 7,
+          "min": 0.0,
+          "max": 0.04954,
+          "avg": 0.008160857142857143,
+          "first": 0.0,
+          "last": 0.00013,
+          "trend": "increasing",
+          "std": 0.01704042436115261
+        },
+        "attention_total_loss": {
+          "count": 7,
+          "min": 0.0,
+          "max": 0.04954,
+          "avg": 0.008160857142857143,
+          "first": 0.0,
+          "last": 0.00013,
+          "trend": "increasing",
+          "std": 0.01704042436115261
+        },
+        "attention_param_mean": {
+          "count": 7,
+          "min": -0.000111,
+          "max": -6.9e-05,
+          "avg": -9.157142857142858e-05,
+          "first": -0.000111,
+          "last": -6.9e-05,
+          "trend": "increasing",
+          "std": 1.7011400738976223e-05
+        },
+        "attention_param_std": {
+          "count": 7,
+          "min": 0.054549,
+          "max": 0.054554,
+          "avg": 0.05455114285714286,
+          "first": 0.054549,
+          "last": 0.054554,
+          "trend": "increasing",
+          "std": 1.8070158058097235e-06
+        }
+      }
+    }
+  }
+}

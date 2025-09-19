@@ -356,11 +356,22 @@ class UniversalPPOWithBuffer:
         self.update_count = 0
         self.recent_losses = deque(maxlen=10)
         
+        # 🆕 机器人结构信息（将在训练过程中设置）
+        self.robot_link_lengths = None
+        self.robot_num_joints = None
+        self.individual_id = ""  # 🆕 MAP-Elites个体ID
+        
         print(f"🎯 通用PPO初始化完成:")
         print(f"   支持任意关节数: 2-20")
         print(f"   学习率: Actor={lr}, Critic={lr*0.5}")
         print(f"   Buffer大小: {buffer_size}")
         print(f"   环境类型: {env_type}")
+    
+    def set_robot_structure_info(self, link_lengths, num_joints=None):
+        """设置机器人结构信息"""
+        self.robot_link_lengths = link_lengths
+        self.robot_num_joints = num_joints or len(link_lengths)
+        print(f"🤖 设置机器人结构: {self.robot_num_joints}关节, 长度={[f'{x:.1f}' for x in link_lengths]}")
     
     def get_action(self, obs, gnn_embeds, num_joints, deterministic=False):
         """获取动作 - 支持任意关节数"""
@@ -575,11 +586,11 @@ class UniversalPPOWithBuffer:
         return attention_metrics
     
     def _analyze_joint_attention_focus(self):
-        """分析attention网络关注哪些关节"""
+        """分析attention网络关注哪些关节和关节实际使用情况"""
         focus_metrics = {}
         
         try:
-            # 获取最近一次的batch数据来分析attention权重
+            # 获取最近一次的batch数据来分析
             if hasattr(self, '_last_batch_data'):
                 batch = self._last_batch_data
                 
@@ -590,57 +601,80 @@ class UniversalPPOWithBuffer:
                     
                     batch_size, num_joints, _ = joint_q.shape
                     
+                    # 🆕 记录机器人结构信息
+                    focus_metrics['robot_num_joints'] = num_joints
+                    focus_metrics['robot_structure_info'] = f"{num_joints}_joint_reacher"
+                    
+                    # 🆕 方法1: 分析关节状态的变化幅度（真实的关节使用情况）
+                    # joint_q包含 [关节位置, 关节速度, GNN嵌入]
+                    joint_positions = joint_q[:, :, 0]  # [B, J] - 关节角度
+                    joint_velocities = joint_q[:, :, 1]  # [B, J] - 关节角速度
+                    
+                    # 计算关节角度的变化幅度（绝对值）
+                    joint_angle_magnitude = torch.abs(joint_positions).mean(dim=0)  # [J]
+                    
+                    # 计算关节速度的变化幅度
+                    joint_velocity_magnitude = torch.abs(joint_velocities).mean(dim=0)  # [J]
+                    
+                    # 计算关节活跃度（角度幅度 + 速度幅度）
+                    joint_activity = joint_angle_magnitude + joint_velocity_magnitude  # [J]
+                    
+                    # 找出最活跃的关节
+                    most_active_joint = torch.argmax(joint_activity).item()
+                    max_activity = joint_activity[most_active_joint].item()
+                    
+                    # 🆕 方法2: 分析attention网络对各关节的特征提取强度
                     # 通过actor的attention模型计算attention权重
                     joint_q_encoded = self.actor.attn_model.joint_q_encoder(joint_q)
                     joint_q_encoded = joint_q_encoded.view(batch_size, num_joints, 4, 128)
                     
-                    # 简化的attention分数计算
-                    scores = torch.matmul(
-                        joint_q_encoded.mean(dim=2),  # [B, J, 128]
-                        vertex_k.transpose(-2, -1)    # [B, 128, N]
-                    )  # [B, J, N]
+                    # 计算attention特征的激活强度
+                    attention_activation = torch.norm(joint_q_encoded, dim=-1).mean(dim=(0, 2))  # [J]
                     
-                    attention_weights = torch.softmax(scores, dim=-1)  # [B, J, N]
+                    # 🆕 方法3: 分析关节对最终动作的贡献
+                    # 通过attention模型的输出来分析
+                    attn_output = self.actor.attn_model(joint_q, vertex_k, vertex_v)  # [B, J]
+                    joint_action_contribution = torch.abs(attn_output).mean(dim=0)  # [J]
                     
-                    # 🔧 修正：分析attention权重的方差来判断关节重要性
-                    # attention_weights: [B, J, N] - 每个关节对图节点的注意力
+                    # 综合分析：关节重要性 = 活跃度 + attention激活 + 动作贡献
+                    joint_importance = (joint_activity + attention_activation + joint_action_contribution) / 3
                     
-                    # 计算每个关节注意力权重的方差（方差大说明注意力更集中/重要）
-                    attention_variance = attention_weights.var(dim=-1).mean(dim=0)  # [J]
+                    # 找出最重要的关节
+                    most_important_joint = torch.argmax(joint_importance).item()
+                    max_importance = joint_importance[most_important_joint].item()
                     
-                    # 计算每个关节注意力权重的最大值（最大值大说明有强注意力）
-                    attention_max = attention_weights.max(dim=-1)[0].mean(dim=0)  # [J]
+                    # 计算重要性分布的熵
+                    normalized_importance = joint_importance / (joint_importance.sum() + 1e-8)
+                    importance_entropy = -(normalized_importance * torch.log(normalized_importance + 1e-8)).sum().item()
                     
-                    # 找出最重要的关节（方差最大的）
-                    most_important_joint = torch.argmax(attention_variance).item()
-                    max_importance = attention_variance[most_important_joint].item()
-                    
-                    # 计算关节重要性分布的熵
-                    normalized_variance = attention_variance / (attention_variance.sum() + 1e-8)
-                    attention_entropy = -(normalized_variance * torch.log(normalized_variance + 1e-8)).sum().item()
-                    
-                    # 计算注意力集中度（最大方差与平均方差的比率）
-                    attention_concentration = max_importance / (attention_variance.mean().item() + 1e-8)
+                    # 计算重要性集中度
+                    importance_concentration = max_importance / (joint_importance.mean().item() + 1e-8)
                     
                     focus_metrics.update({
-                        'most_attended_joint': most_important_joint,
-                        'max_joint_attention': max_importance,
-                        'attention_entropy': attention_entropy,
-                        'attention_concentration': attention_concentration,
-                        'joint_0_attention': attention_variance[0].item() if num_joints > 0 else 0,
-                        'joint_1_attention': attention_variance[1].item() if num_joints > 1 else 0,
-                        'joint_2_attention': attention_variance[2].item() if num_joints > 2 else 0,
-                        'joint_3_attention': attention_variance[3].item() if num_joints > 3 else 0,
-                        'joint_4_attention': attention_variance[4].item() if num_joints > 4 else 0,
-                        'joint_5_attention': attention_variance[5].item() if num_joints > 5 else 0,
-                        # 🆕 添加最大注意力权重信息
-                        'joint_0_max_attention': attention_max[0].item() if num_joints > 0 else 0,
-                        'joint_1_max_attention': attention_max[1].item() if num_joints > 1 else 0,
-                        'joint_2_max_attention': attention_max[2].item() if num_joints > 2 else 0,
-                        'joint_3_max_attention': attention_max[3].item() if num_joints > 3 else 0,
-                        'joint_4_max_attention': attention_max[4].item() if num_joints > 4 else 0,
-                        'joint_5_max_attention': attention_max[5].item() if num_joints > 5 else 0,
+                        'most_important_joint': most_important_joint,
+                        'max_joint_importance': max_importance,
+                        'importance_entropy': importance_entropy,
+                        'importance_concentration': importance_concentration,
                     })
+                    
+                    # 🆕 动态记录所有关节的数据（支持任意关节数）
+                    for i in range(num_joints):
+                        focus_metrics[f'joint_{i}_activity'] = joint_activity[i].item()
+                        focus_metrics[f'joint_{i}_importance'] = joint_importance[i].item()
+                        focus_metrics[f'joint_{i}_angle_magnitude'] = joint_angle_magnitude[i].item()
+                        focus_metrics[f'joint_{i}_velocity_magnitude'] = joint_velocity_magnitude[i].item()
+                    
+                    # 🆕 尝试获取link长度信息（如果可用）
+                    if hasattr(self, 'robot_link_lengths'):
+                        for i, length in enumerate(self.robot_link_lengths):
+                            if i < num_joints:
+                                focus_metrics[f'link_{i}_length'] = length
+                    
+                    # 🆕 创建关节使用排名
+                    joint_activities_list = [(i, joint_activity[i].item()) for i in range(num_joints)]
+                    joint_activities_list.sort(key=lambda x: x[1], reverse=True)
+                    
+                    focus_metrics['joint_usage_ranking'] = [f"J{i}:{activity:.3f}" for i, activity in joint_activities_list]
                     
         except Exception as e:
             focus_metrics['joint_focus_error'] = str(e)

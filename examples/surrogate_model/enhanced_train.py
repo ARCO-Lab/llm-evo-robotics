@@ -88,6 +88,7 @@ def create_training_parser():
     parser.add_argument('--num-joints', type=int, default=3, help='机器人关节数量')
     parser.add_argument('--link-lengths', nargs='+', type=float, default=[90.0, 90.0, 90.0], help='机器人链节长度')
     parser.add_argument('--total-steps', type=int, default=10000, help='总训练步数')
+    parser.add_argument('--individual-id', type=str, default='', help='MAP-Elites个体ID')
     
     # 兼容性参数（用于其他环境）
     parser.add_argument('--grammar-file', type=str, default='/home/xli149/Documents/repos/RoboGrammar/data/designs/grammar_jan21.dot', help='语法文件')
@@ -630,23 +631,54 @@ class TrainingManager:
                 if 'attention_param_std' in metrics:
                     print(f"   📊 Attention参数标准差: {metrics['attention_param_std']:.6f}")
                 
-                # 🆕 显示attention关注的关节信息
-                if 'most_attended_joint' in metrics:
-                    print(f"   🎯 最关注关节: Joint {metrics['most_attended_joint']} (强度: {metrics.get('max_joint_attention', 0):.3f})")
-                if 'attention_concentration' in metrics:
-                    print(f"   📊 注意力集中度: {metrics['attention_concentration']:.3f}")
-                if 'attention_entropy' in metrics:
-                    print(f"   📊 注意力熵值: {metrics['attention_entropy']:.3f}")
+                # 🆕 显示机器人结构信息
+                if 'robot_num_joints' in metrics:
+                    print(f"   🤖 机器人结构: {metrics['robot_num_joints']}关节 ({metrics.get('robot_structure_info', 'unknown')})")
                 
-                # 显示各关节的注意力分布
-                joint_attentions = []
-                for i in range(6):  # 支持最多6个关节
-                    joint_key = f'joint_{i}_attention'
-                    if joint_key in metrics:
-                        joint_attentions.append(f"J{i}:{metrics[joint_key]:.3f}")
+                # 🆕 显示改进后的关节分析信息
+                if 'most_important_joint' in metrics:
+                    print(f"   🎯 最重要关节: Joint {metrics['most_important_joint']} (重要性: {metrics.get('max_joint_importance', 0):.3f})")
+                if 'importance_concentration' in metrics:
+                    print(f"   📊 重要性集中度: {metrics['importance_concentration']:.3f}")
+                if 'importance_entropy' in metrics:
+                    print(f"   📊 重要性熵值: {metrics['importance_entropy']:.3f}")
                 
-                if joint_attentions:
-                    print(f"   🔍 关节注意力分布: {', '.join(joint_attentions)}")
+                # 🆕 显示关节使用排名
+                if 'joint_usage_ranking' in metrics:
+                    ranking_str = ', '.join(metrics['joint_usage_ranking'])
+                    print(f"   🏆 关节使用排名: {ranking_str}")
+                
+                # 🆕 动态显示所有关节的活跃度（支持任意关节数）
+                num_joints = metrics.get('robot_num_joints', 0)
+                if num_joints > 0:
+                    joint_activities = []
+                    joint_angles = []
+                    joint_velocities = []
+                    link_lengths = []
+                    
+                    for i in range(num_joints):
+                        activity_key = f'joint_{i}_activity'
+                        angle_key = f'joint_{i}_angle_magnitude'
+                        velocity_key = f'joint_{i}_velocity_magnitude'
+                        length_key = f'link_{i}_length'
+                        
+                        if activity_key in metrics:
+                            joint_activities.append(f"J{i}:{metrics[activity_key]:.3f}")
+                        if angle_key in metrics:
+                            joint_angles.append(f"J{i}:{metrics[angle_key]:.3f}")
+                        if velocity_key in metrics:
+                            joint_velocities.append(f"J{i}:{metrics[velocity_key]:.3f}")
+                        if length_key in metrics:
+                            link_lengths.append(f"L{i}:{metrics[length_key]:.1f}px")
+                    
+                    if joint_activities:
+                        print(f"   🔍 关节活跃度: {', '.join(joint_activities)}")
+                    if joint_angles:
+                        print(f"   📐 关节角度幅度: {', '.join(joint_angles)}")
+                    if joint_velocities:
+                        print(f"   ⚡ 关节速度幅度: {', '.join(joint_velocities)}")
+                    if link_lengths:
+                        print(f"   📏 Link长度: {', '.join(link_lengths)}")
                 
                 print(f"   ==================================================")
             
@@ -765,6 +797,16 @@ def main(args):
         env_type=args.env_type
     )
     print("✅ 通用PPO模型初始化完成")
+    
+    # 🆕 设置机器人结构信息到PPO模型
+    if hasattr(args, 'link_lengths') and args.link_lengths:
+        ppo.set_robot_structure_info(args.link_lengths, num_joints)
+    
+    # 🆕 设置individual_id到PPO模型
+    if hasattr(args, 'individual_id') and args.individual_id:
+        ppo.individual_id = args.individual_id
+        print(f"🆔 设置Individual ID: {args.individual_id}")
+    
     # PPO特定参数设置
     print(f"🎯 PPO配置: clip_epsilon={args.clip_epsilon}, entropy_coef={args.entropy_coef}")
     

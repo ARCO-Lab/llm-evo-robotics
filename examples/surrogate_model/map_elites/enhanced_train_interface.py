@@ -359,6 +359,10 @@ class MAPElitesTrainingInterface:
             if hasattr(training_args, 'link_lengths'):
                 cmd.extend(['--link-lengths'] + [str(x) for x in training_args.link_lengths])
             
+            # 🆕 添加individual_id
+            if hasattr(training_args, 'individual_id') and training_args.individual_id:
+                cmd.extend(['--individual-id', str(training_args.individual_id)])
+            
             # 渲染控制
             if self.enable_rendering:
                 cmd.append('--render')

@@ -81,6 +81,7 @@ class EnhancedMultiNetworkExtractor:
             
             # 🆕 个体和代数信息提取
             'individual_evaluation': re.compile(r'🧬 评估个体 (.+)'),
+            'individual_id_setting': re.compile(r'🆔 设置Individual ID: (.+)'),
             'generation_info': re.compile(r'第(\d+)代'),
         }
         
@@ -172,6 +173,13 @@ class EnhancedMultiNetworkExtractor:
             
             print(f"   📋 检测到个体: {self.current_individual_id}")
             print(f"   📊 个体计数: {self.individual_count}, 推算代数: {self.current_generation}")
+            return
+        
+        # 🆕 检查Individual ID设置
+        individual_id_match = self.patterns['individual_id_setting'].search(line)
+        if individual_id_match:
+            self.current_individual_id = individual_id_match.group(1).strip()
+            print(f"   🆔 检测到Individual ID设置: {self.current_individual_id}")
             return
         
         generation_match = self.patterns['generation_info'].search(line)

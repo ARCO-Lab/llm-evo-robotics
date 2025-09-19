@@ -93,6 +93,9 @@ class MAPElitesTrainingAdapter:
         # 1. 根据基因型创建训练参数
         training_args = self._genotype_to_training_args(individual.genotype, training_steps)
         
+        # 🆕 设置individual_id
+        training_args.individual_id = individual.individual_id
+        
         # 2. 运行训练
         start_time = time.time()
         if self.use_real_training:

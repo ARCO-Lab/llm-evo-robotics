@@ -1,0 +1,79 @@
+[
+  {
+    "step": 1063,
+    "timestamp": 1758311929.14856,
+    "datetime": "2025-09-19T15:58:49.148563",
+    "generation": 0,
+    "individual_id": "gen_0_2365",
+    "attention_actor_grad_norm": 0.0,
+    "attention_total_loss": 0.0,
+    "attention_param_mean": -0.000111,
+    "attention_param_std": 0.054549
+  },
+  {
+    "step": 1127,
+    "timestamp": 1758311929.1489797,
+    "datetime": "2025-09-19T15:58:49.148980",
+    "generation": 0,
+    "individual_id": "gen_0_2365",
+    "attention_actor_grad_norm": 0.000827,
+    "attention_total_loss": 0.000827,
+    "attention_param_mean": -0.00011,
+    "attention_param_std": 0.054549
+  },
+  {
+    "step": 1191,
+    "timestamp": 1758311929.149424,
+    "datetime": "2025-09-19T15:58:49.149424",
+    "generation": 0,
+    "individual_id": "gen_0_2365",
+    "attention_actor_grad_norm": 2e-06,
+    "attention_total_loss": 2e-06,
+    "attention_param_mean": -0.000108,
+    "attention_param_std": 0.05455
+  },
+  {
+    "step": 1255,
+    "timestamp": 1758311929.1498115,
+    "datetime": "2025-09-19T15:58:49.149811",
+    "generation": 0,
+    "individual_id": "gen_0_2365",
+    "attention_actor_grad_norm": 0.04954,
+    "attention_total_loss": 0.04954,
+    "attention_param_mean": -9.2e-05,
+    "attention_param_std": 0.054551
+  },
+  {
+    "step": 1319,
+    "timestamp": 1758311929.1501732,
+    "datetime": "2025-09-19T15:58:49.150173",
+    "generation": 0,
+    "individual_id": "gen_0_2365",
+    "attention_actor_grad_norm": 0.006627,
+    "attention_total_loss": 0.006627,
+    "attention_param_mean": -7.8e-05,
+    "attention_param_std": 0.054552
+  },
+  {
+    "step": 1383,
+    "timestamp": 1758311929.150569,
+    "datetime": "2025-09-19T15:58:49.150569",
+    "generation": 0,
+    "individual_id": "gen_0_2365",
+    "attention_actor_grad_norm": 0.0,
+    "attention_total_loss": 0.0,
+    "attention_param_mean": -7.3e-05,
+    "attention_param_std": 0.054553
+  },
+  {
+    "step": 1447,
+    "timestamp": 1758311931.400726,
+    "datetime": "2025-09-19T15:58:51.400728",
+    "generation": 0,
+    "individual_id": "gen_0_2365",
+    "attention_actor_grad_norm": 0.00013,
+    "attention_total_loss": 0.00013,
+    "attention_param_mean": -6.9e-05,
+    "attention_param_std": 0.054554
+  }
+]
