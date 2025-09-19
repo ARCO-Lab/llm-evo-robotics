@@ -78,6 +78,10 @@ class EnhancedMultiNetworkExtractor:
             # SAC网络损失模式（如果将来实现）
             'sac_update': re.compile(r'🔥 SAC网络Loss更新 \[Step (\d+)\]:'),
             'sac_critic_loss': re.compile(r'📊 SAC Critic Loss: ([\d\.-]+)'),
+            
+            # 🆕 个体和代数信息提取
+            'individual_evaluation': re.compile(r'🧬 评估个体 (.+)'),
+            'generation_info': re.compile(r'第(\d+)代'),
         }
         
         # 当前损失数据缓存
@@ -87,6 +91,12 @@ class EnhancedMultiNetworkExtractor:
         
         # 性能指标缓存
         self.current_performance = {}
+        
+        # 🆕 当前个体和代数信息
+        self.current_individual_id = None
+        self.current_generation = 0
+        self.individual_count = 0
+        self.individuals_per_generation = 10  # 默认值，可以从命令行参数获取
         
         print(f"📊 真实数据损失提取器初始化")
         print(f"   实验名称: {experiment_name}")
@@ -150,6 +160,25 @@ class EnhancedMultiNetworkExtractor:
     
     def _process_line(self, line):
         """处理单行输出，只提取真实存在的损失数据"""
+        
+        # 🆕 首先检查个体和代数信息
+        individual_match = self.patterns['individual_evaluation'].search(line)
+        if individual_match:
+            self.current_individual_id = individual_match.group(1).strip()
+            self.individual_count += 1
+            
+            # 根据个体计数推算generation（每10个个体一代）
+            self.current_generation = (self.individual_count - 1) // self.individuals_per_generation
+            
+            print(f"   📋 检测到个体: {self.current_individual_id}")
+            print(f"   📊 个体计数: {self.individual_count}, 推算代数: {self.current_generation}")
+            return
+        
+        generation_match = self.patterns['generation_info'].search(line)
+        if generation_match:
+            self.current_generation = int(generation_match.group(1))
+            print(f"   📋 检测到代数: {self.current_generation}")
+            return
         
         # 检查PPO网络更新（唯一确认存在的真实网络损失）
         step_match = self.patterns['ppo_update'].search(line)
@@ -264,6 +293,8 @@ class EnhancedMultiNetworkExtractor:
             'step': self.current_step,
             'timestamp': timestamp,
             'datetime': datetime.now().isoformat(),
+            'generation': self.current_generation,
+            'individual_id': self.current_individual_id,
             **self.current_losses
         }
         
@@ -287,6 +318,8 @@ class EnhancedMultiNetworkExtractor:
             'step': self.current_performance.get('report_step', 0),
             'timestamp': timestamp,
             'datetime': datetime.now().isoformat(),
+            'generation': self.current_generation,
+            'individual_id': self.current_individual_id,
             **self.current_performance
         }
         
@@ -464,6 +497,10 @@ def run_enhanced_multi_network_training(experiment_name, mode='basic', training_
     
     # 创建增强版提取器
     extractor = EnhancedMultiNetworkExtractor(experiment_name)
+    
+    # 🆕 设置每代个体数，用于generation计算
+    if individuals_per_generation is not None:
+        extractor.individuals_per_generation = individuals_per_generation
     
     # 构建训练命令（使用相对路径）
     script_dir = os.path.dirname(os.path.abspath(__file__))

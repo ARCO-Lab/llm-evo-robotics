@@ -1,0 +1,327 @@
+{
+  "experiment_info": {
+    "experiment_name": "final_generation_test",
+    "data_type": "real_only",
+    "total_networks": 3,
+    "total_records": 11,
+    "generation_time": "2025-09-19T14:23:55.109282",
+    "note": "Only real loss data from training output, no simulated data"
+  },
+  "network_stats": {
+    "ppo": {
+      "total_records": 4,
+      "metrics": {
+        "generation": {
+          "count": 4,
+          "min": 0,
+          "max": 0,
+          "avg": 0.0,
+          "first": 0,
+          "last": 0,
+          "trend": "increasing",
+          "std": 0.0
+        },
+        "actor_loss": {
+          "count": 4,
+          "min": 0.325972,
+          "max": 1.254043,
+          "avg": 0.573107,
+          "first": 0.346758,
+          "last": 0.325972,
+          "trend": "decreasing",
+          "std": 0.3933890397640738
+        },
+        "critic_loss": {
+          "count": 4,
+          "min": 22.539608,
+          "max": 32.985853,
+          "avg": 26.102804999999996,
+          "first": 22.539608,
+          "last": 23.145097,
+          "trend": "increasing",
+          "std": 4.151864243831498
+        },
+        "ppo_total_loss": {
+          "count": 4,
+          "min": 22.886366,
+          "max": 33.351508,
+          "avg": 26.675912,
+          "first": 22.886366,
+          "last": 23.471069,
+          "trend": "increasing",
+          "std": 4.162237633558121
+        },
+        "entropy": {
+          "count": 4,
+          "min": -0.405297,
+          "max": -0.405222,
+          "avg": -0.405259,
+          "first": -0.405297,
+          "last": -0.405222,
+          "trend": "increasing",
+          "std": 2.7955321496985906e-05
+        },
+        "learning_rate": {
+          "count": 4,
+          "min": 1.31e-06,
+          "max": 1.31e-06,
+          "avg": 1.31e-06,
+          "first": 1.31e-06,
+          "last": 1.31e-06,
+          "trend": "increasing",
+          "std": 0.0
+        },
+        "update_count": {
+          "count": 4,
+          "min": 1.0,
+          "max": 4.0,
+          "avg": 2.5,
+          "first": 1.0,
+          "last": 4.0,
+          "trend": "increasing",
+          "std": 1.118033988749895
+        },
+        "buffer_size": {
+          "count": 4,
+          "min": 0.0,
+          "max": 0.0,
+          "avg": 0.0,
+          "first": 0.0,
+          "last": 0.0,
+          "trend": "increasing",
+          "std": 0.0
+        }
+      }
+    },
+    "performance": {
+      "total_records": 3,
+      "metrics": {
+        "generation": {
+          "count": 3,
+          "min": 0,
+          "max": 0,
+          "avg": 0.0,
+          "first": 0,
+          "last": 0,
+          "trend": "increasing",
+          "std": 0.0
+        },
+        "report_step": {
+          "count": 2,
+          "min": 500,
+          "max": 1000,
+          "avg": 750.0,
+          "first": 500,
+          "last": 1000,
+          "trend": "increasing",
+          "std": 250.0
+        },
+        "best_distance": {
+          "count": 2,
+          "min": 261.1,
+          "max": 361.1,
+          "avg": 311.1,
+          "first": 361.1,
+          "last": 261.1,
+          "trend": "decreasing",
+          "std": 50.0
+        },
+        "episode_best_distance": {
+          "count": 2,
+          "min": 261.1,
+          "max": 357.6,
+          "avg": 309.35,
+          "first": 357.6,
+          "last": 261.1,
+          "trend": "decreasing",
+          "std": 48.25
+        },
+        "success_rate": {
+          "count": 2,
+          "min": 0.0,
+          "max": 0.0,
+          "avg": 0.0,
+          "first": 0.0,
+          "last": 0.0,
+          "trend": "increasing",
+          "std": 0.0
+        },
+        "consecutive_success": {
+          "count": 1,
+          "min": 0.0,
+          "max": 0.0,
+          "avg": 0.0,
+          "first": 0.0,
+          "last": 0.0,
+          "trend": "increasing",
+          "std": 0
+        },
+        "completed_episodes": {
+          "count": 1,
+          "min": 0.0,
+          "max": 0.0,
+          "avg": 0.0,
+          "first": 0.0,
+          "last": 0.0,
+          "trend": "increasing",
+          "std": 0
+        }
+      }
+    },
+    "attention": {
+      "total_records": 4,
+      "metrics": {
+        "generation": {
+          "count": 4,
+          "min": 0,
+          "max": 0,
+          "avg": 0.0,
+          "first": 0,
+          "last": 0,
+          "trend": "increasing",
+          "std": 0.0
+        },
+        "attention_actor_grad_norm": {
+          "count": 4,
+          "min": 0.0,
+          "max": 0.048277,
+          "avg": 0.01206925,
+          "first": 0.0,
+          "last": 0.0,
+          "trend": "increasing",
+          "std": 0.02090455420925067
+        },
+        "attention_total_loss": {
+          "count": 4,
+          "min": 0.0,
+          "max": 0.048277,
+          "avg": 0.01206925,
+          "first": 0.0,
+          "last": 0.0,
+          "trend": "increasing",
+          "std": 0.02090455420925067
+        },
+        "attention_param_mean": {
+          "count": 4,
+          "min": -0.000154,
+          "max": -0.000154,
+          "avg": -0.000154,
+          "first": -0.000154,
+          "last": -0.000154,
+          "trend": "increasing",
+          "std": 0.0
+        },
+        "attention_param_std": {
+          "count": 4,
+          "min": 0.054541,
+          "max": 0.054542,
+          "avg": 0.05454125,
+          "first": 0.054541,
+          "last": 0.054542,
+          "trend": "increasing",
+          "std": 4.330127018926524e-07
+        },
+        "most_attended_joint": {
+          "count": 4,
+          "min": 0.0,
+          "max": 0.0,
+          "avg": 0.0,
+          "first": 0.0,
+          "last": 0.0,
+          "trend": "increasing",
+          "std": 0.0
+        },
+        "max_joint_attention": {
+          "count": 4,
+          "min": 1.0,
+          "max": 1.0,
+          "avg": 1.0,
+          "first": 1.0,
+          "last": 1.0,
+          "trend": "increasing",
+          "std": 0.0
+        },
+        "attention_concentration": {
+          "count": 4,
+          "min": 1.0,
+          "max": 1.0,
+          "avg": 1.0,
+          "first": 1.0,
+          "last": 1.0,
+          "trend": "increasing",
+          "std": 0.0
+        },
+        "attention_entropy": {
+          "count": 4,
+          "min": -0.0,
+          "max": -0.0,
+          "avg": 0.0,
+          "first": -0.0,
+          "last": -0.0,
+          "trend": "increasing",
+          "std": 0.0
+        },
+        "J0_attention": {
+          "count": 4,
+          "min": 1.0,
+          "max": 1.0,
+          "avg": 1.0,
+          "first": 1.0,
+          "last": 1.0,
+          "trend": "increasing",
+          "std": 0.0
+        },
+        "J1_attention": {
+          "count": 4,
+          "min": 1.0,
+          "max": 1.0,
+          "avg": 1.0,
+          "first": 1.0,
+          "last": 1.0,
+          "trend": "increasing",
+          "std": 0.0
+        },
+        "J2_attention": {
+          "count": 4,
+          "min": 1.0,
+          "max": 1.0,
+          "avg": 1.0,
+          "first": 1.0,
+          "last": 1.0,
+          "trend": "increasing",
+          "std": 0.0
+        },
+        "J3_attention": {
+          "count": 4,
+          "min": 1.0,
+          "max": 1.0,
+          "avg": 1.0,
+          "first": 1.0,
+          "last": 1.0,
+          "trend": "increasing",
+          "std": 0.0
+        },
+        "J4_attention": {
+          "count": 4,
+          "min": 1.0,
+          "max": 1.0,
+          "avg": 1.0,
+          "first": 1.0,
+          "last": 1.0,
+          "trend": "increasing",
+          "std": 0.0
+        },
+        "J5_attention": {
+          "count": 4,
+          "min": 0.0,
+          "max": 0.0,
+          "avg": 0.0,
+          "first": 0.0,
+          "last": 0.0,
+          "trend": "increasing",
+          "std": 0.0
+        }
+      }
+    }
+  }
+}

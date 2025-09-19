@@ -1,0 +1,58 @@
+[
+  {
+    "step": 1063,
+    "timestamp": 1758306228.7257535,
+    "datetime": "2025-09-19T14:23:48.725754",
+    "generation": 0,
+    "individual_id": null,
+    "actor_loss": 0.346758,
+    "critic_loss": 22.539608,
+    "ppo_total_loss": 22.886366,
+    "entropy": -0.405297,
+    "learning_rate": 1.31e-06,
+    "update_count": 1.0,
+    "buffer_size": 0.0
+  },
+  {
+    "step": 1127,
+    "timestamp": 1758306228.7260153,
+    "datetime": "2025-09-19T14:23:48.726015",
+    "generation": 0,
+    "individual_id": null,
+    "actor_loss": 0.365655,
+    "critic_loss": 32.985853,
+    "ppo_total_loss": 33.351508,
+    "entropy": -0.405271,
+    "learning_rate": 1.31e-06,
+    "update_count": 2.0,
+    "buffer_size": 0.0
+  },
+  {
+    "step": 1191,
+    "timestamp": 1758306228.726316,
+    "datetime": "2025-09-19T14:23:48.726316",
+    "generation": 0,
+    "individual_id": null,
+    "actor_loss": 1.254043,
+    "critic_loss": 25.740662,
+    "ppo_total_loss": 26.994705,
+    "entropy": -0.405246,
+    "learning_rate": 1.31e-06,
+    "update_count": 3.0,
+    "buffer_size": 0.0
+  },
+  {
+    "step": 1255,
+    "timestamp": 1758306228.72649,
+    "datetime": "2025-09-19T14:23:48.726490",
+    "generation": 0,
+    "individual_id": null,
+    "actor_loss": 0.325972,
+    "critic_loss": 23.145097,
+    "ppo_total_loss": 23.471069,
+    "entropy": -0.405222,
+    "learning_rate": 1.31e-06,
+    "update_count": 4.0,
+    "buffer_size": 0.0
+  }
+]
