@@ -1,0 +1,29 @@
+[
+  {
+    "step": 500,
+    "timestamp": 1758257458.2203503,
+    "datetime": "2025-09-19T00:50:58.220384",
+    "gnn_loss": 2.364850274656336,
+    "node_accuracy": 0.28818043221700274,
+    "edge_accuracy": 0.21989021507335949,
+    "graph_reconstruction_loss": 1.5086423167597898
+  },
+  {
+    "step": 1000,
+    "timestamp": 1758257458.220553,
+    "datetime": "2025-09-19T00:50:58.220556",
+    "gnn_loss": 2.4754452551888844,
+    "node_accuracy": 0.29424655452440407,
+    "edge_accuracy": 0.23793373429835882,
+    "graph_reconstruction_loss": 1.3906869597123124
+  },
+  {
+    "step": 1500,
+    "timestamp": 1758257459.3167312,
+    "datetime": "2025-09-19T00:50:59.316741",
+    "gnn_loss": 2.203210822399147,
+    "node_accuracy": 0.3547827185684426,
+    "edge_accuracy": 0.351713679369614,
+    "graph_reconstruction_loss": 1.377859985500015
+  }
+]

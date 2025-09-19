@@ -351,10 +351,13 @@ def run_training_with_real_time_extraction(experiment_name, mode='basic', traini
     # 创建实时提取器
     extractor = RealTimeLossExtractor(experiment_name)
     
-    # 构建训练命令
+    # 构建训练命令（使用相对路径）
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    training_script = os.path.join(script_dir, 'map_elites_with_loss_logger.py')
+    
     training_command = [
         sys.executable,
-        'map_elites_with_loss_logger.py',
+        training_script,
         '--mode', mode,
         '--experiment-name', experiment_name,
         '--training-steps-per-individual', str(training_steps)

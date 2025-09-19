@@ -38,10 +38,13 @@ def run_training_with_loss_logging(experiment_name, mode='basic', extra_args=Non
     os.environ['LOSS_EXPERIMENT_NAME'] = experiment_name
     print(f"🔗 设置实验名称环境变量: {experiment_name}")
     
-    # 3. 构建训练命令
+    # 3. 构建训练命令（使用相对路径）
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    training_script = os.path.join(script_dir, 'map_elites_with_loss_logger.py')
+    
     cmd = [
         sys.executable, 
-        'map_elites_with_loss_logger.py',
+        training_script,
         '--mode', mode,
         '--experiment-name', experiment_name
     ]
@@ -162,3 +165,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

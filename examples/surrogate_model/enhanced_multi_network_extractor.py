@@ -577,10 +577,13 @@ def run_enhanced_multi_network_training(experiment_name, mode='basic', training_
     # 创建增强版提取器
     extractor = EnhancedMultiNetworkExtractor(experiment_name)
     
-    # 构建训练命令
+    # 构建训练命令（使用相对路径）
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    training_script = os.path.join(script_dir, 'map_elites_with_loss_logger.py')
+    
     training_command = [
         sys.executable,
-        'map_elites_with_loss_logger.py',
+        training_script,
         '--mode', mode,
         '--experiment-name', experiment_name,
         '--training-steps-per-individual', str(training_steps)

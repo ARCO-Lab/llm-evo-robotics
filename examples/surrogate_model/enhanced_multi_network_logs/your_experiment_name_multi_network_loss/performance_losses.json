@@ -1,0 +1,29 @@
+[
+  {
+    "step": 500,
+    "timestamp": 1758257458.2204509,
+    "datetime": "2025-09-19T00:50:58.220451",
+    "report_step": 500,
+    "best_distance": 393.0,
+    "episode_best_distance": 393.0,
+    "success_rate": 0.0
+  },
+  {
+    "step": 1000,
+    "timestamp": 1758257458.2206085,
+    "datetime": "2025-09-19T00:50:58.220608",
+    "report_step": 1000,
+    "best_distance": 330.0,
+    "episode_best_distance": 330.0,
+    "success_rate": 0.0
+  },
+  {
+    "step": 1500,
+    "timestamp": 1758257459.3168275,
+    "datetime": "2025-09-19T00:50:59.316827",
+    "report_step": 1500,
+    "best_distance": 303.2,
+    "episode_best_distance": 292.1,
+    "success_rate": 0.0
+  }
+]
