@@ -1,0 +1,15 @@
+{
+  "experiment_info": {
+    "experiment_name": "test_20joint_format_loss_log",
+    "start_time": "2025-09-19T20:58:07.446078",
+    "log_dir": "network_loss_logs/test_20joint_format_loss_log",
+    "monitored_networks": [
+      "attention",
+      "ppo",
+      "gnn",
+      "sac",
+      "total"
+    ],
+    "update_interval": 15.0
+  }
+}

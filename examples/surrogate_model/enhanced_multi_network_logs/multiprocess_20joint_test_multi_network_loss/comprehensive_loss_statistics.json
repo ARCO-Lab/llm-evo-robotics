@@ -1,0 +1,597 @@
+{
+  "experiment_info": {
+    "experiment_name": "multiprocess_20joint_test",
+    "data_type": "real_only",
+    "total_networks": 3,
+    "total_records": 320,
+    "generation_time": "2025-09-19T21:01:59.578267",
+    "note": "Only real loss data from training output, no simulated data"
+  },
+  "network_stats": {
+    "ppo": {
+      "total_records": 136,
+      "metrics": {
+        "generation": {
+          "count": 136,
+          "min": 0,
+          "max": 0,
+          "avg": 0.0,
+          "first": 0,
+          "last": 0,
+          "trend": "increasing",
+          "std": 0.0
+        },
+        "actor_loss": {
+          "count": 136,
+          "min": 0.31626,
+          "max": 0.385638,
+          "avg": 0.35702477205882355,
+          "first": 0.366881,
+          "last": 0.353083,
+          "trend": "decreasing",
+          "std": 0.011283797727120612
+        },
+        "critic_loss": {
+          "count": 135,
+          "min": 20.373005,
+          "max": 39.627577,
+          "avg": 26.232219659259254,
+          "first": 39.627577,
+          "last": 22.683236,
+          "trend": "decreasing",
+          "std": 3.2028995059250027
+        },
+        "ppo_total_loss": {
+          "count": 133,
+          "min": 20.689264,
+          "max": 39.994457,
+          "avg": 26.595350759398503,
+          "first": 39.994457,
+          "last": 23.03632,
+          "trend": "decreasing",
+          "std": 3.211015967056699
+        },
+        "entropy": {
+          "count": 132,
+          "min": -0.485004,
+          "max": -0.153397,
+          "avg": -0.29397795454545445,
+          "first": -0.24215,
+          "last": -0.153397,
+          "trend": "increasing",
+          "std": 0.09120038342272734
+        },
+        "learning_rate": {
+          "count": 133,
+          "min": 1.92e-06,
+          "max": 0.00023,
+          "avg": 0.00010888842105263147,
+          "first": 0.00023,
+          "last": 0.00023,
+          "trend": "increasing",
+          "std": 9.022232337037788e-05
+        },
+        "update_count": {
+          "count": 133,
+          "min": 0.0,
+          "max": 36.0,
+          "avg": 17.586466165413533,
+          "first": 1.0,
+          "last": 36.0,
+          "trend": "increasing",
+          "std": 10.063055201737498
+        },
+        "buffer_size": {
+          "count": 133,
+          "min": 0.0,
+          "max": 1.0,
+          "avg": 0.007518796992481203,
+          "first": 0.0,
+          "last": 0.0,
+          "trend": "increasing",
+          "std": 0.08638440069981983
+        }
+      }
+    },
+    "performance": {
+      "total_records": 46,
+      "metrics": {
+        "generation": {
+          "count": 46,
+          "min": 0,
+          "max": 0,
+          "avg": 0.0,
+          "first": 0,
+          "last": 0,
+          "trend": "increasing",
+          "std": 0.0
+        },
+        "report_step": {
+          "count": 24,
+          "min": 500,
+          "max": 3000,
+          "avg": 1750.0,
+          "first": 500,
+          "last": 3000,
+          "trend": "increasing",
+          "std": 853.9125638299665
+        },
+        "best_distance": {
+          "count": 24,
+          "min": 19.9,
+          "max": 362.6,
+          "avg": 220.54583333333335,
+          "first": 322.7,
+          "last": 80.1,
+          "trend": "decreasing",
+          "std": 110.98211184378117
+        },
+        "episode_best_distance": {
+          "count": 24,
+          "min": 61.8,
+          "max": 361.4,
+          "avg": 239.32083333333333,
+          "first": 284.9,
+          "last": 80.1,
+          "trend": "decreasing",
+          "std": 97.7367807735257
+        },
+        "success_rate": {
+          "count": 24,
+          "min": 0.0,
+          "max": 100.0,
+          "avg": 8.333333333333334,
+          "first": 0.0,
+          "last": 0.0,
+          "trend": "increasing",
+          "std": 27.638539919628336
+        },
+        "consecutive_success": {
+          "count": 22,
+          "min": 0.0,
+          "max": 1.0,
+          "avg": 0.09090909090909091,
+          "first": 0.0,
+          "last": 0.0,
+          "trend": "increasing",
+          "std": 0.28747978728803447
+        },
+        "completed_episodes": {
+          "count": 22,
+          "min": 0.0,
+          "max": 1.0,
+          "avg": 0.09090909090909091,
+          "first": 0.0,
+          "last": 0.0,
+          "trend": "increasing",
+          "std": 0.28747978728803447
+        }
+      }
+    },
+    "attention": {
+      "total_records": 138,
+      "metrics": {
+        "generation": {
+          "count": 138,
+          "min": 0,
+          "max": 0,
+          "avg": 0.0,
+          "first": 0,
+          "last": 0,
+          "trend": "increasing",
+          "std": 0.0
+        },
+        "attention_actor_grad_norm": {
+          "count": 137,
+          "min": 0.0,
+          "max": 0.034306,
+          "avg": 0.0008143795620437959,
+          "first": 0.0,
+          "last": 0.0,
+          "trend": "increasing",
+          "std": 0.0038392441282589225
+        },
+        "attention_total_loss": {
+          "count": 136,
+          "min": 0.0,
+          "max": 0.034306,
+          "avg": 0.0008203676470588239,
+          "first": 0.0,
+          "last": 0.0,
+          "trend": "increasing",
+          "std": 0.0038526956659263203
+        },
+        "attention_actor_param_mean": {
+          "count": 134,
+          "min": -0.000192,
+          "max": -0.000106,
+          "avg": -0.00013688059701492532,
+          "first": -0.000111,
+          "last": -0.000129,
+          "trend": "decreasing",
+          "std": 1.1845425325251546e-05
+        },
+        "attention_actor_param_std": {
+          "count": 134,
+          "min": 0.054542,
+          "max": 0.05458,
+          "avg": 0.054554694029850664,
+          "first": 0.054549,
+          "last": 0.05458,
+          "trend": "increasing",
+          "std": 1.2912002753390328e-05
+        },
+        "attention_critic_param_mean": {
+          "count": 134,
+          "min": -0.000142,
+          "max": -0.000111,
+          "avg": -0.00012243283582089552,
+          "first": -0.000111,
+          "last": -0.000111,
+          "trend": "increasing",
+          "std": 1.3088931042629761e-05
+        },
+        "attention_critic_param_std": {
+          "count": 134,
+          "min": 0.054542,
+          "max": 0.054551,
+          "avg": 0.05454791044776114,
+          "first": 0.054549,
+          "last": 0.054549,
+          "trend": "increasing",
+          "std": 3.2769267695882893e-06
+        },
+        "robot_num_joints": {
+          "count": 132,
+          "min": 3.0,
+          "max": 6.0,
+          "avg": 3.9318181818181817,
+          "first": 3.0,
+          "last": 3.0,
+          "trend": "increasing",
+          "std": 1.2135171885647715
+        },
+        "most_important_joint": {
+          "count": 132,
+          "min": 0.0,
+          "max": 4.0,
+          "avg": 0.7272727272727273,
+          "first": 0.0,
+          "last": 0.0,
+          "trend": "increasing",
+          "std": 1.5427784316797402
+        },
+        "max_joint_importance": {
+          "count": 132,
+          "min": 1.106,
+          "max": 2.22,
+          "avg": 1.5838939393939395,
+          "first": 1.216,
+          "last": 2.184,
+          "trend": "increasing",
+          "std": 0.3357322674659296
+        },
+        "importance_concentration": {
+          "count": 131,
+          "min": 1.089,
+          "max": 1.689,
+          "avg": 1.4049847328244283,
+          "first": 1.306,
+          "last": 1.306,
+          "trend": "increasing",
+          "std": 0.15031072065562245
+        },
+        "importance_entropy": {
+          "count": 130,
+          "min": 0.988,
+          "max": 1.775,
+          "avg": 1.287207692307692,
+          "first": 1.076,
+          "last": 1.076,
+          "trend": "increasing",
+          "std": 0.3031293883718216
+        },
+        "J0_usage_rank": {
+          "count": 129,
+          "min": 1.021,
+          "max": 4.274,
+          "avg": 2.4728759689922466,
+          "first": 1.925,
+          "last": 4.114,
+          "trend": "increasing",
+          "std": 1.0826088430716463
+        },
+        "J2_usage_rank": {
+          "count": 129,
+          "min": 0.036,
+          "max": 1.995,
+          "avg": 0.663782945736434,
+          "first": 0.611,
+          "last": 1.88,
+          "trend": "increasing",
+          "std": 0.4728016113975923
+        },
+        "J1_usage_rank": {
+          "count": 129,
+          "min": 0.046,
+          "max": 1.873,
+          "avg": 0.5814108527131782,
+          "first": 0.399,
+          "last": 1.764,
+          "trend": "increasing",
+          "std": 0.4529784739551261
+        },
+        "J0_activity": {
+          "count": 129,
+          "min": 1.021,
+          "max": 4.274,
+          "avg": 2.4728759689922466,
+          "first": 1.925,
+          "last": 4.114,
+          "trend": "increasing",
+          "std": 1.0826088430716463
+        },
+        "J1_activity": {
+          "count": 129,
+          "min": 0.046,
+          "max": 1.873,
+          "avg": 0.5814108527131782,
+          "first": 0.399,
+          "last": 1.764,
+          "trend": "increasing",
+          "std": 0.4529784739551261
+        },
+        "J2_activity": {
+          "count": 129,
+          "min": 0.036,
+          "max": 1.995,
+          "avg": 0.663782945736434,
+          "first": 0.611,
+          "last": 1.88,
+          "trend": "increasing",
+          "std": 0.4728016113975923
+        },
+        "J0_angle_magnitude": {
+          "count": 129,
+          "min": 0.986,
+          "max": 4.192,
+          "avg": 2.393798449612403,
+          "first": 1.91,
+          "last": 4.114,
+          "trend": "increasing",
+          "std": 1.0675900294613787
+        },
+        "J1_angle_magnitude": {
+          "count": 129,
+          "min": 0.008,
+          "max": 1.764,
+          "avg": 0.5097751937984496,
+          "first": 0.386,
+          "last": 1.764,
+          "trend": "increasing",
+          "std": 0.4471144216543669
+        },
+        "J2_angle_magnitude": {
+          "count": 129,
+          "min": 0.01,
+          "max": 1.88,
+          "avg": 0.5904883720930234,
+          "first": 0.408,
+          "last": 1.88,
+          "trend": "increasing",
+          "std": 0.4697997613412172
+        },
+        "J0_velocity_magnitude": {
+          "count": 129,
+          "min": 0.0,
+          "max": 0.341,
+          "avg": 0.07909302325581397,
+          "first": 0.015,
+          "last": 0.0,
+          "trend": "decreasing",
+          "std": 0.05614591204795887
+        },
+        "J1_velocity_magnitude": {
+          "count": 129,
+          "min": 0.0,
+          "max": 0.206,
+          "avg": 0.07162790697674418,
+          "first": 0.013,
+          "last": 0.0,
+          "trend": "decreasing",
+          "std": 0.050446697599744135
+        },
+        "J2_velocity_magnitude": {
+          "count": 129,
+          "min": 0.0,
+          "max": 0.208,
+          "avg": 0.0733798449612403,
+          "first": 0.203,
+          "last": 0.0,
+          "trend": "decreasing",
+          "std": 0.05271191174949017
+        },
+        "L0_length": {
+          "count": 128,
+          "min": 59.9,
+          "max": 93.8,
+          "avg": 83.0453125,
+          "first": 93.8,
+          "last": 93.8,
+          "trend": "increasing",
+          "std": 13.427478003234397
+        },
+        "L1_length": {
+          "count": 128,
+          "min": 51.4,
+          "max": 85.0,
+          "avg": 60.759375000000034,
+          "first": 57.8,
+          "last": 57.8,
+          "trend": "increasing",
+          "std": 13.381759025231876
+        },
+        "L2_length": {
+          "count": 128,
+          "min": 49.4,
+          "max": 98.8,
+          "avg": 74.28828124999995,
+          "first": 98.8,
+          "last": 98.8,
+          "trend": "increasing",
+          "std": 21.268288531188844
+        },
+        "J4_usage_rank": {
+          "count": 31,
+          "min": 1.355,
+          "max": 2.12,
+          "avg": 1.7520322580645156,
+          "first": 1.355,
+          "last": 2.12,
+          "trend": "increasing",
+          "std": 0.22985121188407634
+        },
+        "J3_usage_rank": {
+          "count": 60,
+          "min": 0.05,
+          "max": 1.194,
+          "avg": 0.4664666666666666,
+          "first": 0.578,
+          "last": 0.262,
+          "trend": "decreasing",
+          "std": 0.37194374425292986
+        },
+        "J5_usage_rank": {
+          "count": 31,
+          "min": 0.123,
+          "max": 0.909,
+          "avg": 0.5216129032258064,
+          "first": 0.144,
+          "last": 0.909,
+          "trend": "increasing",
+          "std": 0.2410981164774844
+        },
+        "J3_activity": {
+          "count": 60,
+          "min": 0.05,
+          "max": 1.194,
+          "avg": 0.4664666666666666,
+          "first": 0.578,
+          "last": 0.262,
+          "trend": "decreasing",
+          "std": 0.37194374425292986
+        },
+        "J4_activity": {
+          "count": 31,
+          "min": 1.355,
+          "max": 2.12,
+          "avg": 1.7520322580645156,
+          "first": 1.355,
+          "last": 2.12,
+          "trend": "increasing",
+          "std": 0.22985121188407634
+        },
+        "J5_activity": {
+          "count": 31,
+          "min": 0.123,
+          "max": 0.909,
+          "avg": 0.5216129032258064,
+          "first": 0.144,
+          "last": 0.909,
+          "trend": "increasing",
+          "std": 0.2410981164774844
+        },
+        "J3_angle_magnitude": {
+          "count": 60,
+          "min": 0.007,
+          "max": 1.146,
+          "avg": 0.4188833333333333,
+          "first": 0.379,
+          "last": 0.227,
+          "trend": "decreasing",
+          "std": 0.36779496514891136
+        },
+        "J4_angle_magnitude": {
+          "count": 31,
+          "min": 1.309,
+          "max": 2.074,
+          "avg": 1.706032258064516,
+          "first": 1.309,
+          "last": 2.074,
+          "trend": "increasing",
+          "std": 0.2317740117178895
+        },
+        "J5_angle_magnitude": {
+          "count": 31,
+          "min": 0.108,
+          "max": 0.87,
+          "avg": 0.475,
+          "first": 0.111,
+          "last": 0.87,
+          "trend": "increasing",
+          "std": 0.23837243832884436
+        },
+        "J3_velocity_magnitude": {
+          "count": 60,
+          "min": 0.017,
+          "max": 0.198,
+          "avg": 0.04746666666666665,
+          "first": 0.198,
+          "last": 0.035,
+          "trend": "decreasing",
+          "std": 0.02522067053474634
+        },
+        "J4_velocity_magnitude": {
+          "count": 31,
+          "min": 0.027,
+          "max": 0.059,
+          "avg": 0.04593548387096775,
+          "first": 0.046,
+          "last": 0.045,
+          "trend": "decreasing",
+          "std": 0.006671728913958717
+        },
+        "J5_velocity_magnitude": {
+          "count": 31,
+          "min": 0.015,
+          "max": 0.058,
+          "avg": 0.046580645161290325,
+          "first": 0.033,
+          "last": 0.039,
+          "trend": "increasing",
+          "std": 0.008775972305468357
+        },
+        "L3_length": {
+          "count": 59,
+          "min": 64.2,
+          "max": 97.4,
+          "avg": 80.51864406779657,
+          "first": 97.4,
+          "last": 64.2,
+          "trend": "decreasing",
+          "std": 16.597615456426684
+        },
+        "L4_length": {
+          "count": 30,
+          "min": 54.9,
+          "max": 54.9,
+          "avg": 54.90000000000002,
+          "first": 54.9,
+          "last": 54.9,
+          "trend": "increasing",
+          "std": 2.1316282072803006e-14
+        },
+        "L5_length": {
+          "count": 30,
+          "min": 73.8,
+          "max": 73.8,
+          "avg": 73.79999999999998,
+          "first": 73.8,
+          "last": 73.8,
+          "trend": "increasing",
+          "std": 1.4210854715202004e-14
+        }
+      }
+    }
+  }
+}

@@ -585,14 +585,17 @@ class TrainingManager:
 
     def update_and_log(self, step, next_obs=None, next_gnn_embeds=None, num_joints=12):
         """PPO更新并记录 - 增强版loss打印"""
+        # 🆕 在PPO更新之前记录buffer大小
+        buffer_size_before_update = len(self.ppo.buffer.experiences)
+        
         metrics = self.ppo.update(next_obs, next_gnn_embeds, num_joints)
         
         if metrics:
             enhanced_metrics = metrics.copy()
             enhanced_metrics.update({
                 'step': step,
-                # 'buffer_size': len(self.ppo.buffer.joint_q),
-                'buffer_size': len(self.ppo.buffer.experiences),
+                # 🆕 使用PPO metrics中的buffer_size（已修复为更新前的大小）
+                # 'buffer_size': buffer_size_before_update,  # 备用方案
                 'learning_rate': self.ppo.actor_optimizer.param_groups[0]['lr'],
                 'update_count': metrics['update_count']
             })
@@ -608,8 +611,9 @@ class TrainingManager:
                 print(f"   🎭 Entropy: {metrics['entropy']:.6f}")
                 print(f"   📈 学习率: {self.ppo.actor_optimizer.param_groups[0]['lr']:.2e}")
                 print(f"   🔄 更新次数: {metrics['update_count']}")
-                # print(f"   💾 Buffer大小: {len(self.ppo.buffer.joint_q)}")
-                print(f"   💾 Buffer大小: {len(self.ppo.buffer.experiences)}")
+                # 🆕 显示更新前的buffer大小（从metrics中获取，已修复）
+                buffer_size_to_show = metrics.get('buffer_size', buffer_size_before_update)
+                print(f"   💾 Buffer大小: {buffer_size_to_show}")
             
             # 🔧 添加梯度范数信息（如果可用）
             if 'actor_grad_norm' in metrics:
@@ -620,15 +624,34 @@ class TrainingManager:
             # 🆕 添加Attention网络损失信息
             if any(key.startswith('attention_') for key in metrics.keys()):
                 print(f"\n🔥 Attention网络Loss更新 [Step {step}]:")
-                if 'attention_actor_grad_norm' in metrics:
-                    print(f"   📊 Actor Attention梯度范数: {metrics['attention_actor_grad_norm']:.6f}")
-                if 'attention_critic_grad_norm' in metrics:
-                    print(f"   📊 Critic Attention梯度范数: {metrics['attention_critic_grad_norm']:.6f}")
+                # 🆕 独立显示三个attention网络的信息
+                if 'attention_actor_loss' in metrics:
+                    print(f"   📊 Actor Attention Loss: {metrics['attention_actor_loss']:.6f}")
+                if 'attention_critic_main_loss' in metrics:
+                    print(f"   📊 Critic Main Attention Loss: {metrics['attention_critic_main_loss']:.6f}")
+                if 'attention_critic_value_loss' in metrics:
+                    print(f"   📊 Critic Value Attention Loss: {metrics['attention_critic_value_loss']:.6f}")
                 if 'attention_total_loss' in metrics:
                     print(f"   📊 Attention总损失: {metrics['attention_total_loss']:.6f}")
-                if 'attention_param_mean' in metrics:
+                
+                # 🆕 显示梯度范数（更详细的信息）
+                if 'attention_actor_grad_norm' in metrics:
+                    print(f"   🔍 Actor Attention梯度范数: {metrics['attention_actor_grad_norm']:.6f}")
+                if 'attention_critic_main_grad_norm' in metrics:
+                    print(f"   🔍 Critic Main Attention梯度范数: {metrics['attention_critic_main_grad_norm']:.6f}")
+                if 'attention_critic_value_grad_norm' in metrics:
+                    print(f"   🔍 Critic Value Attention梯度范数: {metrics['attention_critic_value_grad_norm']:.6f}")
+                
+                # 🆕 分别显示Actor和Critic参数统计
+                if 'attention_actor_param_mean' in metrics:
+                    print(f"   📊 Actor Attention参数: 均值={metrics['attention_actor_param_mean']:.6f}, 标准差={metrics.get('attention_actor_param_std', 0):.6f}")
+                if 'attention_critic_param_mean' in metrics:
+                    print(f"   📊 Critic Attention参数: 均值={metrics['attention_critic_param_mean']:.6f}, 标准差={metrics.get('attention_critic_param_std', 0):.6f}")
+                
+                # 向后兼容的总体参数信息
+                if 'attention_param_mean' in metrics and 'attention_actor_param_mean' not in metrics:
                     print(f"   📊 Attention参数均值: {metrics['attention_param_mean']:.6f}")
-                if 'attention_param_std' in metrics:
+                if 'attention_param_std' in metrics and 'attention_actor_param_std' not in metrics:
                     print(f"   📊 Attention参数标准差: {metrics['attention_param_std']:.6f}")
                 
                 # 🆕 显示机器人结构信息
@@ -648,7 +671,7 @@ class TrainingManager:
                     ranking_str = ', '.join(metrics['joint_usage_ranking'])
                     print(f"   🏆 关节使用排名: {ranking_str}")
                 
-                # 🆕 动态显示所有关节的活跃度（支持任意关节数）
+                # 🆕 显示关节信息（只显示实际存在的关节，但CSV中会记录20个）
                 num_joints = metrics.get('robot_num_joints', 0)
                 if num_joints > 0:
                     joint_activities = []
@@ -656,19 +679,21 @@ class TrainingManager:
                     joint_velocities = []
                     link_lengths = []
                     
-                    for i in range(num_joints):
+                    # 只显示实际存在的关节（值不为-1的）
+                    for i in range(20):  # 检查所有可能的关节
                         activity_key = f'joint_{i}_activity'
                         angle_key = f'joint_{i}_angle_magnitude'
                         velocity_key = f'joint_{i}_velocity_magnitude'
                         length_key = f'link_{i}_length'
                         
-                        if activity_key in metrics:
+                        # 只显示存在的关节（值不为-1）
+                        if activity_key in metrics and metrics[activity_key] != -1.0:
                             joint_activities.append(f"J{i}:{metrics[activity_key]:.3f}")
-                        if angle_key in metrics:
+                        if angle_key in metrics and metrics[angle_key] != -1.0:
                             joint_angles.append(f"J{i}:{metrics[angle_key]:.3f}")
-                        if velocity_key in metrics:
+                        if velocity_key in metrics and metrics[velocity_key] != -1.0:
                             joint_velocities.append(f"J{i}:{metrics[velocity_key]:.3f}")
-                        if length_key in metrics:
+                        if length_key in metrics and metrics[length_key] != -1.0:
                             link_lengths.append(f"L{i}:{metrics[length_key]:.1f}px")
                     
                     if joint_activities:

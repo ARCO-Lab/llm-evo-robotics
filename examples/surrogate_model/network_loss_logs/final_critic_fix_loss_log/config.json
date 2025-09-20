@@ -1,0 +1,15 @@
+{
+  "experiment_info": {
+    "experiment_name": "final_critic_fix_loss_log",
+    "start_time": "2025-09-19T23:45:11.091925",
+    "log_dir": "network_loss_logs/final_critic_fix_loss_log",
+    "monitored_networks": [
+      "attention",
+      "ppo",
+      "gnn",
+      "sac",
+      "total"
+    ],
+    "update_interval": 15.0
+  }
+}

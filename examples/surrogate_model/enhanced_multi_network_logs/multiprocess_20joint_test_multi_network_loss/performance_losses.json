@@ -1,0 +1,464 @@
+[
+  {
+    "step": 500,
+    "timestamp": 1758330074.3061252,
+    "datetime": "2025-09-19T21:01:14.306130",
+    "generation": 0,
+    "individual_id": "gen_0_60486",
+    "report_step": 500,
+    "best_distance": 322.7,
+    "episode_best_distance": 284.9,
+    "success_rate": 0.0
+  },
+  {
+    "step": 0,
+    "timestamp": 1758330080.7920551,
+    "datetime": "2025-09-19T21:01:20.792058",
+    "generation": 0,
+    "individual_id": "gen_0_60486",
+    "consecutive_success": 0.0,
+    "completed_episodes": 0.0
+  },
+  {
+    "step": 500,
+    "timestamp": 1758330080.7921388,
+    "datetime": "2025-09-19T21:01:20.792139",
+    "generation": 0,
+    "individual_id": "gen_0_60486",
+    "report_step": 500,
+    "best_distance": 331.9,
+    "episode_best_distance": 330.7,
+    "success_rate": 0.0
+  },
+  {
+    "step": 0,
+    "timestamp": 1758330080.792286,
+    "datetime": "2025-09-19T21:01:20.792286",
+    "generation": 0,
+    "individual_id": "gen_0_60486",
+    "consecutive_success": 0.0,
+    "completed_episodes": 0.0
+  },
+  {
+    "step": 1000,
+    "timestamp": 1758330080.7923179,
+    "datetime": "2025-09-19T21:01:20.792318",
+    "generation": 0,
+    "individual_id": "gen_0_60486",
+    "report_step": 1000,
+    "best_distance": 317.4,
+    "episode_best_distance": 317.4,
+    "success_rate": 0.0
+  },
+  {
+    "step": 0,
+    "timestamp": 1758330080.8393292,
+    "datetime": "2025-09-19T21:01:20.839332",
+    "generation": 0,
+    "individual_id": "gen_0_60486",
+    "consecutive_success": 0.0,
+    "completed_episodes": 0.0
+  },
+  {
+    "step": 500,
+    "timestamp": 1758330080.8393996,
+    "datetime": "2025-09-19T21:01:20.839399",
+    "generation": 0,
+    "individual_id": "gen_0_60486",
+    "report_step": 500,
+    "best_distance": 362.6,
+    "episode_best_distance": 352.6,
+    "success_rate": 0.0
+  },
+  {
+    "step": 0,
+    "timestamp": 1758330080.8396614,
+    "datetime": "2025-09-19T21:01:20.839662",
+    "generation": 0,
+    "individual_id": "gen_0_60486",
+    "consecutive_success": 0.0,
+    "completed_episodes": 0.0
+  },
+  {
+    "step": 1000,
+    "timestamp": 1758330080.8397121,
+    "datetime": "2025-09-19T21:01:20.839712",
+    "generation": 0,
+    "individual_id": "gen_0_60486",
+    "report_step": 1000,
+    "best_distance": 317.9,
+    "episode_best_distance": 317.9,
+    "success_rate": 0.0
+  },
+  {
+    "step": 0,
+    "timestamp": 1758330081.535288,
+    "datetime": "2025-09-19T21:01:21.535293",
+    "generation": 0,
+    "individual_id": "gen_0_60486",
+    "consecutive_success": 0.0,
+    "completed_episodes": 0.0
+  },
+  {
+    "step": 500,
+    "timestamp": 1758330081.5353625,
+    "datetime": "2025-09-19T21:01:21.535362",
+    "generation": 0,
+    "individual_id": "gen_0_60486",
+    "report_step": 500,
+    "best_distance": 291.9,
+    "episode_best_distance": 291.9,
+    "success_rate": 0.0
+  },
+  {
+    "step": 0,
+    "timestamp": 1758330081.5355618,
+    "datetime": "2025-09-19T21:01:21.535561",
+    "generation": 0,
+    "individual_id": "gen_0_60486",
+    "consecutive_success": 0.0,
+    "completed_episodes": 0.0
+  },
+  {
+    "step": 1000,
+    "timestamp": 1758330081.535604,
+    "datetime": "2025-09-19T21:01:21.535604",
+    "generation": 0,
+    "individual_id": "gen_0_60486",
+    "report_step": 1000,
+    "best_distance": 291.9,
+    "episode_best_distance": 291.9,
+    "success_rate": 0.0
+  },
+  {
+    "step": 0,
+    "timestamp": 1758330084.5440767,
+    "datetime": "2025-09-19T21:01:24.544095",
+    "generation": 0,
+    "individual_id": "gen_0_60486",
+    "consecutive_success": 0.0,
+    "completed_episodes": 0.0
+  },
+  {
+    "step": 1000,
+    "timestamp": 1758330084.5441782,
+    "datetime": "2025-09-19T21:01:24.544178",
+    "generation": 0,
+    "individual_id": "gen_0_60486",
+    "report_step": 1000,
+    "best_distance": 256.9,
+    "episode_best_distance": 256.9,
+    "success_rate": 0.0
+  },
+  {
+    "step": 0,
+    "timestamp": 1758330087.7214282,
+    "datetime": "2025-09-19T21:01:27.721428",
+    "generation": 0,
+    "individual_id": "gen_0_60486",
+    "consecutive_success": 0.0,
+    "completed_episodes": 0.0
+  },
+  {
+    "step": 1500,
+    "timestamp": 1758330090.8889902,
+    "datetime": "2025-09-19T21:01:30.888990",
+    "generation": 0,
+    "individual_id": "gen_0_60486",
+    "report_step": 1500,
+    "best_distance": 291.9,
+    "episode_best_distance": 291.9
+  },
+  {
+    "step": 1500,
+    "timestamp": 1758330090.8890452,
+    "datetime": "2025-09-19T21:01:30.889045",
+    "generation": 0,
+    "individual_id": "gen_0_60486",
+    "report_step": 1500,
+    "best_distance": 193.3,
+    "episode_best_distance": 170.1,
+    "success_rate": 0.0
+  },
+  {
+    "step": 0,
+    "timestamp": 1758330093.1653774,
+    "datetime": "2025-09-19T21:01:33.165381",
+    "generation": 0,
+    "individual_id": "gen_0_60486",
+    "consecutive_success": 0.0,
+    "completed_episodes": 0.0
+  },
+  {
+    "step": 1500,
+    "timestamp": 1758330093.165444,
+    "datetime": "2025-09-19T21:01:33.165444",
+    "generation": 0,
+    "individual_id": "gen_0_60486",
+    "report_step": 1500,
+    "best_distance": 317.9,
+    "episode_best_distance": 305.6,
+    "success_rate": 0.0
+  },
+  {
+    "step": 0,
+    "timestamp": 1758330093.7028818,
+    "datetime": "2025-09-19T21:01:33.702884",
+    "generation": 0,
+    "individual_id": "gen_0_60486",
+    "consecutive_success": 0.0,
+    "completed_episodes": 0.0
+  },
+  {
+    "step": 1500,
+    "timestamp": 1758330093.702946,
+    "datetime": "2025-09-19T21:01:33.702946",
+    "generation": 0,
+    "individual_id": "gen_0_60486",
+    "report_step": 1500,
+    "best_distance": 317.4,
+    "episode_best_distance": 317.4,
+    "success_rate": 0.0
+  },
+  {
+    "step": 0,
+    "timestamp": 1758330097.2275937,
+    "datetime": "2025-09-19T21:01:37.227594",
+    "generation": 0,
+    "individual_id": "gen_0_60486",
+    "consecutive_success": 0.0,
+    "completed_episodes": 0.0,
+    "success_rate": 0.0
+  },
+  {
+    "step": 2000,
+    "timestamp": 1758330097.2276385,
+    "datetime": "2025-09-19T21:01:37.227638",
+    "generation": 0,
+    "individual_id": "gen_0_60486",
+    "report_step": 2000,
+    "best_distance": 61.8,
+    "episode_best_distance": 61.8,
+    "success_rate": 0.0
+  },
+  {
+    "step": 0,
+    "timestamp": 1758330099.468906,
+    "datetime": "2025-09-19T21:01:39.468906",
+    "generation": 0,
+    "individual_id": "gen_0_60486",
+    "consecutive_success": 0.0,
+    "completed_episodes": 0.0
+  },
+  {
+    "step": 2000,
+    "timestamp": 1758330099.468951,
+    "datetime": "2025-09-19T21:01:39.468951",
+    "generation": 0,
+    "individual_id": "gen_0_60486",
+    "report_step": 2000,
+    "best_distance": 155.7,
+    "episode_best_distance": 155.7,
+    "success_rate": 0.0
+  },
+  {
+    "step": 0,
+    "timestamp": 1758330100.426109,
+    "datetime": "2025-09-19T21:01:40.426109",
+    "generation": 0,
+    "individual_id": "gen_0_60486",
+    "consecutive_success": 0.0,
+    "completed_episodes": 0.0
+  },
+  {
+    "step": 2000,
+    "timestamp": 1758330100.42616,
+    "datetime": "2025-09-19T21:01:40.426160",
+    "generation": 0,
+    "individual_id": "gen_0_60486",
+    "report_step": 2000,
+    "best_distance": 291.9,
+    "episode_best_distance": 291.9,
+    "success_rate": 0.0
+  },
+  {
+    "step": 0,
+    "timestamp": 1758330100.8397174,
+    "datetime": "2025-09-19T21:01:40.839717",
+    "generation": 0,
+    "individual_id": "gen_0_60486",
+    "consecutive_success": 0.0,
+    "completed_episodes": 0.0
+  },
+  {
+    "step": 2000,
+    "timestamp": 1758330100.8397613,
+    "datetime": "2025-09-19T21:01:40.839761",
+    "generation": 0,
+    "individual_id": "gen_0_60486",
+    "report_step": 2000,
+    "best_distance": 317.4,
+    "episode_best_distance": 317.4,
+    "success_rate": 0.0
+  },
+  {
+    "step": 0,
+    "timestamp": 1758330106.282305,
+    "datetime": "2025-09-19T21:01:46.282305",
+    "generation": 0,
+    "individual_id": "gen_0_60486",
+    "consecutive_success": 0.0,
+    "completed_episodes": 0.0
+  },
+  {
+    "step": 2500,
+    "timestamp": 1758330106.2823486,
+    "datetime": "2025-09-19T21:01:46.282348",
+    "generation": 0,
+    "individual_id": "gen_0_60486",
+    "report_step": 2500,
+    "best_distance": 134.1,
+    "episode_best_distance": 91.5,
+    "success_rate": 0.0
+  },
+  {
+    "step": 0,
+    "timestamp": 1758330106.8531747,
+    "datetime": "2025-09-19T21:01:46.853175",
+    "generation": 0,
+    "individual_id": "gen_0_60486",
+    "consecutive_success": 0.0,
+    "completed_episodes": 0.0
+  },
+  {
+    "step": 2500,
+    "timestamp": 1758330106.853219,
+    "datetime": "2025-09-19T21:01:46.853219",
+    "generation": 0,
+    "individual_id": "gen_0_60486",
+    "report_step": 2500,
+    "best_distance": 268.5,
+    "episode_best_distance": 256.7,
+    "success_rate": 0.0
+  },
+  {
+    "step": 0,
+    "timestamp": 1758330109.0852454,
+    "datetime": "2025-09-19T21:01:49.085245",
+    "generation": 0,
+    "individual_id": "gen_0_60486",
+    "consecutive_success": 0.0,
+    "completed_episodes": 0.0
+  },
+  {
+    "step": 2500,
+    "timestamp": 1758330109.0852928,
+    "datetime": "2025-09-19T21:01:49.085292",
+    "generation": 0,
+    "individual_id": "gen_0_60486",
+    "report_step": 2500,
+    "best_distance": 19.9,
+    "episode_best_distance": 361.4,
+    "success_rate": 100.0
+  },
+  {
+    "step": 0,
+    "timestamp": 1758330110.6705818,
+    "datetime": "2025-09-19T21:01:50.670583",
+    "generation": 0,
+    "individual_id": "gen_0_60486",
+    "consecutive_success": 1.0,
+    "completed_episodes": 1.0
+  },
+  {
+    "step": 2500,
+    "timestamp": 1758330110.6706848,
+    "datetime": "2025-09-19T21:01:50.670685",
+    "generation": 0,
+    "individual_id": "gen_0_60486",
+    "report_step": 2500,
+    "best_distance": 78.8,
+    "episode_best_distance": 73.4,
+    "success_rate": 0.0
+  },
+  {
+    "step": 0,
+    "timestamp": 1758330115.5424142,
+    "datetime": "2025-09-19T21:01:55.542414",
+    "generation": 0,
+    "individual_id": "gen_0_60486",
+    "consecutive_success": 0.0,
+    "completed_episodes": 0.0
+  },
+  {
+    "step": 3000,
+    "timestamp": 1758330115.5424592,
+    "datetime": "2025-09-19T21:01:55.542459",
+    "generation": 0,
+    "individual_id": "gen_0_60486",
+    "report_step": 3000,
+    "best_distance": 19.9,
+    "episode_best_distance": 273.3,
+    "success_rate": 100.0
+  },
+  {
+    "step": 0,
+    "timestamp": 1758330116.216998,
+    "datetime": "2025-09-19T21:01:56.216998",
+    "generation": 0,
+    "individual_id": "gen_0_60486",
+    "consecutive_success": 1.0,
+    "completed_episodes": 1.0
+  },
+  {
+    "step": 3000,
+    "timestamp": 1758330116.2170427,
+    "datetime": "2025-09-19T21:01:56.217042",
+    "generation": 0,
+    "individual_id": "gen_0_60486",
+    "report_step": 3000,
+    "best_distance": 73.0,
+    "episode_best_distance": 73.0,
+    "success_rate": 0.0
+  },
+  {
+    "step": 0,
+    "timestamp": 1758330118.6090035,
+    "datetime": "2025-09-19T21:01:58.609003",
+    "generation": 0,
+    "individual_id": "gen_0_60486",
+    "consecutive_success": 0.0,
+    "completed_episodes": 0.0
+  },
+  {
+    "step": 3000,
+    "timestamp": 1758330118.6090617,
+    "datetime": "2025-09-19T21:01:58.609062",
+    "generation": 0,
+    "individual_id": "gen_0_60486",
+    "report_step": 3000,
+    "best_distance": 178.3,
+    "episode_best_distance": 178.3,
+    "success_rate": 0.0
+  },
+  {
+    "step": 0,
+    "timestamp": 1758330119.3215113,
+    "datetime": "2025-09-19T21:01:59.321511",
+    "generation": 0,
+    "individual_id": "gen_0_60486",
+    "consecutive_success": 0.0,
+    "completed_episodes": 0.0
+  },
+  {
+    "step": 3000,
+    "timestamp": 1758330119.3215575,
+    "datetime": "2025-09-19T21:01:59.321557",
+    "generation": 0,
+    "individual_id": "gen_0_60486",
+    "report_step": 3000,
+    "best_distance": 80.1,
+    "episode_best_distance": 80.1,
+    "success_rate": 0.0
+  }
+]

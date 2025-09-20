@@ -1,0 +1,15 @@
+{
+  "experiment_info": {
+    "experiment_name": "stability_test_extended_loss_log",
+    "start_time": "2025-09-19T21:13:47.938838",
+    "log_dir": "network_loss_logs/stability_test_extended_loss_log",
+    "monitored_networks": [
+      "attention",
+      "ppo",
+      "gnn",
+      "sac",
+      "total"
+    ],
+    "update_interval": 15.0
+  }
+}
