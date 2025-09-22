@@ -1,7 +1,7 @@
 {
   "experiment_info": {
     "experiment_name": "full_joint_analysis_loss_log",
-    "start_time": "2025-09-19T15:53:41.909989",
+    "start_time": "2025-09-21T20:23:36.428284",
     "log_dir": "network_loss_logs/full_joint_analysis_loss_log",
     "monitored_networks": [
       "attention",

@@ -1,8 +1,8 @@
 {
-  "total_updates": 348,
-  "avg_loss": 4.941163279532659,
-  "min_loss": 0.18000000000000002,
-  "max_loss": 11.498042954154826,
-  "recent_trend": "decreasing",
-  "last_update": 1758253032.3203433
+  "total_updates": 0,
+  "avg_loss": 0.0,
+  "min_loss": Infinity,
+  "max_loss": -Infinity,
+  "recent_trend": "stable",
+  "last_update": 1758505872.490947
 }

@@ -69,7 +69,7 @@ class MAPElitesTrainingAdapter:
                 silent_mode=silent_mode,
                 enable_rendering=enable_rendering
             )
-            print(f"🔧 MAP-Elites训练适配器已初始化 (使用enhanced_train.py)")
+            print(f"🔧 MAP-Elites训练适配器已初始化 (使用enhanced_train_backup.py)")
             print(f"   🎨 渲染: {'启用' if enable_rendering else '禁用'}")
             print(f"   🔇 静默: {'启用' if silent_mode else '禁用'}")
         else:
@@ -99,7 +99,7 @@ class MAPElitesTrainingAdapter:
         # 2. 运行训练
         start_time = time.time()
         if self.use_real_training:
-            print(f"   🎯 使用enhanced_train.py进行真实训练 ({training_steps} steps)")
+            print(f"   🎯 使用enhanced_train_backup.py进行真实训练 ({training_steps} steps)")
             try:
                 training_metrics = self.training_interface.train_individual(training_args)
             except Exception as e:
@@ -186,7 +186,7 @@ class MAPElitesTrainingAdapter:
     def _prepare_training_data_for_fitness(self, training_metrics, phenotype, training_time):
         """准备用于fitness计算的完整训练数据"""
         
-        # 🎯 检查是否有episodes结果（来自enhanced_train.py的新格式）
+        # 🎯 检查是否有episodes结果（来自enhanced_train_backup.py的新格式）
         if isinstance(training_metrics, dict) and 'episode_results' in training_metrics:
             # 新的episodes-based数据格式
             return {

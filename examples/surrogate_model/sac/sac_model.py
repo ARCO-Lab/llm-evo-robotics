@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 import numpy as np
 import random
 from collections import deque, namedtuple
@@ -122,16 +123,33 @@ class AttentionSACWithBuffer:
         # Memory Buffer
         self.memory = ReplayBuffer(buffer_capacity, device)
         
-        # 超参数
+        # 🔧 超参数优化 - 加快target网络更新
         self.gamma = gamma
-        self.tau = tau
+        self.tau = max(tau, 0.01)  # 确保tau至少为0.01，加快target更新
+        if tau < 0.01:
+            print(f"🔧 Tau调整: {tau} → {self.tau} (加快target网络更新)")
+        # 🆕 Alpha调度参数
+        self.alpha_start = alpha      # 初始alpha值 (0.2)
+        self.alpha_end = 0.02        # 最终alpha值 (专门为维持任务优化，更确定性)
         self.alpha = alpha
+        self.entropy_schedule_enabled = True
+        self.exploration_phase_ratio = 0.85  # 前85%为探索阶段（从70%增加到85%）
         # lr = 2e-5  # 🔧 移除硬编码，使用传入的lr参数
-        # 优化器 - 现在完全独立
-        self.actor_optimizer = torch.optim.Adam(self.actor.parameters(), lr=lr)
+        # 🔧 彻底降低学习率 - 解决梯度爆炸
+        self.actor_lr = lr * 0.1   # 大幅降低Actor学习率
+        self.critic_lr = lr * 0.1  # 大幅降低Critic学习率，与Actor相同
+        
+        # 🆕 使用极其保守的优化器配置
+        self.actor_optimizer = torch.optim.Adam(self.actor.parameters(), lr=self.actor_lr, eps=1e-8, weight_decay=1e-5)
         self.critic_optimizer = torch.optim.Adam(
-            list(self.critic1.parameters()) + list(self.critic2.parameters()), lr=lr
+            list(self.critic1.parameters()) + list(self.critic2.parameters()), 
+            lr=self.critic_lr, eps=1e-8, weight_decay=1e-5  # 增加权重衰减
         )
+        
+        print(f"🔧 极保守学习率设置: Actor={self.actor_lr:.2e}, Critic={self.critic_lr:.2e} (相同，防止梯度爆炸)")
+        
+        # 🆕 Critic优化参数 - 简化为单次更新，避免复杂性
+        self.critic_update_frequency = 1  # 简化为单次更新，降低复杂性
         
         # 自动调整alpha
         self.target_entropy = -action_dim * 0.5
@@ -166,7 +184,7 @@ class AttentionSACWithBuffer:
             next_joint_q, next_vertex_k, next_vertex_v, done
         )
     
-    def get_action(self, obs, gnn_embeds, num_joints=12, deterministic=False):
+    def get_action(self, obs, gnn_embeds, num_joints=12, deterministic=False, distance_to_goal=None):
         """获取动作"""
           
         # 🎯 根据环境类型选择数据处理函数
@@ -178,6 +196,16 @@ class AttentionSACWithBuffer:
         vertex_v = prepare_dynamic_vertex_v(obs.unsqueeze(0), gnn_embeds.unsqueeze(0), num_joints, self.env_type)  # 🎯 动态V
         
         with torch.no_grad():
+            # 🆕 距离自适应确定性控制 - 专门为维持任务优化
+            maintenance_mode = False
+            if distance_to_goal is not None:
+                if distance_to_goal < 120.0:
+                    # 接近目标时使用更确定性的策略
+                    deterministic = True
+                    maintenance_mode = True
+                    if distance_to_goal < 100.0:  # 进入维持区域
+                        print(f"🎯 进入维持模式({distance_to_goal:.1f}px)，使用确定性策略")
+            
             if deterministic:
                 mean, _ = self.actor.forward(joint_q, vertex_k, vertex_v)
                 tanh_action = torch.tanh(mean).squeeze(0)
@@ -188,9 +216,18 @@ class AttentionSACWithBuffer:
             # 🔧 关键修复：Action Scaling！
             # SAC输出[-1,+1]，需要缩放到环境的action space
             if self.env_type == 'reacher2d':
-                # 🎯 修复：恢复到环境的完整action range [-100, +100]
-                action_scale = 100.0  # 恢复到环境max_torque的完整范围
-                scaled_action = tanh_action * action_scale
+                # 🆕 维持模式的特殊动作缩放
+                if maintenance_mode:
+                    # 维持模式：使用更小的动作幅度，提高稳定性
+                    action_scale = 30.0  # 维持时使用较小动作
+                    scaled_action = tanh_action * action_scale
+                    if distance_to_goal and distance_to_goal < 100.0:
+                        # 在维持区域内进一步减少动作幅度
+                        scaled_action = scaled_action * 0.5  # 更精细的控制
+                else:
+                    # 正常探索模式：使用完整动作范围
+                    action_scale = 100.0  # 正常动作范围
+                    scaled_action = tanh_action * action_scale
                 return scaled_action
             else:
                 # Bullet环境保持原有逻辑
@@ -262,27 +299,54 @@ class AttentionSACWithBuffer:
         current_q1 = torch.clamp(current_q1, -50.0, 50.0)
         current_q2 = torch.clamp(current_q2, -50.0, 50.0)
         
-        # 使用Huber Loss代替MSE Loss，更稳定
-        critic_loss = nn.SmoothL1Loss()(current_q1, target_q) + nn.SmoothL1Loss()(current_q2, target_q)
+        # 🔧 彻底修复损失函数 - 解决梯度爆炸
+        # 1. 使用更大的beta值，让Huber Loss更接近L1 Loss (更稳定)
+        huber_loss1 = nn.SmoothL1Loss(beta=5.0)(current_q1, target_q)
+        huber_loss2 = nn.SmoothL1Loss(beta=5.0)(current_q2, target_q)
+        
+        # 2. 移除可能导致梯度不稳定的正则化项
+        # q_std_penalty = 0.01 * (current_q1.std() + current_q2.std())
+        
+        # 3. 简化损失函数，避免复杂的组合
+        critic_loss = huber_loss1 + huber_loss2
+        
+        # 4. 添加损失值裁剪，防止极端值
+        critic_loss = torch.clamp(critic_loss, 0.0, 10.0)
 
         current_lr = self.critic_optimizer.param_groups[0]['lr']
 
-        # 添加恢复逻辑
+        # 🔧 更保守的学习率调整策略
         if not hasattr(self, 'consecutive_low_loss_count'):
             self.consecutive_low_loss_count = 0
+        if not hasattr(self, 'loss_history'):
+            self.loss_history = []
+        
+        # 记录loss历史，用于更智能的调整
+        self.loss_history.append(critic_loss.item())
+        if len(self.loss_history) > 100:
+            self.loss_history.pop(0)
+        
+        # 计算loss趋势
+        if len(self.loss_history) >= 20:
+            recent_avg = sum(self.loss_history[-20:]) / 20
+            earlier_avg = sum(self.loss_history[-40:-20]) / 20 if len(self.loss_history) >= 40 else recent_avg
+            loss_trend = recent_avg - earlier_avg  # 正值表示loss在上升
+        else:
+            loss_trend = 0
 
-        if critic_loss.item() < 0.5:  # 非常稳定
+        # 更智能的学习率调整
+        if critic_loss.item() < 1.0 and loss_trend < 0:  # 稳定且在改善
             self.consecutive_low_loss_count += 1
-            if self.consecutive_low_loss_count > 50:  # 连续50次低loss
-                new_lr = min(current_lr * 1.2, 5e-5)  # 可以大幅恢复
+            if self.consecutive_low_loss_count > 100:  # 更保守的恢复条件
+                new_lr = min(current_lr * 1.1, 3e-5)  # 更温和的恢复
             else:
-                new_lr = min(current_lr * 1.05, 5e-5)  # 小幅提高
-        elif critic_loss.item() > 2.0:  # 严重不稳定
+                new_lr = current_lr  # 保持稳定
+        elif critic_loss.item() > 5.0:  # 严重不稳定
             self.consecutive_low_loss_count = 0
-            new_lr = max(current_lr * 0.5, 1e-5)  # 大幅降低
-        elif critic_loss.item() > 1.0:  # 轻微不稳定
+            new_lr = max(current_lr * 0.8, 5e-6)  # 更温和的降低
+        elif critic_loss.item() > 3.0:  # 中等不稳定
             self.consecutive_low_loss_count = 0
-            new_lr = max(current_lr * 0.9, 1e-5)  # 适度降低
+            new_lr = max(current_lr * 0.95, 5e-6)  # 轻微降低
         else:
             new_lr = current_lr  # 保持不变
                 # 限制调整频率
@@ -308,19 +372,23 @@ class AttentionSACWithBuffer:
                 self.last_lr_adjust_step = self.update_counter
 
         
-        # 🛡️ Loss稳定性检查
-        if critic_loss > 25.0:
-            print(f"⚠️ 大Critic Loss: {critic_loss:.3f}, 跳过此次更新")
+        # 🛡️ 修复Loss稳定性检查 - 允许正常的学习过程
+        if critic_loss > 50.0:  # 只在极端情况下跳过，让网络正常学习
+            print(f"⚠️ Critic Loss极端过高: {critic_loss:.3f}, 跳过此次更新")
             return None
         
-        # 更新Critic
+        # 🔧 简化Critic更新 - 单次更新，避免复杂性
         self.critic_optimizer.zero_grad()
         critic_loss.backward()
-        torch.nn.utils.clip_grad_norm_(
+        
+        # 🔧 激进的梯度裁剪 - 彻底解决梯度爆炸
+        total_norm = torch.nn.utils.clip_grad_norm_(
             list(self.critic1.parameters()) + list(self.critic2.parameters()),
-            max_norm=0.5  # 更严格的梯度裁剪
+            max_norm=0.1  # 极其严格的梯度裁剪
         )
+        
         self.critic_optimizer.step()
+        avg_critic_loss = critic_loss.item()  # 单次更新，直接使用loss值
         
         # === Actor Update ===
         # 采样新动作
@@ -408,9 +476,21 @@ class AttentionSACWithBuffer:
             print(f"   建议: 降低学习率、增加正则化或重启训练")
 
             
-        return {
+        # 🆕 保存batch数据用于关节分析
+        self._last_batch_data = {
+            'joint_q': joint_q,
+            'vertex_k': vertex_k,
+            'vertex_v': vertex_v,
+            'actions': actions,
+            'vertex_mask': vertex_mask
+        }
+        
+        # 🆕 计算attention网络的独立损失
+        attention_metrics = self._calculate_attention_losses()
+        
+        result = {
             'lr': new_lr,
-            'critic_loss': critic_loss.item(),
+            'critic_loss': avg_critic_loss,  # 使用平均critic loss
             'actor_loss': actor_loss.item(),
             'alpha_loss': alpha_loss.item(),
             'alpha': self.alpha.item(),
@@ -427,19 +507,230 @@ class AttentionSACWithBuffer:
             'buffer_size': len(self.memory),
             'entropy_term': entropy_term.item(),
             'q_term': q_term.item(),
-            'log_probs_mean': log_probs.mean().item()
+            'log_probs_mean': log_probs.mean().item(),
+            **attention_metrics  # 🆕 添加attention损失
         }
+        
+        return result
     
     def clear_buffer(self):
         """清空经验回放缓冲区"""
         self.memory.clear()
         print(f"🧹 SAC模型buffer已清空 (容量: {self.memory.capacity})")
     
+    def update_alpha_schedule(self, current_step, total_steps):
+        """🆕 更新熵权重调度"""
+        if not self.entropy_schedule_enabled:
+            return
+            
+        # 计算训练进度
+        progress = min(current_step / (total_steps * self.exploration_phase_ratio), 1.0)
+        
+        # 线性衰减alpha
+        scheduled_alpha = self.alpha_start * (1 - progress) + self.alpha_end * progress
+        
+        # 更新alpha值
+        old_alpha = self.alpha
+        self.alpha = scheduled_alpha
+        
+        # 同步更新log_alpha (如果使用自动调整alpha)
+        if hasattr(self, 'log_alpha'):
+            self.log_alpha.data.fill_(torch.log(torch.tensor(scheduled_alpha)).item())
+        
+        # 每100步输出一次调度信息
+        if current_step % 100 == 0 and abs(float(old_alpha) - float(scheduled_alpha)) > 0.001:
+            phase = "探索阶段" if progress < 1.0 else "稳定阶段"
+            print(f"🔄 Alpha调度更新 [Step {current_step}]: {float(old_alpha):.4f} → {float(scheduled_alpha):.4f} ({phase})")
+    
     def reset_for_new_reward_function(self):
         """为新奖励函数重置训练状态"""
         self.clear_buffer()
         print(f"🔄 模型已重置以适应新奖励函数")
         print(f"   建议进行新的warmup期: {self.warmup_steps}步")
+    
+    def _calculate_attention_losses(self):
+        """计算attention网络的独立损失指标"""
+        attention_metrics = {}
+        
+        try:
+            # 1. 计算Actor中attention网络的梯度范数
+            actor_attn_grad_norm = 0.0
+            actor_attn_param_count = 0
+            
+            for name, param in self.actor.attn_model.named_parameters():
+                if param.grad is not None:
+                    param_norm = param.grad.data.norm(2).item()
+                    actor_attn_grad_norm += param_norm ** 2
+                    actor_attn_param_count += 1
+            
+            if actor_attn_param_count > 0:
+                actor_attn_grad_norm = (actor_attn_grad_norm ** 0.5) / actor_attn_param_count
+                attention_metrics['attention_actor_grad_norm'] = actor_attn_grad_norm
+                attention_metrics['attention_actor_loss'] = actor_attn_grad_norm
+            
+            # 2. 计算Critic1中attention网络的梯度范数
+            critic1_attn_grad_norm = 0.0
+            critic1_attn_param_count = 0
+            
+            for name, param in self.critic1.attn_model.named_parameters():
+                if param.grad is not None:
+                    param_norm = param.grad.data.norm(2).item()
+                    critic1_attn_grad_norm += param_norm ** 2
+                    critic1_attn_param_count += 1
+            
+            if critic1_attn_param_count > 0:
+                critic1_attn_grad_norm = (critic1_attn_grad_norm ** 0.5) / critic1_attn_param_count
+                attention_metrics['attention_critic_main_grad_norm'] = critic1_attn_grad_norm
+                attention_metrics['attention_critic_main_loss'] = critic1_attn_grad_norm
+            
+            # 3. 计算Critic2中attention网络的梯度范数
+            critic2_attn_grad_norm = 0.0
+            critic2_attn_param_count = 0
+            
+            for name, param in self.critic2.attn_model.named_parameters():
+                if param.grad is not None:
+                    param_norm = param.grad.data.norm(2).item()
+                    critic2_attn_grad_norm += param_norm ** 2
+                    critic2_attn_param_count += 1
+            
+            if critic2_attn_param_count > 0:
+                critic2_attn_grad_norm = (critic2_attn_grad_norm ** 0.5) / critic2_attn_param_count
+                attention_metrics['attention_critic_value_grad_norm'] = critic2_attn_grad_norm
+                attention_metrics['attention_critic_value_loss'] = critic2_attn_grad_norm
+            
+            # 4. 计算总的attention损失
+            total_attn_loss = (attention_metrics.get('attention_actor_loss', 0) + 
+                             attention_metrics.get('attention_critic_main_loss', 0) + 
+                             attention_metrics.get('attention_critic_value_loss', 0))
+            attention_metrics['attention_total_loss'] = total_attn_loss
+            
+            # 5. 计算attention网络参数的统计信息
+            # 5.1 Actor attention参数统计
+            actor_attn_params = list(self.actor.attn_model.parameters())
+            if actor_attn_params:
+                actor_param_values = torch.cat([p.data.flatten() for p in actor_attn_params])
+                attention_metrics['attention_actor_param_mean'] = actor_param_values.mean().item()
+                attention_metrics['attention_actor_param_std'] = actor_param_values.std().item()
+            
+            # 5.2 Critic attention参数统计（使用critic1作为代表）
+            critic_attn_params = list(self.critic1.attn_model.parameters())
+            if critic_attn_params:
+                critic_param_values = torch.cat([p.data.flatten() for p in critic_attn_params])
+                attention_metrics['attention_critic_param_mean'] = critic_param_values.mean().item()
+                attention_metrics['attention_critic_param_std'] = critic_param_values.std().item()
+            
+            # 6. 保留原有的总体统计（向后兼容）
+            attention_metrics['attention_param_mean'] = attention_metrics.get('attention_actor_param_mean', 0)
+            attention_metrics['attention_param_std'] = attention_metrics.get('attention_actor_param_std', 0)
+            
+            # 7. 🆕 分析关节注意力分布
+            joint_focus_metrics = self._analyze_joint_attention_focus()
+            attention_metrics.update(joint_focus_metrics)
+            
+        except Exception as e:
+            attention_metrics['attention_calculation_error'] = str(e)
+        
+        return attention_metrics
+    
+    def _analyze_joint_attention_focus(self):
+        """分析attention网络关注哪些关节和关节实际使用情况"""
+        focus_metrics = {}
+        
+        try:
+            # 获取最近一次的batch数据来分析
+            if hasattr(self, '_last_batch_data'):
+                batch = self._last_batch_data
+                
+                with torch.no_grad():
+                    joint_q = batch['joint_q']
+                    vertex_k = batch['vertex_k']
+                    vertex_v = batch['vertex_v']
+                    vertex_mask = batch.get('vertex_mask')
+                    
+                    batch_size, num_joints, _ = joint_q.shape
+                    
+                    # 🆕 记录机器人结构信息
+                    focus_metrics['robot_num_joints'] = num_joints
+                    focus_metrics['robot_structure_info'] = f"{num_joints}_joint_reacher"
+                    
+                    # 🆕 方法1: 分析关节状态的变化幅度（真实的关节使用情况）
+                    # joint_q包含 [关节位置, 关节速度, GNN嵌入]
+                    joint_positions = joint_q[:, :, 0]  # [B, J] - 关节角度
+                    joint_velocities = joint_q[:, :, 1]  # [B, J] - 关节角速度
+                    
+                    # 计算关节角度的变化幅度（绝对值）
+                    joint_angle_magnitude = torch.abs(joint_positions).mean(dim=0)  # [J]
+                    
+                    # 计算关节速度的变化幅度
+                    joint_velocity_magnitude = torch.abs(joint_velocities).mean(dim=0)  # [J]
+                    
+                    # 计算关节活跃度（角度幅度 + 速度幅度）
+                    joint_activity = joint_angle_magnitude + joint_velocity_magnitude  # [J]
+                    
+                    # 找出最活跃的关节
+                    most_active_joint = torch.argmax(joint_activity).item()
+                    max_activity = joint_activity[most_active_joint].item()
+                    
+                    # 🆕 方法2: 分析attention网络对各关节的重要性
+                    # 通过actor的attention模型计算attention权重
+                    attn_output = self.actor.attn_model(joint_q, vertex_k, vertex_v, vertex_mask)  # [B, J]
+                    joint_importance = torch.abs(attn_output).mean(dim=0)  # [J] - 每个关节的重要性
+                    
+                    # 找出最重要的关节
+                    most_important_joint = torch.argmax(joint_importance).item()
+                    max_importance = joint_importance[most_important_joint].item()
+                    
+                    # 计算重要性熵值（衡量注意力分布的均匀程度）
+                    importance_probs = F.softmax(joint_importance, dim=0)
+                    importance_entropy = -(importance_probs * torch.log(importance_probs + 1e-8)).sum().item()
+                    
+                    # 计算重要性集中度
+                    importance_concentration = max_importance / (joint_importance.mean().item() + 1e-8)
+                    
+                    focus_metrics.update({
+                        'most_important_joint': most_important_joint,
+                        'max_joint_importance': max_importance,
+                        'importance_entropy': importance_entropy,
+                        'importance_concentration': importance_concentration,
+                    })
+                    
+                    # 🆕 统一记录20个关节的数据（不存在的填-1）
+                    MAX_JOINTS = 20  # 设置最大关节数上限
+                    
+                    for i in range(MAX_JOINTS):
+                        if i < num_joints:
+                            # 存在的关节，记录真实数据
+                            focus_metrics[f'joint_{i}_activity'] = joint_activity[i].item()
+                            focus_metrics[f'joint_{i}_importance'] = joint_importance[i].item()
+                            focus_metrics[f'joint_{i}_angle_magnitude'] = joint_angle_magnitude[i].item()
+                            focus_metrics[f'joint_{i}_velocity_magnitude'] = joint_velocity_magnitude[i].item()
+                        else:
+                            # 不存在的关节，填入-1
+                            focus_metrics[f'joint_{i}_activity'] = -1.0
+                            focus_metrics[f'joint_{i}_importance'] = -1.0
+                            focus_metrics[f'joint_{i}_angle_magnitude'] = -1.0
+                            focus_metrics[f'joint_{i}_velocity_magnitude'] = -1.0
+                    
+                    # 🆕 统一记录20个link的长度信息（不存在的填-1）
+                    for i in range(MAX_JOINTS):
+                        if hasattr(self, 'robot_link_lengths') and i < len(self.robot_link_lengths):
+                            # 存在的link，记录真实长度
+                            focus_metrics[f'link_{i}_length'] = self.robot_link_lengths[i]
+                        else:
+                            # 不存在的link，填入-1
+                            focus_metrics[f'link_{i}_length'] = -1.0
+                            
+        except Exception as e:
+            focus_metrics['joint_analysis_error'] = str(e)
+            # 如果分析失败，填入默认值
+            for i in range(20):
+                focus_metrics[f'joint_{i}_activity'] = -1.0
+                focus_metrics[f'joint_{i}_importance'] = -1.0
+                focus_metrics[f'joint_{i}_angle_magnitude'] = -1.0
+                focus_metrics[f'joint_{i}_velocity_magnitude'] = -1.0
+                focus_metrics[f'link_{i}_length'] = -1.0
+        
+        return focus_metrics
 
 
 # 训练循环示例

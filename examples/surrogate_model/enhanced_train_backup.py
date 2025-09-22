@@ -72,6 +72,7 @@ def create_training_parser():
     parser.add_argument('--render', action='store_true', default=False, help='是否显示可视化窗口')
     parser.add_argument('--no-render', action='store_true', default=False, help='强制禁用可视化窗口')
     # SAC特定参数
+    parser.add_argument('--tau', type=float, default=0.005, help='软更新参数')
     parser.add_argument('--warmup-steps', type=int, default=1000, help='热身步数')
     parser.add_argument('--target-entropy-factor', type=float, default=0.8, help='目标熵系数')
     parser.add_argument('--update-frequency', type=int, default=2, help='网络更新频率')
@@ -82,6 +83,12 @@ def create_training_parser():
     parser.add_argument('--resume-checkpoint', type=str, default=None, help='检查点路径')
     parser.add_argument('--resume-lr', type=float, default=None, help='恢复时的学习率')
     parser.add_argument('--resume-alpha', type=float, default=None, help='恢复时的alpha值')
+    
+    # MAP-Elites机器人配置参数
+    parser.add_argument('--num-joints', type=int, default=3, help='机器人关节数量')
+    parser.add_argument('--link-lengths', nargs='+', type=float, default=[90.0, 90.0, 90.0], help='机器人链节长度')
+    parser.add_argument('--total-steps', type=int, default=10000, help='总训练步数')
+    parser.add_argument('--individual-id', type=str, default='', help='MAP-Elites个体ID')
     
     # 兼容性参数（用于其他环境）
     parser.add_argument('--grammar-file', type=str, default='/home/xli149/Documents/repos/RoboGrammar/data/designs/grammar_jan21.dot', help='语法文件')
@@ -737,12 +744,131 @@ class TrainingManager:
             self.logger.log_step(step, enhanced_metrics, episode=step//100)
             
             if step % 100 == 0:
+                # 原始格式输出（保持兼容性）
                 print(f"Step {step} (total_steps {total_steps}): "
                       f"Learning Rate: {metrics['lr']:.6f}, "
                       f"Critic Loss: {metrics['critic_loss']:.4f}, "
                       f"Actor Loss: {metrics['actor_loss']:.4f}, "
                       f"Alpha: {metrics['alpha']:.4f}, "
                       f"Buffer Size: {len(self.sac.memory)}")
+                
+                # 🆕 更新熵权重调度 (每100步调用一次)
+                if step % 100 == 0:
+                    self.sac.update_alpha_schedule(step, total_steps)
+                    # 同步更新metrics中的alpha值
+                    metrics['alpha'] = self.sac.alpha
+                
+                # 🆕 添加标准化的损失输出格式（供损失提取器捕获）
+                print(f"🔥 SAC网络Loss更新 [Step {step}]:")
+                print(f"📊 Actor Loss: {metrics['actor_loss']:.6f}")
+                print(f"📊 Critic Loss: {metrics['critic_loss']:.6f}")
+                print(f"📊 Alpha Loss: {metrics.get('alpha_loss', 0.0):.6f}")
+                print(f"📊 Alpha: {metrics['alpha']:.6f} (调度后)")
+                print(f"📊 Q1均值: {metrics.get('q1_mean', 0.0):.6f}")
+                print(f"📊 Q2均值: {metrics.get('q2_mean', 0.0):.6f}")
+                print(f"📊 Q1标准差: {metrics.get('q1_std', 0.0):.6f}")
+                print(f"📊 Q2标准差: {metrics.get('q2_std', 0.0):.6f}")
+                print(f"📊 熵项: {metrics.get('entropy_term', 0.0):.6f}")
+                print(f"📊 Q值项: {metrics.get('q_term', 0.0):.6f}")
+                print(f"📈 学习率: {metrics['lr']:.2e}")
+                print(f"💾 Buffer大小: {len(self.sac.memory)}")
+                
+                # 🆕 添加Attention网络损失信息
+                if any(key.startswith('attention_') for key in metrics.keys()):
+                    print(f"\n🔥 Attention网络Loss更新 [Step {step}]:")
+                    # 🆕 独立显示三个attention网络的信息
+                    if 'attention_actor_loss' in metrics:
+                        print(f"📊 Actor Attention Loss: {metrics['attention_actor_loss']:.6f}")
+                    if 'attention_critic_main_loss' in metrics:
+                        print(f"📊 Critic Main Attention Loss: {metrics['attention_critic_main_loss']:.6f}")
+                    if 'attention_critic_value_loss' in metrics:
+                        print(f"📊 Critic Value Attention Loss: {metrics['attention_critic_value_loss']:.6f}")
+                    if 'attention_total_loss' in metrics:
+                        print(f"📊 Attention总损失: {metrics['attention_total_loss']:.6f}")
+                    
+                    # 🆕 显示梯度范数（更详细的信息）
+                    if 'attention_actor_grad_norm' in metrics:
+                        print(f"🔍 Actor Attention梯度范数: {metrics['attention_actor_grad_norm']:.6f}")
+                    if 'attention_critic_main_grad_norm' in metrics:
+                        print(f"🔍 Critic Main Attention梯度范数: {metrics['attention_critic_main_grad_norm']:.6f}")
+                    if 'attention_critic_value_grad_norm' in metrics:
+                        print(f"🔍 Critic Value Attention梯度范数: {metrics['attention_critic_value_grad_norm']:.6f}")
+                    
+                    # 🆕 分别显示Actor和Critic参数统计
+                    if 'attention_actor_param_mean' in metrics:
+                        print(f"📊 Actor Attention参数: 均值={metrics['attention_actor_param_mean']:.6f}, 标准差={metrics.get('attention_actor_param_std', 0):.6f}")
+                    if 'attention_critic_param_mean' in metrics:
+                        print(f"📊 Critic Attention参数: 均值={metrics['attention_critic_param_mean']:.6f}, 标准差={metrics.get('attention_critic_param_std', 0):.6f}")
+                    
+                    # 🆕 显示attention网络的总体参数统计
+                    if 'attention_param_mean' in metrics:
+                        print(f"📊 Attention参数均值: {metrics['attention_param_mean']:.6f}")
+                    if 'attention_param_std' in metrics:
+                        print(f"📊 Attention参数标准差: {metrics['attention_param_std']:.6f}")
+                    
+                    # 🆕 显示关节关注度分析
+                    if 'most_important_joint' in metrics:
+                        print(f"🎯 最重要关节: Joint {metrics['most_important_joint']}")
+                    if 'max_joint_importance' in metrics:
+                        print(f"🎯 最重要关节: Joint {metrics.get('most_important_joint', 'N/A')} (重要性: {metrics['max_joint_importance']:.6f})")
+                    if 'importance_concentration' in metrics:
+                        print(f"📊 重要性集中度: {metrics['importance_concentration']:.6f}")
+                    if 'importance_entropy' in metrics:
+                        print(f"📊 重要性熵值: {metrics['importance_entropy']:.6f}")
+                    if 'robot_num_joints' in metrics:
+                        print(f"🤖 机器人结构: {metrics['robot_num_joints']}关节")
+                    if 'robot_structure_info' in metrics:
+                        print(f"🤖 机器人结构: {metrics['robot_num_joints']}关节 ({metrics['robot_structure_info']})")
+                    
+                    # 🆕 显示关节活跃度和重要性（只显示存在的关节）
+                    if 'robot_num_joints' in metrics:
+                        num_joints = metrics['robot_num_joints']
+                        joint_activities = []
+                        joint_importances = []
+                        joint_angles = []
+                        joint_velocities = []
+                        link_lengths = []
+                        
+                        for i in range(min(num_joints, 20)):
+                            activity = metrics.get(f'joint_{i}_activity', -1)
+                            importance = metrics.get(f'joint_{i}_importance', -1)
+                            angle_mag = metrics.get(f'joint_{i}_angle_magnitude', -1)
+                            vel_mag = metrics.get(f'joint_{i}_velocity_magnitude', -1)
+                            link_len = metrics.get(f'link_{i}_length', -1)
+                            
+                            if activity != -1:
+                                joint_activities.append(f"J{i}:{activity:.3f}")
+                            if importance != -1:
+                                joint_importances.append(f"J{i}:{importance:.3f}")
+                            if angle_mag != -1:
+                                joint_angles.append(f"J{i}:{angle_mag:.3f}")
+                            if vel_mag != -1:
+                                joint_velocities.append(f"J{i}:{vel_mag:.3f}")
+                            if link_len != -1:
+                                link_lengths.append(f"L{i}:{link_len:.1f}px")
+                        
+                        if joint_activities:
+                            print(f"🔍 关节活跃度: {', '.join(joint_activities)}")
+                        if joint_importances:
+                            print(f"🎯 关节重要性: {', '.join(joint_importances)}")
+                        if joint_angles:
+                            print(f"📐 关节角度幅度: {', '.join(joint_angles)}")
+                        if joint_velocities:
+                            print(f"⚡ 关节速度幅度: {', '.join(joint_velocities)}")
+                        if link_lengths:
+                            print(f"📏 Link长度: {', '.join(link_lengths)}")
+                
+                # 🆕 添加标准化的成功率报告（每500步输出一次）
+                if step % 500 == 0 and len(self.episode_results) > 0:
+                    success_count = sum(1 for ep in self.episode_results if ep.get('success', False))
+                    current_success_rate = (success_count / len(self.episode_results)) * 100
+                    
+                    print(f"📊 SAC训练进度报告 [Step {step}]:")
+                    print(f"✅ 当前成功率: {current_success_rate:.1f}%")
+                    print(f"🏆 当前最佳距离: {self.best_min_distance:.1f}px")
+                    print(f"📊 当前Episode最佳距离: {self.current_episode_best_distance:.1f}px")
+                    print(f"🔄 连续成功次数: {self.consecutive_success_count}")
+                    print(f"📋 已完成Episodes: {len(self.episode_results)}")
 
 
 
@@ -798,12 +924,23 @@ def main(args):
         gnn_graph = gnn_encoder.get_graph(rule_sequence)
         single_gnn_embed = gnn_encoder.get_gnn_embeds(gnn_graph)
 
-    # 创建SAC模型
+    # 🔧 创建优化的SAC模型 - 专门为Critic稳定性优化
+    print("🔧 Critic稳定性优化配置:")
+    optimized_batch_size = max(args.batch_size, 256)  # 增加到256，提高稳定性
+    print(f"   批次大小: {args.batch_size} → {optimized_batch_size}")
+    print(f"   学习率策略: Actor={args.lr:.2e}, Critic={args.lr*1.5:.2e} (1.5倍，更稳定)")
+    print(f"   Tau参数: 将自动调整到至少0.01")
+    
     attn_model = AttnModel(128, 130, 130, 4)
     sac = AttentionSACWithBuffer(
         attn_model, num_joints, 
-        buffer_capacity=args.buffer_capacity, batch_size=args.batch_size,
-        lr=args.lr, env_type=args.env_type
+        buffer_capacity=args.buffer_capacity, 
+        batch_size=optimized_batch_size,  # 使用优化的批次大小
+        lr=args.lr, 
+        tau=args.tau,  # tau会在SAC内部自动调整
+        gamma=args.gamma,
+        alpha=args.alpha,
+        env_type=args.env_type
     )
     
     # 添加SAC特定参数
@@ -1035,11 +1172,22 @@ def run_training_loop(args, envs, sync_env, sac, single_gnn_embed, training_mana
                 else:
                     actions = []
                     for proc_id in range(args.num_processes):
+                        # 🆕 计算距离以启用距离自适应控制
+                        current_obs_np = current_obs[proc_id].cpu().numpy()
+                        # 从观察中提取末端位置和目标位置
+                        if len(current_obs_np) >= 8:  # reacher2d观察格式
+                            end_pos = current_obs_np[-5:-3]  # 末端位置
+                            goal_pos = current_obs_np[-3:-1]  # 目标位置
+                            distance_to_goal = np.linalg.norm(end_pos - goal_pos)
+                        else:
+                            distance_to_goal = None
+                        
                         action = sac.get_action(
                             current_obs[proc_id],
                             current_gnn_embeds[proc_id],
                             num_joints=envs.action_space.shape[0],
-                            deterministic=False
+                            deterministic=False,
+                            distance_to_goal=distance_to_goal  # 🆕 传递距离信息
                         )
                         actions.append(action)
                     action_batch = torch.stack(actions)
@@ -1161,6 +1309,26 @@ def run_training_loop(args, envs, sync_env, sac, single_gnn_embed, training_mana
                 if training_manager.should_update_model(global_step):
                     training_manager.update_and_log(global_step, global_step)
                 
+                # 🆕 定期输出goal到达统计 (每500步)
+                if global_step % 500 == 0 and global_step > 0:
+                    # 获取所有环境的goal到达统计
+                    total_goal_reaches = 0
+                    total_steps = 0
+                    for proc_id in range(args.num_processes):
+                        if hasattr(envs, 'envs') and len(envs.envs) > proc_id:
+                            env = envs.envs[proc_id]
+                            if hasattr(env, 'get_goal_reach_stats'):
+                                stats = env.get_goal_reach_stats()
+                                total_goal_reaches += stats['goal_reach_count']
+                                total_steps += stats['total_steps']
+                    
+                    if total_steps > 0:
+                        goal_reach_percentage = (total_goal_reaches / total_steps) * 100
+                        print(f"📊 Goal到达统计 [Step {global_step}]:")
+                        print(f"   🎯 到达次数: {total_goal_reaches}")
+                        print(f"   📈 总步数: {total_steps}")
+                        print(f"   ✅ 到达率: {goal_reach_percentage:.2f}%")
+                
                 # 定期保存和绘图
                 if global_step % 200 == 0 and global_step > 0:  # 🆕 改为200步检测
                     # 🆕 获取当前最佳距离
@@ -1194,6 +1362,16 @@ def run_training_loop(args, envs, sync_env, sac, single_gnn_embed, training_mana
                     break
             
             print(f"📊 Episode {episode_num + 1} 完成: {episode_step} 步")
+            
+            # 🆕 输出当前episode的goal到达统计
+            if hasattr(envs, 'envs') and len(envs.envs) > 0:
+                env = envs.envs[0]  # 获取第一个环境的统计
+                if hasattr(env, 'get_goal_reach_stats'):
+                    stats = env.get_goal_reach_stats()
+                    print(f"   🎯 Goal到达统计: {stats['goal_reach_count']}次")
+                    print(f"   📈 到达率: {stats['goal_reach_percentage']:.2f}%")
+                    if stats['max_maintain_streak'] > 0:
+                        print(f"   🏆 最长维持: {stats['max_maintain_streak']}步")
             
             if training_completed:
                 print(f"🏁 训练提前终止: {early_termination_reason}")

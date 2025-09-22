@@ -11,7 +11,7 @@ sys.path.insert(0, os.path.join(base_dir, "examples/surrogate_model/sac"))
 
 print(sys.path)
 from data_utils import prepare_joint_q_input
-from attn_model.attn_model import AttnModel
+from attn_model import AttnModel
 from torch.distributions import Normal
 class AttentionActor(nn.Module):
     def __init__(self, attn_model, action_dim, log_std_min=-20, log_std_max=2):

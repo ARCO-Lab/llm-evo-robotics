@@ -1,0 +1,15 @@
+{
+  "experiment_info": {
+    "experiment_name": "strong_anti_curl_loss_log",
+    "start_time": "2025-09-21T23:04:25.800147",
+    "log_dir": "network_loss_logs/strong_anti_curl_loss_log",
+    "monitored_networks": [
+      "attention",
+      "ppo",
+      "gnn",
+      "sac",
+      "total"
+    ],
+    "update_interval": 15.0
+  }
+}

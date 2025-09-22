@@ -338,7 +338,7 @@ class MAPElitesTrainingInterface:
         """通过subprocess调用enhanced_train.py进行真实训练"""
         try:
             # 构建命令行参数
-            enhanced_train_path = os.path.join(os.path.dirname(__file__), '..', 'enhanced_train.py')
+            enhanced_train_path = os.path.join(os.path.dirname(__file__), '..', 'enhanced_train_backup.py')
             
             cmd = [
                 'python', enhanced_train_path,

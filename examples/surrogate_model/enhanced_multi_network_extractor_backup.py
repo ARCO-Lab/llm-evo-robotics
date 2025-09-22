@@ -29,7 +29,7 @@ class EnhancedMultiNetworkExtractor:
         
         # 只记录真实存在的网络损失数据
         self.loss_data = {
-            'ppo': [],           # PPO网络有真实损失输出
+            'sac': [],           # SAC网络有真实损失输出
             'performance': []    # 性能指标有真实输出（成功率、距离等）
             # 注意：只有在训练输出中真实存在时才会动态添加其他网络
         }
@@ -37,15 +37,22 @@ class EnhancedMultiNetworkExtractor:
         
         # 正则表达式模式 - 只匹配真实存在的输出
         self.patterns = {
-            # PPO网络损失（真实存在）
-            'ppo_update': re.compile(r'🔥 PPO网络Loss更新 \[Step (\d+)\]:'),
+            # SAC网络损失（真实存在）
+            'sac_update': re.compile(r'🔥 SAC网络Loss更新 \[Step (\d+)\]:'),
             'actor_loss': re.compile(r'📊 Actor Loss: ([\d\.-]+)'),
             'critic_loss': re.compile(r'📊 Critic Loss: ([\d\.-]+)'),
-            'ppo_total_loss': re.compile(r'📊 总Loss: ([\d\.-]+)'),
-            'entropy': re.compile(r'🎭 Entropy: ([\d\.-]+)'),
+            'sac_total_loss': re.compile(r'📊 总Loss: ([\d\.-]+)'),
+            'alpha_loss': re.compile(r'📊 Alpha Loss: ([\d\.-]+)'),
+            'alpha': re.compile(r'📊 Alpha: ([\d\.-]+)'),
             'learning_rate': re.compile(r'📈 学习率: ([\d\.-]+e?[\d\.-]*)'),
             'update_count': re.compile(r'🔄 更新次数: (\d+)'),
             'buffer_size': re.compile(r'💾 Buffer大小: (\d+)'),
+            'q1_mean': re.compile(r'📊 Q1均值: ([\d\.-]+)'),
+            'q2_mean': re.compile(r'📊 Q2均值: ([\d\.-]+)'),
+            'q1_std': re.compile(r'📊 Q1标准差: ([\d\.-]+)'),
+            'q2_std': re.compile(r'📊 Q2标准差: ([\d\.-]+)'),
+            'entropy_term': re.compile(r'📊 熵项: ([\d\.-]+)'),
+            'q_term': re.compile(r'📊 Q值项: ([\d\.-]+)'),
             
             # 性能指标（真实存在）
             'success_rate': re.compile(r'✅ 当前成功率: ([\d\.]+)%'),
@@ -86,6 +93,7 @@ class EnhancedMultiNetworkExtractor:
             
             # 🆕 动态关节数据模式（支持任意关节数）
             'joint_activity': re.compile(r'🔍 关节活跃度: (.+)'),
+            'joint_importance': re.compile(r'🎯 关节重要性: (.+)'),  # 🆕 添加关节重要性模式
             'joint_angles': re.compile(r'📐 关节角度幅度: (.+)'),
             'joint_velocities': re.compile(r'⚡ 关节速度幅度: (.+)'),
             'link_lengths': re.compile(r'📏 Link长度: (.+)'),
@@ -95,9 +103,12 @@ class EnhancedMultiNetworkExtractor:
             'gnn_loss': re.compile(r'📊 GNN Loss: ([\d\.-]+)'),
             'node_accuracy': re.compile(r'📊 节点准确率: ([\d\.-]+)'),
             
-            # SAC网络损失模式（如果将来实现）
-            'sac_update': re.compile(r'🔥 SAC网络Loss更新 \[Step (\d+)\]:'),
-            'sac_critic_loss': re.compile(r'📊 SAC Critic Loss: ([\d\.-]+)'),
+            # PPO网络损失模式（如果将来实现）
+            'ppo_update': re.compile(r'🔥 PPO网络Loss更新 \[Step (\d+)\]:'),
+            'ppo_critic_loss': re.compile(r'📊 PPO Critic Loss: ([\d\.-]+)'),
+            'ppo_actor_loss': re.compile(r'📊 PPO Actor Loss: ([\d\.-]+)'),
+            'ppo_total_loss': re.compile(r'📊 PPO总Loss: ([\d\.-]+)'),
+            'entropy': re.compile(r'🎭 Entropy: ([\d\.-]+)'),
             
             # 🆕 个体和代数信息提取
             'individual_evaluation': re.compile(r'🧬 评估个体 (.+)'),
@@ -107,7 +118,7 @@ class EnhancedMultiNetworkExtractor:
         
         # 当前损失数据缓存
         self.current_step = None
-        self.current_network = 'ppo'
+        self.current_network = 'sac'
         self.current_losses = {}
         
         # 性能指标缓存
@@ -123,7 +134,7 @@ class EnhancedMultiNetworkExtractor:
         print(f"   实验名称: {experiment_name}")
         print(f"   日志目录: {self.experiment_dir}")
         print(f"   🎯 只记录真实存在的网络损失，绝不生成假数据")
-        print(f"   📊 当前支持: PPO网络损失 + Individual Reacher性能指标")
+        print(f"   📊 当前支持: SAC网络损失 + Individual Reacher性能指标")
         
     def start_training_with_extraction(self, training_command):
         """启动训练并实时提取多网络损失"""
@@ -208,21 +219,21 @@ class EnhancedMultiNetworkExtractor:
             print(f"   📋 检测到代数: {self.current_generation}")
             return
         
-        # 检查PPO网络更新（唯一确认存在的真实网络损失）
-        step_match = self.patterns['ppo_update'].search(line)
+        # 检查SAC网络更新（唯一确认存在的真实网络损失）
+        step_match = self.patterns['sac_update'].search(line)
         if step_match:
             # 保存之前的数据
             if self.current_step is not None and self.current_losses:
                 self._record_current_loss()
             
-            # 开始新的PPO损失记录
+            # 开始新的SAC损失记录
             self.current_step = int(step_match.group(1))
-            self.current_network = 'ppo'
+            self.current_network = 'sac'
             self.current_losses = {}
             return
         
         # 检查其他网络更新（如果训练输出中真实存在）
-        for network_type in ['attention', 'gnn', 'sac']:
+        for network_type in ['attention', 'gnn', 'ppo']:
             update_pattern = f'{network_type}_update'
             if update_pattern in self.patterns:
                 step_match = self.patterns[update_pattern].search(line)
@@ -278,8 +289,12 @@ class EnhancedMultiNetworkExtractor:
             # 根据当前网络类型提取对应的损失值
             loss_patterns_to_check = []
             
-            if self.current_network == 'ppo':
-                loss_patterns_to_check = ['actor_loss', 'critic_loss', 'ppo_total_loss', 'entropy', 
+            if self.current_network == 'sac':
+                loss_patterns_to_check = ['actor_loss', 'critic_loss', 'sac_total_loss', 'alpha_loss', 'alpha',
+                                        'learning_rate', 'update_count', 'buffer_size', 'q1_mean', 'q2_mean',
+                                        'q1_std', 'q2_std', 'entropy_term', 'q_term']
+            elif self.current_network == 'ppo':
+                loss_patterns_to_check = ['ppo_actor_loss', 'ppo_critic_loss', 'ppo_total_loss', 'entropy', 
                                         'learning_rate', 'update_count', 'buffer_size']
             elif self.current_network == 'attention':
                 loss_patterns_to_check = [
@@ -295,13 +310,11 @@ class EnhancedMultiNetworkExtractor:
                     # 关节分析
                     'most_important_joint', 'max_joint_importance', 'importance_concentration',
                     'importance_entropy', 'robot_num_joints', 'robot_structure_info',
-                    'joint_usage_ranking', 'joint_activity', 'joint_angles', 
+                    'joint_usage_ranking', 'joint_activity', 'joint_importance', 'joint_angles', 
                     'joint_velocities', 'link_lengths'
                 ]
             elif self.current_network == 'gnn':
                 loss_patterns_to_check = ['gnn_loss', 'node_accuracy']
-            elif self.current_network == 'sac':
-                loss_patterns_to_check = ['sac_critic_loss', 'sac_actor_loss']
             
             for loss_type in loss_patterns_to_check:
                 if loss_type in self.patterns:
@@ -309,7 +322,7 @@ class EnhancedMultiNetworkExtractor:
                     if match:
                         try:
                             # 特殊处理关节分布字符串
-                            if loss_type in ['joint_activity', 'joint_angles', 'joint_velocities', 'link_lengths', 'joint_usage_ranking']:
+                            if loss_type in ['joint_activity', 'joint_importance', 'joint_angles', 'joint_velocities', 'link_lengths', 'joint_usage_ranking']:
                                 distribution_str = match.group(1)
                                 # 解析关节分布字符串，例如 "J0:1.000, J1:1.000, J2:1.000"
                                 joint_values = self._parse_joint_distribution(distribution_str, loss_type)
@@ -397,9 +410,20 @@ class EnhancedMultiNetworkExtractor:
     
     def _display_recorded_loss(self):
         """显示记录的真实损失数据"""
-        if self.current_network == 'ppo':
+        if self.current_network == 'sac':
             actor_loss = self.current_losses.get('actor_loss', 'N/A')
             critic_loss = self.current_losses.get('critic_loss', 'N/A')
+            alpha_loss = self.current_losses.get('alpha_loss', 'N/A')
+            alpha = self.current_losses.get('alpha', 'N/A')
+            q1_mean = self.current_losses.get('q1_mean', 'N/A')
+            q2_mean = self.current_losses.get('q2_mean', 'N/A')
+            print(f"📊 ✅ 记录真实SAC损失 [Step {self.current_step}]:")
+            print(f"     Actor: {actor_loss}, Critic: {critic_loss}, Alpha: {alpha_loss}")
+            print(f"     Alpha值: {alpha}, Q1均值: {q1_mean}, Q2均值: {q2_mean}")
+            
+        elif self.current_network == 'ppo':
+            actor_loss = self.current_losses.get('ppo_actor_loss', 'N/A')
+            critic_loss = self.current_losses.get('ppo_critic_loss', 'N/A')
             total_loss = self.current_losses.get('ppo_total_loss', 'N/A')
             print(f"📊 ✅ 记录真实PPO损失 [Step {self.current_step}]:")
             print(f"     Actor: {actor_loss}, Critic: {critic_loss}, Total: {total_loss}")
@@ -420,11 +444,6 @@ class EnhancedMultiNetworkExtractor:
             print(f"📊 ✅ 记录真实GNN损失 [Step {self.current_step}]:")
             print(f"     Loss: {gnn_loss}, Node Acc: {node_acc}")
             
-        elif self.current_network == 'sac':
-            sac_critic = self.current_losses.get('sac_critic_loss', 'N/A')
-            sac_actor = self.current_losses.get('sac_actor_loss', 'N/A')
-            print(f"📊 ✅ 记录真实SAC损失 [Step {self.current_step}]:")
-            print(f"     Critic: {sac_critic}, Actor: {sac_actor}")
     
     def _parse_joint_distribution(self, distribution_str, data_type):
         """解析关节分布字符串 - 支持多种数据类型"""
@@ -445,6 +464,8 @@ class EnhancedMultiNetworkExtractor:
                     # 根据数据类型设置字段名
                     if data_type == 'joint_activity':
                         joint_values[f'{joint_id}_activity'] = value
+                    elif data_type == 'joint_importance':
+                        joint_values[f'{joint_id}_importance'] = value
                     elif data_type == 'joint_angles':
                         joint_values[f'{joint_id}_angle_magnitude'] = value
                     elif data_type == 'joint_velocities':

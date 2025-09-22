@@ -29,7 +29,7 @@ class MAPElitesTrainingInterface:
         self.enable_rendering = enable_rendering
         self.verbose = verbose
         self.enhanced_train_path = os.path.join(
-            os.path.dirname(__file__), '..', 'enhanced_train.py'
+            os.path.dirname(__file__), '..', 'enhanced_train_backup.py'
         )
         
         if not os.path.exists(self.enhanced_train_path):

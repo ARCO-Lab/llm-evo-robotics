@@ -1,0 +1,15 @@
+{
+  "experiment_info": {
+    "experiment_name": "reward_fix_test_loss_log",
+    "start_time": "2025-09-21T23:26:19.961553",
+    "log_dir": "network_loss_logs/reward_fix_test_loss_log",
+    "monitored_networks": [
+      "attention",
+      "ppo",
+      "gnn",
+      "sac",
+      "total"
+    ],
+    "update_interval": 15.0
+  }
+}
