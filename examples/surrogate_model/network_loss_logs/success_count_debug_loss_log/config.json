@@ -1,0 +1,15 @@
+{
+  "experiment_info": {
+    "experiment_name": "success_count_debug_loss_log",
+    "start_time": "2025-09-22T21:45:28.274413",
+    "log_dir": "network_loss_logs/success_count_debug_loss_log",
+    "monitored_networks": [
+      "attention",
+      "ppo",
+      "gnn",
+      "sac",
+      "total"
+    ],
+    "update_interval": 15.0
+  }
+}

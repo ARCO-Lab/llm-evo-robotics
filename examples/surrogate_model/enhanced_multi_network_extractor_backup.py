@@ -21,11 +21,18 @@ class EnhancedMultiNetworkExtractor:
     
     def __init__(self, experiment_name, log_dir="enhanced_multi_network_logs"):
         self.experiment_name = experiment_name
-        self.log_dir = log_dir
-        self.experiment_dir = os.path.join(log_dir, f"{experiment_name}_multi_network_loss")
+        
+        # 🔧 确保日志保存在正确的位置（surrogate_model目录下）
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        self.log_dir = os.path.join(script_dir, log_dir)
+        self.experiment_dir = os.path.join(self.log_dir, f"{experiment_name}_multi_network_loss")
         
         # 创建目录
         os.makedirs(self.experiment_dir, exist_ok=True)
+        
+        # 🆕 Individual成功次数记录（独立文件）
+        self.individual_success_files = {}  # individual_id -> 文件路径
+        self.current_individual_success = 0  # 当前individual的成功次数
         
         # 只记录真实存在的网络损失数据
         self.loss_data = {
@@ -61,6 +68,10 @@ class EnhancedMultiNetworkExtractor:
             'consecutive_success': re.compile(r'🔄 连续成功次数: (\d+)'),
             'completed_episodes': re.compile(r'📋 已完成Episodes: (\d+)'),
             'training_progress_report': re.compile(r'📊 PPO训练进度报告 \[Step (\d+)\]'),
+            
+            # 🆕 成功事件检测（独立记录）
+            'goal_reached': re.compile(r'🎯 \[DEBUG\] 到达目标但需继续维持，继续当前.*episode'),
+            'goal_reached_with_distance': re.compile(r'🎯 到达目标! 距离: ([\d\.]+)px，进入下一个episode'),
             
             # 真实的attention网络损失模式（现在已实现）
             'attention_update': re.compile(r'🔥 Attention网络Loss更新 \[Step (\d+)\]:'),
@@ -206,10 +217,37 @@ class EnhancedMultiNetworkExtractor:
             print(f"   📊 个体计数: {self.individual_count}, 推算代数: {self.current_generation}")
             return
         
+        # 🆕 检查成功事件（独立记录到individual专用文件）
+        goal_reached_match = self.patterns['goal_reached'].search(line)
+        goal_reached_with_distance_match = self.patterns['goal_reached_with_distance'].search(line)
+        
+        if goal_reached_match or goal_reached_with_distance_match:
+            # 如果有距离信息就用，否则设为0
+            if goal_reached_with_distance_match:
+                distance = float(goal_reached_with_distance_match.group(1))
+            else:
+                distance = 0.0  # DEBUG格式没有距离信息
+                
+            self.current_individual_success += 1
+            
+            print(f"   🎉 检测到成功事件! 距离: {distance}px")
+            print(f"   📊 Individual {self.current_individual_id} 成功次数: {self.current_individual_success}")
+            
+            # 记录到individual专用文件
+            self._record_individual_success(distance)
+            return
+        
         # 🆕 检查Individual ID设置
         individual_id_match = self.patterns['individual_id_setting'].search(line)
         if individual_id_match:
-            self.current_individual_id = individual_id_match.group(1).strip()
+            new_individual_id = individual_id_match.group(1).strip()
+            
+            # 如果是新的individual，重置成功计数
+            if self.current_individual_id != new_individual_id:
+                self.current_individual_success = 0
+                print(f"   🔄 切换到新Individual: {new_individual_id}")
+            
+            self.current_individual_id = new_individual_id
             print(f"   🆔 检测到Individual ID设置: {self.current_individual_id}")
             return
         
@@ -407,6 +445,42 @@ class EnhancedMultiNetworkExtractor:
         
         # 清空性能缓存
         self.current_performance = {}
+    
+    def _record_individual_success(self, distance):
+        """记录individual的成功事件到专用文件"""
+        if not self.current_individual_id:
+            return
+            
+        # 为individual创建专用成功记录文件
+        if self.current_individual_id not in self.individual_success_files:
+            # 🔧 Individual成功记录也保存在同一个实验目录下
+            success_file = os.path.join(self.experiment_dir, f"individual_{self.current_individual_id}_success.csv")
+            self.individual_success_files[self.current_individual_id] = success_file
+            
+            # 创建文件并写入表头
+            with open(success_file, 'w', newline='') as f:
+                writer = csv.writer(f)
+                writer.writerow(['step', 'timestamp', 'datetime', 'distance_to_goal', 'success_count', 'individual_id', 'generation'])
+            
+            print(f"   📁 为Individual {self.current_individual_id} 创建成功记录文件: {success_file}")
+        
+        # 记录成功事件
+        success_file = self.individual_success_files[self.current_individual_id]
+        timestamp = time.time()
+        
+        with open(success_file, 'a', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow([
+                self.current_step if self.current_step is not None else 0,
+                timestamp,
+                datetime.now().isoformat(),
+                distance,
+                self.current_individual_success,
+                self.current_individual_id,
+                self.current_generation
+            ])
+        
+        print(f"   💾 成功事件已记录到Individual专用文件")
     
     def _display_recorded_loss(self):
         """显示记录的真实损失数据"""

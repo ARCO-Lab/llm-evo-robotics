@@ -1,0 +1,15 @@
+{
+  "experiment_info": {
+    "experiment_name": "test_5000_steps_loss_log",
+    "start_time": "2025-09-22T17:51:38.535170",
+    "log_dir": "network_loss_logs/test_5000_steps_loss_log",
+    "monitored_networks": [
+      "attention",
+      "ppo",
+      "gnn",
+      "sac",
+      "total"
+    ],
+    "update_interval": 15.0
+  }
+}

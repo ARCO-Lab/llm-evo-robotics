@@ -100,9 +100,15 @@ class AsyncRenderableVecEnv:
                 )
                 self.renderer.render_frame(robot_state)
             
-            # 如果同步环境结束，重置它
+            # 如果同步环境结束，重置它并同步episode计数
             if sync_done:
                 self.sync_env.reset()
+                # 🔧 同步episode计数到训练环境
+                if hasattr(self.sync_env, 'current_episode') and hasattr(self.vec_env, 'envs'):
+                    for env in self.vec_env.envs:
+                        if hasattr(env, 'current_episode'):
+                            env.current_episode = self.sync_env.current_episode
+                            print(f"🔄 [SYNC] 同步episode计数到训练环境: Episode = {env.current_episode}")
         
         self.step_count += 1
         return obs, rewards, dones, infos

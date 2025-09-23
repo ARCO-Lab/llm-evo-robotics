@@ -1,0 +1,15 @@
+{
+  "experiment_info": {
+    "experiment_name": "long_episode_test_3k_loss_log",
+    "start_time": "2025-09-22T18:20:32.867727",
+    "log_dir": "network_loss_logs/long_episode_test_3k_loss_log",
+    "monitored_networks": [
+      "attention",
+      "ppo",
+      "gnn",
+      "sac",
+      "total"
+    ],
+    "update_interval": 15.0
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "experiment_info": {
+    "experiment_name": "context_test_loss_log",
+    "start_time": "2025-09-22T17:49:16.038203",
+    "log_dir": "network_loss_logs/context_test_loss_log",
+    "monitored_networks": [
+      "attention",
+      "ppo",
+      "gnn",
+      "sac",
+      "total"
+    ],
+    "update_interval": 15.0
+  }
+}

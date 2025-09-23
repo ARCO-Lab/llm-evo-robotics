@@ -89,6 +89,7 @@ def create_training_parser():
     parser.add_argument('--link-lengths', nargs='+', type=float, default=[90.0, 90.0, 90.0], help='机器人链节长度')
     parser.add_argument('--total-steps', type=int, default=10000, help='总训练步数')
     parser.add_argument('--individual-id', type=str, default='', help='MAP-Elites个体ID')
+    parser.add_argument('--generation', type=int, default=0, help='当前进化代数')
     
     # 兼容性参数（用于其他环境）
     parser.add_argument('--grammar-file', type=str, default='/home/xli149/Documents/repos/RoboGrammar/data/designs/grammar_jan21.dot', help='语法文件')
@@ -341,19 +342,19 @@ class EnvironmentSetup:
             print(f"🤖 使用默认配置: {num_links}关节, 长度={link_lengths}")
 
 
-        should_render = False
+        should_render = True  # 🔧 默认启用渲染
         if hasattr(args, 'render') and args.render:
             should_render = True
         elif hasattr(args, 'no_render') and args.no_render:
             should_render = False
         else:
-            should_render = False  # 🆕 默认不显示，除非明确指定
-            print("🎨 渲染设置: 默认禁用 (无渲染参数)")
+            should_render = True  # 🔧 默认启用渲染
+            print("🎨 渲染设置: 默认启用")
 
         env_params = {
             'num_links': num_links,
             'link_lengths': link_lengths,
-            'render_mode': 'human' if args.num_processes == 1 else None,
+            'render_mode': 'human' if should_render and args.num_processes == 1 else None,
             'config_path': DEFAULT_CONFIG['config_path']
         }
         
@@ -370,15 +371,27 @@ class EnvironmentSetup:
             allow_early_resets=False,
         )
         
-        # 🆕 根据参数决定是否创建渲染环境
+        # 🔧 不使用sync_env，让训练环境直接渲染
+        sync_env = None
         if should_render:
-            render_env_params = env_params.copy()
-            render_env_params['render_mode'] = 'human'
-            sync_env = Reacher2DEnv(**render_env_params)
-            print(f"✅ 训练环境已创建（进程数: {args.num_processes}，带渲染）")
+            print(f"✅ 训练环境已创建（进程数: {args.num_processes}，直接渲染）")
+            # 确保第一个环境有渲染模式
+            if hasattr(envs, 'envs') and len(envs.envs) > 0:
+                if not hasattr(envs.envs[0], 'render_mode') or envs.envs[0].render_mode != 'human':
+                    envs.envs[0].render_mode = 'human'
+                    print(f"🔧 设置第一个训练环境为渲染模式")
+                # 强制初始化渲染
+                if hasattr(envs.envs[0], '_init_rendering'):
+                    envs.envs[0]._init_rendering()
+                    print(f"🎨 初始化训练环境渲染")
+                # 强制第一次渲染以显示窗口
+                try:
+                    envs.envs[0].render()
+                    print(f"🖼️ 强制第一次渲染，显示pygame窗口")
+                except Exception as e:
+                    print(f"⚠️ 渲染初始化错误: {e}")
         else:
-                sync_env = None
-                print(f"✅ 训练环境已创建（进程数: {args.num_processes}，无渲染）")
+            print(f"✅ 训练环境已创建（进程数: {args.num_processes}，无渲染）")
             
         return envs, sync_env, env_params
 
@@ -948,6 +961,37 @@ def main(args):
     sac.alpha = torch.tensor(args.alpha)
     sac.min_alpha = 0.05
     print(f"🔒 Alpha衰减下限设置为: {sac.min_alpha}")
+    
+    # 🆕 设置individual_id到SAC模型
+    if hasattr(args, 'individual_id') and args.individual_id:
+        sac.individual_id = args.individual_id
+        print(f"🆔 设置Individual ID: {args.individual_id}")
+        
+        # 🆕 直接设置环境属性
+        generation = getattr(args, 'generation', 0)
+        
+        # 设置同步环境
+        if sync_env:
+            sync_env.current_generation = generation
+            sync_env.individual_id = args.individual_id
+            print(f"🆔 设置同步环境上下文: 个体={args.individual_id}, 代数={generation}")
+        
+        # 设置向量环境
+        if hasattr(envs, 'envs'):
+            for i, env_wrapper in enumerate(envs.envs):
+                # 🔧 递归设置所有层级的环境属性
+                current_env = env_wrapper
+                while hasattr(current_env, 'env'):
+                    if hasattr(current_env, 'current_generation'):
+                        current_env.current_generation = generation
+                        current_env.individual_id = args.individual_id
+                    current_env = current_env.env
+                
+                # 最终的环境对象
+                if hasattr(current_env, '__class__'):
+                    current_env.current_generation = generation
+                    current_env.individual_id = args.individual_id
+                    print(f"🆔 设置环境{i}上下文: 个体={args.individual_id}, 代数={generation} (类型: {current_env.__class__.__name__})")
 
     if hasattr(sac, 'target_entropy'):
         sac.target_entropy = -num_joints * args.target_entropy_factor
@@ -1114,16 +1158,14 @@ def run_training_loop(args, envs, sync_env, sac, single_gnn_embed, training_mana
     current_obs = envs.reset()
     print(f"初始观察: {current_obs.shape}")
     
-    # 重置渲染环境
-    if sync_env:
-        sync_env.reset()
-        print("🔧 sync_env 已重置")
+    # 🔧 不使用sync_env，训练环境直接渲染
+    print("🔧 训练环境已重置（直接渲染模式）")
     
     current_gnn_embeds = single_gnn_embed.repeat(args.num_processes, 1, 1)
     episode_rewards = [0.0] * args.num_processes
     
     # 🆕 Episodes控制参数
-    max_episodes = 2
+    max_episodes = 2  # 🔧 修改为2个episodes
     steps_per_episode = 120000
     
     print(f"开始训练: warmup {sac.warmup_steps} 步")
@@ -1196,16 +1238,23 @@ def run_training_loop(args, envs, sync_env, sac, single_gnn_embed, training_mana
                 if episode_step % 50 == 0 or episode_step < 20:
                     if hasattr(envs, 'envs') and len(envs.envs) > 0:
                         env_goal = getattr(envs.envs[0], 'goal_pos', 'NOT FOUND')
-                        print(f"🎯 [Episode {episode_num+1}] Step {episode_step} - 环境goal_pos: {env_goal}")
+                        # 🔧 显示环境内部的真实episode计数
+                        env_episode = getattr(envs.envs[0], 'current_episode', episode_num+1)
+                        print(f"🎯 [Episode {env_episode}] Step {episode_step} - 环境goal_pos: {env_goal}")
 
                 # 执行动作
                 next_obs, reward, done, infos = envs.step(action_batch)
 
-                # 渲染处理
-                if sync_env:
-                    sync_action = action_batch[0].cpu().numpy() if hasattr(action_batch, 'cpu') else action_batch[0]
-                    sync_env.step(sync_action)
-                    sync_env.render()
+                # 🔧 直接使用训练环境进行渲染（不使用sync_env）
+                if hasattr(envs, 'envs') and len(envs.envs) > 0 and hasattr(envs.envs[0], 'render_mode') and envs.envs[0].render_mode == 'human':
+                    try:
+                        envs.envs[0].render()
+                        # 每100步显示一次渲染状态
+                        if episode_step % 100 == 0:
+                            print(f"🖼️ [Step {episode_step}] 训练环境渲染更新")
+                    except Exception as e:
+                        if episode_step % 500 == 0:  # 减少错误消息频率
+                            print(f"⚠️ 渲染错误: {e}")
 
                 next_gnn_embeds = single_gnn_embed.repeat(args.num_processes, 1, 1)
 
@@ -1232,78 +1281,39 @@ def run_training_loop(args, envs, sync_env, sac, single_gnn_embed, training_mana
                 # 处理episode结束
                 # 替换第1055-1083行的代码：
 
-                for proc_id in range(args.num_processes):
-                    is_done = done[proc_id].item() if torch.is_tensor(done[proc_id]) else bool(done[proc_id])
-                    if is_done:
-                        print(f"🔍 [DEBUG] Episode结束检测: proc_id={proc_id}, 当前episodes={training_manager.current_episodes}")
-                        
-                        should_end = training_manager.handle_episode_end(proc_id, episode_step, episode_rewards, infos)
-                        print(f"🔍 [DEBUG] handle_episode_end返回: should_end={should_end}, 新的current_episodes={training_manager.current_episodes}")
-                        
-                        # 🆕 检查维持完成情况（从环境直接获取）
-                        maintain_completed = False
-                        if len(infos) > proc_id and isinstance(infos[proc_id], dict):
-                            # 从环境info获取维持信息
-                            maintain_info = infos[proc_id].get('maintain', {})
-                            maintain_completed = maintain_info.get('maintain_completed', False)
-                            maintain_counter = maintain_info.get('maintain_counter', 0)
-                            maintain_target = maintain_info.get('maintain_target', 500)
-                            
-                            print(f"🏆 [DEBUG] 维持检查: {maintain_counter}/{maintain_target} 步, 完成: {maintain_completed}")
-                        
-                        # 🔧 检查是否到达目标（但未维持够时间）
-                        goal_reached = infos[proc_id].get('goal', {}).get('distance_to_goal', float('inf')) < 20.0
-                        print(f"🔍 [DEBUG] 目标检查: goal_reached={goal_reached}")
-                        
-                        if should_end:  # 完成2个训练episodes
-                            print(f"🔍 [DEBUG] 触发should_end，整个训练结束")
-                            training_completed = True
-                            early_termination_reason = f"完成{training_manager.current_episodes}个episodes"
-                            episode_completed = True
-                            break
-                        elif maintain_completed:  # 🆕 维持10秒完成，结束当前训练episode
-                            print(f"🔍 [DEBUG] 触发maintain_completed，当前训练episode结束")
-                            print(f"🎊 训练Episode {episode_num+1} 维持成功完成！开始下一个episode...")
-                            episode_completed = True  # 结束当前训练episode
-                            break
-                        elif goal_reached:  # 🆕 到达目标但未维持够时间，继续训练
-                            print(f"🎯 [DEBUG] 到达目标但需继续维持，继续当前episode")
-                            # 🔧 关键：不break，让机器人继续学习维持
-                            pass
-                        
-                        # 环境重置（继续当前训练episode）
-                        if hasattr(envs, 'reset_one'):
-                            current_obs[proc_id] = envs.reset_one(proc_id)
-                            current_gnn_embeds[proc_id] = single_gnn_embed
+                # 🔧 删除重复的done检测循环（移动到下面统一处理）
 
-                # for proc_id in range(args.num_processes):
-                #         is_done = done[proc_id].item() if torch.is_tensor(done[proc_id]) else bool(done[proc_id])
-                #         if is_done:
-                #             print(f"🔍 [DEBUG] Episode结束检测: proc_id={proc_id}, 当前episodes={training_manager.current_episodes}")
+                # 🔧 只在第一次done时处理episode结束，避免重复触发
+                episode_end_handled = False
+                for proc_id in range(args.num_processes):
+                        is_done = done[proc_id].item() if torch.is_tensor(done[proc_id]) else bool(done[proc_id])
+                        if is_done and not episode_end_handled:
+                            print(f"🔍 [DEBUG] Episode结束检测: proc_id={proc_id}, 当前episodes={training_manager.current_episodes}")
                             
-                #             should_end = training_manager.handle_episode_end(proc_id, episode_step, episode_rewards, infos)
-                #             print(f"🔍 [DEBUG] handle_episode_end返回: should_end={should_end}, 新的current_episodes={training_manager.current_episodes}")
+                            should_end = training_manager.handle_episode_end(proc_id, episode_step, episode_rewards, infos)
+                            print(f"🔍 [DEBUG] handle_episode_end返回: should_end={should_end}, 新的current_episodes={training_manager.current_episodes}")
+                            episode_end_handled = True  # 标记已处理，避免重复
                             
-                #             # 🔧 检查是否到达目标
-                #             goal_reached = infos[proc_id].get('goal', {}).get('distance_to_goal', float('inf')) < 20.0
-                #             print(f"🔍 [DEBUG] 目标检查: goal_reached={goal_reached}")
+                            # 🔧 检查是否到达目标
+                            goal_reached = infos[proc_id].get('goal', {}).get('distance_to_goal', float('inf')) < 20.0
+                            print(f"🔍 [DEBUG] 目标检查: goal_reached={goal_reached}")
                             
-                #             if should_end:  # 完成2个训练episodes
-                #                 print(f"🔍 [DEBUG] 触发should_end，整个训练结束")
-                #                 training_completed = True
-                #                 early_termination_reason = f"完成{training_manager.current_episodes}个episodes"
-                #                 episode_completed = True
-                #                 break
-                #             elif goal_reached:  # 到达目标，结束当前训练episode
-                #                 print(f"🔍 [DEBUG] 触发goal_reached，当前训练episode结束")
-                #                 print(f"🎉 训练Episode {episode_num+1} 成功完成！开始下一个episode...")
-                #                 episode_completed = True  # 结束当前训练episode，但不结束整个训练
-                #                 break
+                            if should_end:  # 完成2个训练episodes
+                                print(f"🔍 [DEBUG] 触发should_end，整个训练结束")
+                                training_completed = True
+                                early_termination_reason = f"完成{training_manager.current_episodes}个episodes"
+                                episode_completed = True
+                                break
+                            elif goal_reached:  # 到达目标，结束当前训练episode
+                                print(f"🔍 [DEBUG] 触发goal_reached，当前训练episode结束")
+                                print(f"🎉 训练Episode {episode_num+1} 成功完成！开始下一个episode...")
+                                episode_completed = True  # 结束当前训练episode，但不结束整个训练
+                                break
                             
-                #             # 环境重置（继续当前训练episode）
-                #             if hasattr(envs, 'reset_one'):
-                #                 current_obs[proc_id] = envs.reset_one(proc_id)
-                #                 current_gnn_embeds[proc_id] = single_gnn_embed
+                            # 环境重置（继续当前训练episode）
+                            if hasattr(envs, 'reset_one'):
+                                current_obs[proc_id] = envs.reset_one(proc_id)
+                                current_gnn_embeds[proc_id] = single_gnn_embed
                 
                 # 模型更新
                 if training_manager.should_update_model(global_step):

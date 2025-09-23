@@ -89,6 +89,7 @@ def create_training_parser():
     parser.add_argument('--link-lengths', nargs='+', type=float, default=[90.0, 90.0, 90.0], help='机器人链节长度')
     parser.add_argument('--total-steps', type=int, default=10000, help='总训练步数')
     parser.add_argument('--individual-id', type=str, default='', help='MAP-Elites个体ID')
+    parser.add_argument('--generation', type=int, default=0, help='当前进化代数')
     
     # 兼容性参数（用于其他环境）
     parser.add_argument('--grammar-file', type=str, default='/home/xli149/Documents/repos/RoboGrammar/data/designs/grammar_jan21.dot', help='语法文件')
@@ -831,6 +832,23 @@ def main(args):
     if hasattr(args, 'individual_id') and args.individual_id:
         ppo.individual_id = args.individual_id
         print(f"🆔 设置Individual ID: {args.individual_id}")
+        
+        # 🆕 直接设置环境属性
+        generation = getattr(args, 'generation', 0)
+        
+        # 设置同步环境
+        if sync_env:
+            sync_env.current_generation = generation
+            sync_env.individual_id = args.individual_id
+            print(f"🆔 设置同步环境上下文: 个体={args.individual_id}, 代数={generation}")
+        
+        # 设置向量环境
+        if hasattr(envs, 'envs'):
+            for i, env_wrapper in enumerate(envs.envs):
+                if hasattr(env_wrapper, 'env'):
+                    env_wrapper.env.current_generation = generation
+                    env_wrapper.env.individual_id = args.individual_id
+                    print(f"🆔 设置环境{i}上下文: 个体={args.individual_id}, 代数={generation}")
     
     # PPO特定参数设置
     print(f"🎯 PPO配置: clip_epsilon={args.clip_epsilon}, entropy_coef={args.entropy_coef}")

@@ -9,6 +9,7 @@ import time
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 from map_elites_core import Individual, RobotGenotype, RobotPhenotype, FeatureExtractor
+from individual_success_logger import IndividualSuccessLogger
 
 # 🆕 导入新的遗传算法fitness评估器
 from genetic_fitness_evaluator import GeneticFitnessEvaluator
@@ -83,18 +84,29 @@ class MAPElitesTrainingAdapter:
 
 
     def evaluate_individual(self, individual: Individual, training_steps: int = 5000) -> Individual:
-        """评估单个个体 - 使用统一的FitnessManager"""
+        """评估单个个体 - 使用统一的FitnessManager并记录Individual成功次数"""
         print(f"\n🧬 评估个体 {individual.individual_id}")
         print(f"🤖 基因型: num_links={individual.genotype.num_links}, "
             f"link_lengths={[f'{x:.1f}' for x in individual.genotype.link_lengths]}")
         print(f"🧠 SAC参数: lr={individual.genotype.lr:.2e}, alpha={individual.genotype.alpha:.3f}")
         print(f"   总长度: {sum(individual.genotype.link_lengths):.1f}px")
         
+        # 🆕 创建Individual成功记录器
+        success_logger = IndividualSuccessLogger(
+            individual_id=individual.individual_id,
+            log_dir="individual_success_logs",
+            format_type="csv"  # 使用CSV格式记录
+        )
+        
         # 1. 根据基因型创建训练参数
         training_args = self._genotype_to_training_args(individual.genotype, training_steps)
         
-        # 🆕 设置individual_id
+        # 🆕 设置individual_id和generation
         training_args.individual_id = individual.individual_id
+        training_args.generation = individual.generation
+        
+        # 🆕 将成功记录器传递给训练参数（如果训练接口支持的话）
+        training_args.success_logger = success_logger
         
         # 2. 运行训练
         start_time = time.time()

@@ -366,10 +366,14 @@ class MAPElitesEvolutionTrainer:
     def _create_random_individual(self, generation: int) -> Individual:
         """创建随机个体"""
         genotype = self.mutator.random_genotype()
+        # 🔧 确保每个个体都有唯一的ID
+        import random
+        unique_id = f"gen_{generation}_{int(time.time() * 1000000) % 1000000}_{random.randint(1000, 9999)}"
         return Individual(
             genotype=genotype,
             phenotype=RobotPhenotype(),
-            generation=generation
+            generation=generation,
+            individual_id=unique_id
         )
     
     def _create_mutant_individual(self, generation: int) -> Optional[Individual]:
@@ -379,11 +383,15 @@ class MAPElitesEvolutionTrainer:
             return self._create_random_individual(generation)
         
         mutant_genotype = self.mutator.mutate(parent.genotype)
+        # 🔧 确保变异个体也有唯一的ID
+        import random
+        unique_id = f"gen_{generation}_{int(time.time() * 1000000) % 1000000}_{random.randint(1000, 9999)}"
         return Individual(
             genotype=mutant_genotype,
             phenotype=RobotPhenotype(),
             generation=generation,
-            parent_id=parent.individual_id
+            parent_id=parent.individual_id,
+            individual_id=unique_id
         )
     def _evaluate_individuals_parallel(self, individuals):
         """并行评估多个个体 - 支持多进程渲染"""
@@ -969,13 +977,13 @@ def start_real_training():
     # 创建训练器
     trainer = MAPElitesEvolutionTrainer(
         base_args=base_args,
-        num_initial_random=10,               # 初始随机个体数 🔧 减少以便快速测试
+        num_initial_random=8,                # 🔧 增加到8个个体以充分利用多进程
         training_steps_per_individual=2000,  # 🔧 减少训练步数以便快速测试
         enable_rendering=True,               # 🎨 启用环境渲染
         silent_mode=False,                   # 🔊 显示详细输出
         use_genetic_fitness=True,             # 🎯 使用遗传算法fitness
         enable_multiprocess=True,             # 🆕 启用多进程
-        max_workers=1,
+        max_workers=4,                       # 🔧 修复：使用4个工作进程
         enable_visualization=True,            # 🎨 启用数据可视化
         visualization_interval=5              # 🎨 每5代生成可视化
     )
