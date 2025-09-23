@@ -240,6 +240,8 @@ class MAPElitesEvolutionTrainer:
 
         silent_print("🧬 MAP-Elites进化训练器已初始化")
         silent_print(f"🎯 Fitness评估: {'遗传算法分层系统' if use_genetic_fitness else '传统平均奖励'}")
+        print(f"🔧 DEBUG: 构造函数接收的enable_rendering = {enable_rendering}")
+        print(f"🔧 DEBUG: self.adapter.enable_rendering = {self.adapter.enable_rendering}")
         silent_print(f"🎨 环境渲染: {'启用' if enable_rendering else '禁用'}")
         silent_print(f"📊 数据可视化: {'启用' if self.enable_visualization else '禁用'}")
         silent_print(f"🤝 PPO训练: {'共享模式' if self.use_shared_ppo else '独立模式'}")
@@ -1162,21 +1164,25 @@ def start_multiprocess_rendering_training():
     print(f"   📊 成功记录: 启用")
     print(f"   💾 保存目录: {base_args.save_dir}")
     
+    # 🔧 从环境变量获取参数（如果有的话）
+    custom_training_steps = int(os.environ.get('TRAINING_STEPS_PER_INDIVIDUAL', '20000'))
+    custom_individuals = int(os.environ.get('INDIVIDUALS_PER_GENERATION', '8'))
+    
     # 创建训练器
     trainer = MAPElitesEvolutionTrainer(
         base_args=base_args,
-        num_initial_random=8,                # 🔧 8个初始个体，确保能充分利用4进程
-        training_steps_per_individual=20000,  # 🔧 适中的训练步数
-        enable_rendering=enable_rendering,   # 🎨 强制启用渲染
-        silent_mode=silent_mode,             # 🔊 显示详细输出
-        use_genetic_fitness=True,            # 🎯 使用遗传算法fitness
-        enable_multiprocess=enable_multiprocess,  # 🚀 启用多进程
-        max_workers=max_workers,             # 🔧 4个工作进程
-        use_shared_ppo=True,                 # 🆕 启用共享PPO - 所有individual共享同一个PPO
-        success_threshold=0.7,               # 🎯 成功阈值
-        enable_success_logging=True,         # 📊 启用实验成功记录
-        enable_visualization=True,           # 🎨 启用数据可视化
-        visualization_interval=2             # 🎨 每2代生成可视化
+        num_initial_random=custom_individuals,    # 🔧 使用自定义个体数
+        training_steps_per_individual=custom_training_steps,  # 🔧 使用自定义训练步数
+        enable_rendering=enable_rendering,       # 🎨 渲染控制
+        silent_mode=silent_mode,                 # 🔊 显示详细输出
+        use_genetic_fitness=True,                # 🎯 使用遗传算法fitness
+        enable_multiprocess=enable_multiprocess, # 🚀 启用多进程
+        max_workers=max_workers,                 # 🔧 4个工作进程
+        use_shared_ppo=True,                     # 🆕 启用共享PPO
+        success_threshold=0.7,                   # 🎯 成功阈值
+        enable_success_logging=True,             # 📊 启用实验成功记录
+        enable_visualization=True,               # 🎨 启用数据可视化
+        visualization_interval=2                 # 🎨 每2代生成可视化
     )
     
     try:

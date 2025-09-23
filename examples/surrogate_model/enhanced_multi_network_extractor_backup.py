@@ -32,6 +32,7 @@ class EnhancedMultiNetworkExtractor:
         
         # 🆕 Individual成功次数记录（独立文件）
         self.individual_success_files = {}  # individual_id -> 文件路径
+        self.individual_success_counts = {}  # individual_id -> 成功次数
         self.current_individual_success = 0  # 当前individual的成功次数
         
         # 只记录真实存在的网络损失数据
@@ -156,12 +157,15 @@ class EnhancedMultiNetworkExtractor:
         
         try:
             # 启动训练进程
+            # 🔧 确保环境变量传递到子进程
+            env = os.environ.copy()
             process = subprocess.Popen(
                 training_command,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 universal_newlines=True,
-                bufsize=1
+                bufsize=1,
+                env=env  # 🆕 传递环境变量
             )
             
             print(f"✅ 训练进程已启动 (PID: {process.pid})")
@@ -227,14 +231,24 @@ class EnhancedMultiNetworkExtractor:
                 distance = float(goal_reached_with_distance_match.group(1))
             else:
                 distance = 0.0  # DEBUG格式没有距离信息
+            
+            # 🔧 确保individual已初始化
+            if self.current_individual_id and self.current_individual_id not in self.individual_success_counts:
+                self.individual_success_counts[self.current_individual_id] = 0
+            
+            # 更新成功计数
+            if self.current_individual_id:
+                self.individual_success_counts[self.current_individual_id] += 1
+                self.current_individual_success = self.individual_success_counts[self.current_individual_id]
                 
-            self.current_individual_success += 1
+                print(f"   🎉 检测到成功事件! Individual: {self.current_individual_id}, 距离: {distance}px")
+                print(f"   📊 Individual {self.current_individual_id} 成功次数: {self.current_individual_success}")
+                
+                # 记录到individual专用文件
+                self._record_individual_success(distance)
+            else:
+                print(f"   ⚠️ 检测到成功事件但无Individual ID，距离: {distance}px")
             
-            print(f"   🎉 检测到成功事件! 距离: {distance}px")
-            print(f"   📊 Individual {self.current_individual_id} 成功次数: {self.current_individual_success}")
-            
-            # 记录到individual专用文件
-            self._record_individual_success(distance)
             return
         
         # 🆕 检查Individual ID设置
@@ -242,12 +256,17 @@ class EnhancedMultiNetworkExtractor:
         if individual_id_match:
             new_individual_id = individual_id_match.group(1).strip()
             
-            # 如果是新的individual，重置成功计数
-            if self.current_individual_id != new_individual_id:
-                self.current_individual_success = 0
-                print(f"   🔄 切换到新Individual: {new_individual_id}")
+            # 如果是新的individual，初始化其成功计数
+            if new_individual_id not in self.individual_success_counts:
+                self.individual_success_counts[new_individual_id] = 0
+                print(f"   🆕 初始化Individual: {new_individual_id}")
             
-            self.current_individual_id = new_individual_id
+            # 更新当前individual
+            if self.current_individual_id != new_individual_id:
+                print(f"   🔄 切换到Individual: {new_individual_id}")
+                self.current_individual_id = new_individual_id
+                self.current_individual_success = self.individual_success_counts[new_individual_id]
+            
             print(f"   🆔 检测到Individual ID设置: {self.current_individual_id}")
             return
         
@@ -652,6 +671,50 @@ class EnhancedMultiNetworkExtractor:
                 json.dump(stats, f, indent=2)
             
             print(f"📈 真实损失统计已保存: {len(saved_networks)} 个网络")
+            
+            # 🆕 保存Individual成功统计
+            self._save_individual_success_summary()
+    
+    def _save_individual_success_summary(self):
+        """保存Individual成功统计摘要"""
+        if not self.individual_success_counts:
+            return
+            
+        summary = {
+            'experiment_name': self.experiment_name,
+            'total_individuals': len(self.individual_success_counts),
+            'individual_success_stats': {},
+            'overall_stats': {
+                'total_success_events': sum(self.individual_success_counts.values()),
+                'successful_individuals': len([id for id, count in self.individual_success_counts.items() if count > 0]),
+                'average_success_per_individual': sum(self.individual_success_counts.values()) / len(self.individual_success_counts) if self.individual_success_counts else 0
+            }
+        }
+        
+        # 详细的individual统计
+        for individual_id, success_count in self.individual_success_counts.items():
+            summary['individual_success_stats'][individual_id] = {
+                'success_count': success_count,
+                'success_file': self.individual_success_files.get(individual_id, 'N/A')
+            }
+        
+        # 保存摘要
+        summary_path = os.path.join(self.experiment_dir, "individual_success_summary.json")
+        with open(summary_path, 'w') as f:
+            json.dump(summary, f, indent=2)
+        
+        # 输出统计
+        print(f"\n📊 Individual成功统计摘要:")
+        print(f"   总Individual数: {summary['total_individuals']}")
+        print(f"   总成功事件: {summary['overall_stats']['total_success_events']}")
+        print(f"   成功的Individual数: {summary['overall_stats']['successful_individuals']}")
+        print(f"   平均成功次数: {summary['overall_stats']['average_success_per_individual']:.1f}")
+        
+        for individual_id, stats in summary['individual_success_stats'].items():
+            status = "✅" if stats['success_count'] > 0 else "❌"
+            print(f"   {status} {individual_id}: {stats['success_count']}次成功")
+        
+        print(f"💾 Individual成功统计已保存: {summary_path}")
     
     def _get_comprehensive_statistics(self):
         """获取所有网络的综合统计信息"""
@@ -749,6 +812,16 @@ def run_enhanced_multi_network_training(experiment_name, mode='basic', training_
     
     # 设置环境变量
     os.environ['LOSS_EXPERIMENT_NAME'] = experiment_name
+    
+    # 🆕 传递训练参数到环境变量（用于multiprocess模式）
+    if training_steps is not None:
+        os.environ['TRAINING_STEPS_PER_INDIVIDUAL'] = str(training_steps)
+    if individuals_per_generation is not None:
+        os.environ['INDIVIDUALS_PER_GENERATION'] = str(individuals_per_generation)
+    
+    print(f"🔧 设置环境变量:")
+    print(f"   TRAINING_STEPS_PER_INDIVIDUAL = {os.environ.get('TRAINING_STEPS_PER_INDIVIDUAL', 'N/A')}")
+    print(f"   INDIVIDUALS_PER_GENERATION = {os.environ.get('INDIVIDUALS_PER_GENERATION', 'N/A')}")
     
     # 启动训练并提取
     extractor.start_training_with_extraction(training_command)

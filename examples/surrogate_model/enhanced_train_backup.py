@@ -342,14 +342,25 @@ class EnvironmentSetup:
             print(f"🤖 使用默认配置: {num_links}关节, 长度={link_lengths}")
 
 
-        should_render = True  # 🔧 默认启用渲染
-        if hasattr(args, 'render') and args.render:
+        # 🔧 修正渲染控制逻辑 - 支持环境变量强制控制
+        should_render = False  # 默认禁用渲染
+        
+        # 🆕 环境变量强制控制
+        if os.environ.get('FORCE_NO_RENDER', '0') == '1':
+            should_render = False
+            print("🎨 渲染设置: 环境变量FORCE_NO_RENDER强制禁用")
+        elif os.environ.get('FORCE_RENDER', '0') == '1':
             should_render = True
+            print("🎨 渲染设置: 环境变量FORCE_RENDER强制启用")
+        elif hasattr(args, 'render') and args.render:
+            should_render = True
+            print("🎨 渲染设置: 通过 --render 启用")
         elif hasattr(args, 'no_render') and args.no_render:
             should_render = False
+            print("🎨 渲染设置: 通过 --no-render 禁用")
         else:
-            should_render = True  # 🔧 默认启用渲染
-            print("🎨 渲染设置: 默认启用")
+            should_render = False  # 默认禁用渲染
+            print("🎨 渲染设置: 默认禁用 (使用 --render 启用)")
 
         env_params = {
             'num_links': num_links,

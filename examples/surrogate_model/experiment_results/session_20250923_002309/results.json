@@ -1,0 +1,253 @@
+[
+  {
+    "experiment_id": "gen_0_980611_3663",
+    "timestamp": "2025-09-23T00:23:52.592180",
+    "robot_structure": {
+      "num_links": 5,
+      "link_lengths": [
+        90.06970460842734,
+        84.5000037253593,
+        97.83558081505075,
+        67.19007479593677,
+        76.84853993578483
+      ],
+      "total_length": 416.443903880559
+    },
+    "training_params": {
+      "lr": 2.738105914680364e-05,
+      "alpha": 0.8060245088340448,
+      "training_steps": 2000,
+      "buffer_capacity": 10000,
+      "batch_size": 64
+    },
+    "performance": {
+      "fitness": 0.375,
+      "success_rate": 0.8,
+      "avg_reward": 34.52395465775515,
+      "training_time": 0.0,
+      "episodes_completed": 0,
+      "final_distance_to_target": Infinity,
+      "path_efficiency": null
+    },
+    "generation": 0,
+    "parent_id": null,
+    "success_threshold": 0.7,
+    "is_successful": false,
+    "notes": "MAP-Elites 第0代"
+  },
+  {
+    "experiment_id": "gen_0_980674_1071",
+    "timestamp": "2025-09-23T00:23:52.592490",
+    "robot_structure": {
+      "num_links": 5,
+      "link_lengths": [
+        98.95145827781317,
+        90.33685763634246,
+        59.86616981003344,
+        70.04290489171242,
+        99.68762223839511
+      ],
+      "total_length": 418.88501285429663
+    },
+    "training_params": {
+      "lr": 2.1553264425742836e-05,
+      "alpha": 0.465805034930279,
+      "training_steps": 2000,
+      "buffer_capacity": 10000,
+      "batch_size": 64
+    },
+    "performance": {
+      "fitness": 0.34670155445992445,
+      "success_rate": 0.7191472984569269,
+      "avg_reward": 67.50050686327063,
+      "training_time": 0.0,
+      "episodes_completed": 0,
+      "final_distance_to_target": Infinity,
+      "path_efficiency": null
+    },
+    "generation": 0,
+    "parent_id": null,
+    "success_threshold": 0.7,
+    "is_successful": false,
+    "notes": "MAP-Elites 第0代"
+  },
+  {
+    "experiment_id": "gen_0_980700_4595",
+    "timestamp": "2025-09-23T00:23:52.592737",
+    "robot_structure": {
+      "num_links": 3,
+      "link_lengths": [
+        45.81405239616872,
+        89.46798867846816,
+        90.40934736095673
+      ],
+      "total_length": 225.6913884355936
+    },
+    "training_params": {
+      "lr": 9.926836208910055e-05,
+      "alpha": 0.5225640986404337,
+      "training_steps": 2000,
+      "buffer_capacity": 10000,
+      "batch_size": 64
+    },
+    "performance": {
+      "fitness": 0.26190182786224553,
+      "success_rate": 0.47686236532070164,
+      "avg_reward": -4.7561805059755,
+      "training_time": 0.0,
+      "episodes_completed": 0,
+      "final_distance_to_target": Infinity,
+      "path_efficiency": null
+    },
+    "generation": 0,
+    "parent_id": null,
+    "success_threshold": 0.7,
+    "is_successful": false,
+    "notes": "MAP-Elites 第0代"
+  },
+  {
+    "experiment_id": "gen_0_980725_1571",
+    "timestamp": "2025-09-23T00:23:52.592944",
+    "robot_structure": {
+      "num_links": 5,
+      "link_lengths": [
+        43.08956943310336,
+        56.00024625526268,
+        61.82098993855227,
+        68.29044510083443,
+        92.13677320484081
+      ],
+      "total_length": 321.33802393259356
+    },
+    "training_params": {
+      "lr": 0.0004286697996186944,
+      "alpha": 0.8715248953371192,
+      "training_steps": 2000,
+      "buffer_capacity": 10000,
+      "batch_size": 64
+    },
+    "performance": {
+      "fitness": 0.3638059872406533,
+      "success_rate": 0.7680171064018665,
+      "avg_reward": 58.51848835959716,
+      "training_time": 0.0,
+      "episodes_completed": 0,
+      "final_distance_to_target": Infinity,
+      "path_efficiency": null
+    },
+    "generation": 0,
+    "parent_id": null,
+    "success_threshold": 0.7,
+    "is_successful": false,
+    "notes": "MAP-Elites 第0代"
+  },
+  {
+    "experiment_id": "gen_0_980748_3503",
+    "timestamp": "2025-09-23T00:23:52.593177",
+    "robot_structure": {
+      "num_links": 4,
+      "link_lengths": [
+        93.14612714833038,
+        42.25552416992651,
+        49.684872844407586,
+        76.48236233787964
+      ],
+      "total_length": 261.56888650054407
+    },
+    "training_params": {
+      "lr": 4.4450978459690295e-05,
+      "alpha": 0.8799576214566902,
+      "training_steps": 2000,
+      "buffer_capacity": 10000,
+      "batch_size": 64
+    },
+    "performance": {
+      "fitness": 0.3532230896319229,
+      "success_rate": 0.7377802560912082,
+      "avg_reward": 44.213988747572394,
+      "training_time": 0.0,
+      "episodes_completed": 0,
+      "final_distance_to_target": Infinity,
+      "path_efficiency": null
+    },
+    "generation": 0,
+    "parent_id": null,
+    "success_threshold": 0.7,
+    "is_successful": false,
+    "notes": "MAP-Elites 第0代"
+  },
+  {
+    "experiment_id": "gen_0_980773_6810",
+    "timestamp": "2025-09-23T00:23:52.593428",
+    "robot_structure": {
+      "num_links": 6,
+      "link_lengths": [
+        40.76907559233889,
+        44.19836927228285,
+        73.92251871353236,
+        91.75039476367213,
+        50.042438290561016,
+        80.04926938868336
+      ],
+      "total_length": 380.7320660210706
+    },
+    "training_params": {
+      "lr": 0.0005987923145112785,
+      "alpha": 0.206566099166005,
+      "training_steps": 2000,
+      "buffer_capacity": 10000,
+      "batch_size": 64
+    },
+    "performance": {
+      "fitness": 0.34022894485216354,
+      "success_rate": 0.7006541281490386,
+      "avg_reward": 53.836178847942875,
+      "training_time": 0.0,
+      "episodes_completed": 0,
+      "final_distance_to_target": Infinity,
+      "path_efficiency": null
+    },
+    "generation": 0,
+    "parent_id": null,
+    "success_threshold": 0.7,
+    "is_successful": false,
+    "notes": "MAP-Elites 第0代"
+  },
+  {
+    "experiment_id": "gen_0_980796_3181",
+    "timestamp": "2025-09-23T00:23:52.593722",
+    "robot_structure": {
+      "num_links": 6,
+      "link_lengths": [
+        48.48498665734001,
+        67.40716946369253,
+        65.84461983321268,
+        60.64043697699127,
+        95.78571654519706,
+        93.37194978207451
+      ],
+      "total_length": 431.53487925850806
+    },
+    "training_params": {
+      "lr": 4.564200783377565e-05,
+      "alpha": 0.3661468633596211,
+      "training_steps": 2000,
+      "buffer_capacity": 10000,
+      "batch_size": 64
+    },
+    "performance": {
+      "fitness": 0.375,
+      "success_rate": 0.8,
+      "avg_reward": 44.9370445657548,
+      "training_time": 0.0,
+      "episodes_completed": 0,
+      "final_distance_to_target": Infinity,
+      "path_efficiency": null
+    },
+    "generation": 0,
+    "parent_id": null,
+    "success_threshold": 0.7,
+    "is_successful": false,
+    "notes": "MAP-Elites 第0代"
+  }
+]

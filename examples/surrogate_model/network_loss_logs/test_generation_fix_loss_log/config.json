@@ -1,7 +1,7 @@
 {
   "experiment_info": {
     "experiment_name": "test_generation_fix_loss_log",
-    "start_time": "2025-09-22T23:33:44.874632",
+    "start_time": "2025-09-22T23:36:35.496429",
     "log_dir": "network_loss_logs/test_generation_fix_loss_log",
     "monitored_networks": [
       "attention",

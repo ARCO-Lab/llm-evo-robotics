@@ -350,7 +350,11 @@ def main():
                 'visualization_interval': 5
             }
             
-            trainer.run_custom_training(base_args, **trainer_kwargs)
+            # 创建训练器实例
+            print(f"🔧 DEBUG: enable_rendering = {trainer_kwargs['enable_rendering']}")
+            print(f"🔧 DEBUG: trainer_kwargs = {trainer_kwargs}")
+            trainer_instance = MAPElitesEvolutionTrainer(base_args, **trainer_kwargs)
+            trainer_instance.run_evolution(args.num_generations, args.individuals_per_generation)
         else:
             print(f"❌ 未知训练模式: {args.mode}")
             

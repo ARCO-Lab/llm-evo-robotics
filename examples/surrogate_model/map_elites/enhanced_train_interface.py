@@ -29,7 +29,7 @@ ENHANCED_TRAIN_AVAILABLE = False
 class MAPElitesTrainingInterface:
     """MAP-Elites训练接口 - 支持可视化渲染和正确的参数传递"""
     
-    def __init__(self, silent_mode: bool = False, enable_rendering: bool = True):
+    def __init__(self, silent_mode: bool = False, enable_rendering: bool = False):
         """
         初始化训练接口
         
@@ -365,8 +365,22 @@ class MAPElitesTrainingInterface:
             if hasattr(training_args, 'generation'):
                 cmd.extend(['--generation', str(training_args.generation)])
             
-            # 渲染控制
-            if self.enable_rendering:
+            # 渲染控制 - 🆕 支持环境变量覆盖
+            force_no_render = os.environ.get('FORCE_NO_RENDER', '0') == '1'
+            force_render = os.environ.get('FORCE_RENDER', '0') == '1'
+            
+            final_render_decision = self.enable_rendering
+            if force_no_render:
+                final_render_decision = False
+                print(f"🚫 环境变量FORCE_NO_RENDER强制禁用渲染")
+            elif force_render:
+                final_render_decision = True
+                print(f"🎨 环境变量FORCE_RENDER强制启用渲染")
+            
+            print(f"🔧 DEBUG: self.enable_rendering = {self.enable_rendering}")
+            print(f"🔧 DEBUG: final_render_decision = {final_render_decision}")
+            
+            if final_render_decision:
                 cmd.append('--render')
                 print(f"🎨 启用渲染模式")
             else:

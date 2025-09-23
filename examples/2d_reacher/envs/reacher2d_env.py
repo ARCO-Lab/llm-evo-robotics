@@ -39,8 +39,8 @@ class Reacher2DEnv(Env):
         super().__init__()
 
             # 🆕 维持奖励系统
-        self.maintain_threshold = 20.0  # 维持距离阈值
-        self.maintain_target_steps = 500  # 10秒 ≈ 500步 (假设50Hz)
+        self.maintain_threshold = 150.0  # 维持距离阈值（需要更接近目标才能维持）
+        self.maintain_target_steps = 200  # 需要维持200步（约4秒）才完成episode
         self.maintain_counter = 0  # 当前维持步数
         self.maintain_bonus_given = False  # 是否已给过维持奖励
         self.in_maintain_zone = False  # 是否在维持区域
@@ -51,9 +51,9 @@ class Reacher2DEnv(Env):
         
         # 设置日志
         self._set_logging(debug_level)
-        
+        self.default_config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "configs", "reacher_with_zigzag_obstacles.yaml")
         # 加载配置
-        self.config = self._load_config(config_path)
+        self.config = self._load_config(config_path if config_path is not None else self.default_config_path)
         self.logger.info(f"self.config: {self.config}")
         
         # 从配置获取参数
@@ -107,6 +107,7 @@ class Reacher2DEnv(Env):
         self.reward_components = {
             'distance_reward': 0.0,
             'reach_reward': 0.0,
+            'progress_reward': 0.0,  # 🔧 添加缺失的progress_reward
             'collision_penalty': 0.0,
             'control_penalty': 0.0
         }
@@ -287,6 +288,35 @@ class Reacher2DEnv(Env):
         self.collision_count = 0
         self.base_collision_count = 0
         self.self_collision_count = 0  # 🆕 添加自碰撞计数重置
+        
+        # 🔧 重置维持状态（修复episode转换问题）
+        self.maintain_counter = 0
+        self.maintain_bonus_given = False
+        self.in_maintain_zone = False
+        
+        # 🔥 更新episode计数器（只在真正的episode结束时递增）
+        if not hasattr(self, 'current_episode'):
+            self.current_episode = 1  # 第一次初始化为1
+            self.episode_ended = False  # 初始化episode_ended标志
+            self.episode_initialized = True
+            self.just_reset = True  # 🆕 标记刚刚重置，防止立即done
+            print(f"🔥 [RESET] Episode计数器初始化: Episode = {self.current_episode}")
+        elif hasattr(self, 'episode_ended') and self.episode_ended:
+            self.current_episode += 1  # 只有在episode真正结束时才递增
+            self.episode_ended = False
+            self.just_reset = True  # 🆕 标记刚刚重置，防止立即done
+            print(f"🔥 [RESET] Episode计数递增: Episode = {self.current_episode}")
+        else:
+            episode_ended_status = getattr(self, 'episode_ended', 'NOT_SET')
+            self.just_reset = True  # 🆕 标记刚刚重置，防止立即done
+            print(f"🔥 [RESET] Episode保持不变: Episode = {getattr(self, 'current_episode', 'NOT_SET')}, episode_ended = {episode_ended_status}")
+            # 确保episode_ended被初始化
+            if not hasattr(self, 'episode_ended'):
+                self.episode_ended = False
+                print(f"🔧 [RESET] 初始化episode_ended = False")
+        
+        print(f"🔧 [RESET] 维持状态已重置: counter=0, bonus_given=False, in_zone=False")
+        print(f"🔥 [RESET] Episode计数更新: 当前Episode = {self.current_episode}")
         
         # 🆕 重置关节使用历史记录 - 用于joint_usage_reward
         if hasattr(self, 'prev_joint_angles'):
@@ -529,132 +559,47 @@ class Reacher2DEnv(Env):
         return np.array(obs, dtype=np.float32)
 
     def _compute_reward(self, collision_detected=None):
-        """改进版奖励函数 - 强化维持奖励"""
+        """简化版奖励函数 - 专注于到达目标"""
         end_pos = self._get_end_effector_position()
         distance = np.linalg.norm(end_pos - self.goal_pos)
         
-        # 基础奖励（保持原有逻辑）
+        # 🎯 主要奖励：距离奖励
         distance_reward = -distance / 50.0
         
-        # 🆕 强化维持奖励系统
-        maintain_reward = 0.0
+        # 🎯 到达奖励
+        reach_reward = 0.0
+        if distance < 100.0:  # 100px内给予到达奖励
+            reach_reward = 50.0 - distance  # 越近奖励越大
+            print(f"🎯 接近目标! 距离: {distance:.1f}px, 到达奖励: +{reach_reward:.1f}")
         
-        if distance < self.maintain_threshold:
-            # 在维持区域内
-            if not self.in_maintain_zone:
-                # 刚进入维持区域
-                self.in_maintain_zone = True
-                self.maintain_counter = 1
-                print(f"🎯 进入维持区域! 距离: {distance:.1f}px")
-            else:
-                # 继续在维持区域
-                self.maintain_counter += 1
-                
-            # 🏆 强化维持奖励计算
-            if self.maintain_counter <= self.maintain_target_steps:
-                # 🔧 大幅增加基础维持奖励
-                maintain_progress = self.maintain_counter / self.maintain_target_steps
-                maintain_reward = 5.0 * maintain_progress  # 从0.5增加到5.0
-                
-                # 🎉 更频繁的里程碑奖励
-                milestone_intervals = [25, 50, 100, 150, 200, 250, 300, 350, 400, 450]  # 更密集的奖励
-                if self.maintain_counter in milestone_intervals:
-                    milestone_bonus = 10.0  # 从2.0增加到10.0
-                    maintain_reward += milestone_bonus
-                    print(f"🏆 维持里程碑! {self.maintain_counter}步 (+{milestone_bonus})")
-                
-                # 🎊 完成10秒维持的巨大奖励
-                if self.maintain_counter == self.maintain_target_steps and not self.maintain_bonus_given:
-                    completion_bonus = 50.0  # 从20.0增加到50.0
-                    maintain_reward += completion_bonus
-                    self.maintain_bonus_given = True
-                    print(f"🎊 完成10秒维持! 获得巨大奖励: +{completion_bonus}")
-                    
-            elif self.maintain_counter > self.maintain_target_steps:
-                # 超过目标时间，持续给予强维持奖励
-                maintain_reward = 10.0  # 从1.0增加到10.0
-                
-            # 🔧 强化稳定性奖励 - 严厉惩罚移动
-            if hasattr(self, 'prev_distance') and self.prev_distance < self.maintain_threshold:
-                movement = abs(distance - self.prev_distance)
-                # 🔧 更严厉的移动惩罚
-                if movement < 1.0:  # 移动很少
-                    stability_reward = 5.0  # 大奖励
-                elif movement < 2.0:  # 移动较少
-                    stability_reward = 2.0
-                elif movement < 5.0:  # 移动中等
-                    stability_reward = 0.0
-                else:  # 移动太多
-                    stability_reward = -10.0  # 严厉惩罚
-                maintain_reward += stability_reward
-                
-        else:
-            # 离开维持区域 - 严厉惩罚
-            if self.in_maintain_zone:
-                # 🔧 离开维持区域的惩罚
-                leave_penalty = -20.0  # 严厉惩罚离开
-                maintain_reward = leave_penalty
-                
-                # 记录这次维持
-                self.maintain_history.append(self.maintain_counter)
-                self.max_maintain_streak = max(self.max_maintain_streak, self.maintain_counter)
-                
-                if self.maintain_counter >= 50:
-                    print(f"⚠️ 离开维持区域! 本次维持: {self.maintain_counter}步 "
-                        f"(最佳: {self.max_maintain_streak}步) 惩罚: {leave_penalty}")
-                
-                # 重置维持状态
-                self.in_maintain_zone = False
-                self.maintain_counter = 0
+        # 🎯 进步奖励（鼓励朝目标移动）
+        progress_reward = 0.0
+        if hasattr(self, 'prev_distance'):
+            if distance < self.prev_distance:
+                progress_reward = (self.prev_distance - distance) * 0.1  # 距离改善奖励
+        self.prev_distance = distance
         
-        # 到达奖励（保持原有逻辑但调整）
-        if distance < 20.0:
-            reach_reward = 2.0  # 减少基础到达奖励
-        else:
-            reach_reward = 0.0
+        # 🎯 控制惩罚（防止过度动作）
+        control_penalty = -0.01 * np.sum(np.square(self.joint_velocities))
         
-        # 🔧 在维持区域时更强的控制平滑性要求
-        if self.in_maintain_zone:
-            # 在维持区域时，严厉惩罚大动作
-            control_penalty = -1.0 * np.sum(np.square(self.joint_velocities))  # 从-0.1增加到-1.0
-        else:
-            control_penalty = -0.01 * np.sum(np.square(self.joint_velocities))
-        
-        # 其他奖励保持不变
+        # 🎯 碰撞惩罚
         collision_penalty = 0.0
         if collision_detected is None:
             collision_detected = self._check_collision()
         if collision_detected:
             collision_penalty = -2.0
         
-        midline_reward = self._compute_midline_reward(end_pos)
-        joint_usage_reward = self._compute_joint_usage_reward()
+        # 计算总奖励
+        total_reward = distance_reward + reach_reward + progress_reward + control_penalty + collision_penalty
         
-        # 存储奖励组成部分
+        # 存储奖励组成部分（简化版）
         self.reward_components = {
             'distance_reward': distance_reward,
             'reach_reward': reach_reward,
-            'maintain_reward': maintain_reward,  # 🆕 维持奖励
-            'collision_penalty': collision_penalty,
+            'progress_reward': progress_reward,
             'control_penalty': control_penalty,
-            'midline_reward': midline_reward,
-            'joint_usage_reward': joint_usage_reward
+            'collision_penalty': collision_penalty
         }
-        
-        # 更新prev_distance
-        self.prev_distance = distance
-        
-        # total_reward = (distance_reward + reach_reward + maintain_reward + 
-        #             collision_penalty)
-
-        total_reward = (distance_reward + reach_reward + maintain_reward + 
-                    collision_penalty + control_penalty + midline_reward + joint_usage_reward)
-        
-        # 🔧 调试信息（每50步显示一次）
-        if self.step_count % 50 == 0 and self.in_maintain_zone:
-            print(f"🏆 维持进度: {self.maintain_counter}/{self.maintain_target_steps} "
-                f"({self.maintain_counter/self.maintain_target_steps*100:.1f}%) "
-                f"维持奖励: +{maintain_reward:.2f}, 总奖励: {total_reward:.2f}")
         
         self.current_reward = total_reward
         return total_reward
@@ -780,16 +725,29 @@ class Reacher2DEnv(Env):
 
 
     def _is_done(self):
-        """检查是否完成"""
+        """检查是否完成 - 简化版：只检查到达目标"""
+        # 🔧 如果刚刚重置，给几步时间让环境稳定
+        if hasattr(self, 'just_reset') and self.just_reset:
+            if self.step_count < 3:  # 重置后前3步不检查done
+                return False
+            else:
+                self.just_reset = False  # 清除重置标志
+        
         end_pos = self._get_end_effector_position()
         distance = np.linalg.norm(end_pos - self.goal_pos)
         
-        # 到达目标
-        if distance < 20.0:
+        # 🎯 1. 到达目标就进入下一个episode
+        if distance < 50.0:  # 50px内算到达目标（精确的目标到达阈值）
+            print(f"🎯 到达目标! 距离: {distance:.1f}px，进入下一个episode")
+            self.episode_ended = True  # 标记episode真正结束
+            print(f"🔥 [_IS_DONE] 设置episode_ended = True，距离: {distance:.1f}px")
             return True
         
-        # 步数限制
-        if self.step_count >= 120000:  # 🔧 修改为120000步
+        # 🎯 2. 步数限制（防止无限循环）
+        if self.step_count >= 2000:  # 每个episode最多2000步
+            print(f"⏰ Episode步数限制: {self.step_count}步，进入下一个episode")
+            self.episode_ended = True  # 标记episode真正结束
+            print(f"🔥 [_IS_DONE] 设置episode_ended = True，步数限制: {self.step_count}")
             return True
         
         return False
@@ -1013,6 +971,21 @@ class Reacher2DEnv(Env):
         # 清屏
         self.screen.fill((240, 240, 240))
         
+        # 🎯 训练状态标题栏
+        if hasattr(pygame, 'font') and pygame.font.get_init():
+            title_font = pygame.font.Font(None, 32)
+            title_bg_rect = pygame.Rect(0, 0, self.width, 40)
+            pygame.draw.rect(self.screen, (50, 50, 80), title_bg_rect)
+            
+            generation = getattr(self, 'current_generation', 0)
+            individual = getattr(self, 'individual_id', 'Unknown')
+            title_text = f"Generation {generation} - Individual: {individual}"
+            title_surface = title_font.render(title_text, True, (255, 255, 255))
+            
+            # 居中显示标题
+            title_x = (self.width - title_surface.get_width()) // 2
+            self.screen.blit(title_surface, (title_x, 8))
+        
         # 绘制障碍物
         for obstacle in self.obstacles:
             if obstacle.get('type') == 'segment':
@@ -1066,8 +1039,11 @@ class Reacher2DEnv(Env):
             small_font = pygame.font.Font(None, 20)
             info = self._get_info()
             
-            # 🎯 基本信息
+            # 🎯 基本信息 - 添加代数和个体信息
             basic_texts = [
+                f"Generation: {getattr(self, 'current_generation', 'N/A')}",
+                f"Individual: {getattr(self, 'individual_id', 'N/A')}",
+                f">>> EPISODE: {getattr(self, 'current_episode', 1)} <<<",  # 🔥 突出显示episode
                 f"Step: {self.step_count}",
                 f"Distance: {info['distance']:.1f}",
                 f"End-Effector: ({info['end_effector_pos'][0]:.1f}, {info['end_effector_pos'][1]:.1f})",
@@ -1076,19 +1052,21 @@ class Reacher2DEnv(Env):
             
             for i, text in enumerate(basic_texts):
                 text_surface = font.render(text, True, (0, 0, 0))
-                self.screen.blit(text_surface, (10, 10 + i * 25))
+                self.screen.blit(text_surface, (10, 50 + i * 25))  # 向下移动40px避开标题栏
             
             # 🎯 奖励信息 - 右侧显示
-            reward_y_start = 10
+            reward_y_start = 50  # 向下移动40px避开标题栏
             reward_texts = [
                 f"Total Reward: {self.current_reward:.3f}",
                 f"  Distance: {self.reward_components['distance_reward']:.3f}",
                 f"  Reach: {self.reward_components['reach_reward']:.3f}",
+                f"  Progress: {self.reward_components['progress_reward']:.3f}",
                 f"  Collision: {self.reward_components['collision_penalty']:.3f}",
                 f"  Control: {self.reward_components['control_penalty']:.3f}",
-                f"  Midline: {self.reward_components['midline_reward']:.3f}",
-                f"  Joint Usage: {self.reward_components['joint_usage_reward']:.3f}",
-                f"  Maintain: {self.reward_components['maintain_reward']:.3f}",
+                "",  # 分隔线
+                f"Goal Reached: {getattr(self, 'goal_reach_count', 0)}",
+                f"Total Steps: {getattr(self, 'total_steps_count', 0)}",
+                f"Episode Steps: {self.step_count}"
             ]
             
             # 绘制奖励背景框
@@ -1096,19 +1074,28 @@ class Reacher2DEnv(Env):
             pygame.draw.rect(self.screen, (240, 240, 240), reward_bg_rect)
             pygame.draw.rect(self.screen, (100, 100, 100), reward_bg_rect, 2)
             
+            reward_values = list(self.reward_components.values())
+            
             for i, text in enumerate(reward_texts):
+                # 跳过空字符串（分隔线）
+                if text == "":
+                    continue
+                    
                 # 根据奖励值选择颜色
                 if i == 0:  # 总奖励
                     color = (0, 150, 0) if self.current_reward >= 0 else (150, 0, 0)
                     text_surface = font.render(text, True, color)
-                else:  # 组成部分
-                    value = list(self.reward_components.values())[i-1]
+                elif i <= len(reward_values):  # 奖励组成部分
+                    value = reward_values[i-1]
                     if value > 0:
                         color = (0, 120, 0)  # 绿色表示正奖励
                     elif value < 0:
                         color = (120, 0, 0)  # 红色表示惩罚
                     else:
                         color = (80, 80, 80)  # 灰色表示零
+                    text_surface = small_font.render(text, True, color)
+                else:  # 其他信息（Goal Reached等）
+                    color = (0, 0, 150)  # 蓝色表示信息
                     text_surface = small_font.render(text, True, color)
                 
                 self.screen.blit(text_surface, (self.width - 245, reward_y_start + i * 22))
@@ -1121,9 +1108,17 @@ class Reacher2DEnv(Env):
             
             for i, text in enumerate(collision_texts):
                 text_surface = font.render(text, True, (0, 0, 0))
-                self.screen.blit(text_surface, (10, 110 + i * 25))
+                self.screen.blit(text_surface, (10, 200 + i * 25))  # 向下移动以避开基本信息
         
         if mode == 'human':
+            # 🔧 处理pygame事件，防止窗口卡死
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    print("🔴 用户关闭渲染窗口")
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        print("🔴 用户按ESC键")
+            
             pygame.display.flip()
             if self.clock:
                 self.clock.tick(60)
