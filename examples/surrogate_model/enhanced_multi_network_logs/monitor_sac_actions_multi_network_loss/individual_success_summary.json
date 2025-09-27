@@ -1,0 +1,27 @@
+{
+  "experiment_name": "monitor_sac_actions",
+  "total_individuals": 4,
+  "individual_success_stats": {
+    "gen_0_446947_8966": {
+      "success_count": 0,
+      "success_file": "N/A"
+    },
+    "gen_0_446973_1579": {
+      "success_count": 0,
+      "success_file": "N/A"
+    },
+    "gen_0_446881_4938": {
+      "success_count": 0,
+      "success_file": "N/A"
+    },
+    "gen_0_446996_4583": {
+      "success_count": 0,
+      "success_file": "N/A"
+    }
+  },
+  "overall_stats": {
+    "total_success_events": 0,
+    "successful_individuals": 0,
+    "average_success_per_individual": 0.0
+  }
+}

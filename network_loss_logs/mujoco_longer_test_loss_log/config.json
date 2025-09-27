@@ -1,0 +1,15 @@
+{
+  "experiment_info": {
+    "experiment_name": "mujoco_longer_test_loss_log",
+    "start_time": "2025-09-23T21:56:53.636609",
+    "log_dir": "network_loss_logs/mujoco_longer_test_loss_log",
+    "monitored_networks": [
+      "attention",
+      "ppo",
+      "gnn",
+      "sac",
+      "total"
+    ],
+    "update_interval": 15.0
+  }
+}

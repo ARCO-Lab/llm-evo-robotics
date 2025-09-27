@@ -141,7 +141,19 @@ def make_reacher2d_env(env_params, seed, rank, log_dir=None, allow_early_resets=
     参考 RoboGrammar 的 make_env 模式
     """
     def _thunk():
-        from reacher2d_env import Reacher2DEnv
+        # 🎯 尝试使用新的环境工厂
+        import sys
+        import os
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        reacher_env_dir = os.path.join(current_dir, "../../../2d_reacher/envs")
+        sys.path.insert(0, reacher_env_dir)
+        
+        try:
+            from reacher_env_factory import create_reacher_env
+            USE_MUJOCO_FACTORY = True
+        except ImportError:
+            from reacher2d_env import Reacher2DEnv
+            USE_MUJOCO_FACTORY = False
         
         # 创建环境
         # env = Reacher2DEnv(
@@ -151,12 +163,22 @@ def make_reacher2d_env(env_params, seed, rank, log_dir=None, allow_early_resets=
         #     config_path=env_params.get('config_path', None)
         # )
 
-        env = Reacher2DEnv(
-            num_links=env_params['num_links'],        # 🔧 移除默认值
-            link_lengths=env_params['link_lengths'],  # 🔧 移除默认值
-            render_mode=env_params.get('render_mode', "human"),
-            config_path=env_params.get('config_path', None)
-        )
+        # 🎯 使用环境工厂创建环境
+        if USE_MUJOCO_FACTORY:
+            env = create_reacher_env(
+                version='auto',  # 自动选择最佳环境
+                num_links=env_params['num_links'],
+                link_lengths=env_params['link_lengths'],
+                render_mode=env_params.get('render_mode', "human"),
+                config_path=env_params.get('config_path', None)
+            )
+        else:
+            env = Reacher2DEnv(
+                num_links=env_params['num_links'],
+                link_lengths=env_params['link_lengths'],
+                render_mode=env_params.get('render_mode', "human"),
+                config_path=env_params.get('config_path', None)
+            )
         
         # 设置种子（每个进程不同的种子）
         env.seed(seed + rank)

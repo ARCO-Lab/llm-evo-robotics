@@ -1,0 +1,43 @@
+{
+  "experiment_name": "mujoco_longer_test",
+  "total_individuals": 8,
+  "individual_success_stats": {
+    "gen_0_782737_5965": {
+      "success_count": 0,
+      "success_file": "N/A"
+    },
+    "gen_0_782760_9805": {
+      "success_count": 0,
+      "success_file": "N/A"
+    },
+    "gen_0_782712_8346": {
+      "success_count": 0,
+      "success_file": "N/A"
+    },
+    "gen_0_782628_8420": {
+      "success_count": 0,
+      "success_file": "N/A"
+    },
+    "gen_0_782781_2926": {
+      "success_count": 0,
+      "success_file": "N/A"
+    },
+    "gen_0_782806_5203": {
+      "success_count": 0,
+      "success_file": "N/A"
+    },
+    "gen_0_782826_5768": {
+      "success_count": 0,
+      "success_file": "N/A"
+    },
+    "gen_0_782846_4453": {
+      "success_count": 0,
+      "success_file": "N/A"
+    }
+  },
+  "overall_stats": {
+    "total_success_events": 0,
+    "successful_individuals": 0,
+    "average_success_per_individual": 0.0
+  }
+}

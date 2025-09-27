@@ -1,0 +1,27 @@
+{
+  "experiment_name": "test_mujoco",
+  "total_individuals": 4,
+  "individual_success_stats": {
+    "gen_0_987453_8226": {
+      "success_count": 0,
+      "success_file": "N/A"
+    },
+    "gen_0_987404_9520": {
+      "success_count": 0,
+      "success_file": "N/A"
+    },
+    "gen_0_987341_6499": {
+      "success_count": 0,
+      "success_file": "N/A"
+    },
+    "gen_0_987428_1371": {
+      "success_count": 0,
+      "success_file": "N/A"
+    }
+  },
+  "overall_stats": {
+    "total_success_events": 0,
+    "successful_individuals": 0,
+    "average_success_per_individual": 0.0
+  }
+}

@@ -12,4 +12,4 @@ trained_models/
 venv/
 venv_2d_reacher/
 map_elites_experiments/
-
+models/

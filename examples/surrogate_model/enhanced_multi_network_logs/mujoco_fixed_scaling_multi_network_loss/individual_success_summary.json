@@ -1,0 +1,27 @@
+{
+  "experiment_name": "mujoco_fixed_scaling",
+  "total_individuals": 4,
+  "individual_success_stats": {
+    "gen_0_652433_6034": {
+      "success_count": 0,
+      "success_file": "N/A"
+    },
+    "gen_0_652384_6257": {
+      "success_count": 0,
+      "success_file": "N/A"
+    },
+    "gen_0_652317_3340": {
+      "success_count": 0,
+      "success_file": "N/A"
+    },
+    "gen_0_652410_8082": {
+      "success_count": 0,
+      "success_file": "N/A"
+    }
+  },
+  "overall_stats": {
+    "total_success_events": 0,
+    "successful_individuals": 0,
+    "average_success_per_individual": 0.0
+  }
+}

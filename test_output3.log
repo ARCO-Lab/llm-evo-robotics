@@ -1,0 +1,213 @@
+/home/xli149/Documents/repos/RoboGrammar/venv/lib/python3.10/site-packages/gym/wrappers/monitoring/video_recorder.py:9: DeprecationWarning: The distutils package is deprecated and slated for removal in Python 3.12. Use setuptools or check PEP 632 for potential alternatives
+  import distutils.spawn
+/home/xli149/Documents/repos/RoboGrammar/venv/lib/python3.10/site-packages/torch_geometric/typing.py:86: UserWarning: An issue occurred while importing 'torch-scatter'. Disabling its usage. Stacktrace: /home/xli149/Documents/repos/RoboGrammar/venv/lib/python3.10/site-packages/torch_scatter/_version_cpu.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev
+  warnings.warn(f"An issue occurred while importing 'torch-scatter'. "
+/home/xli149/Documents/repos/RoboGrammar/venv/lib/python3.10/site-packages/torch_geometric/typing.py:124: UserWarning: An issue occurred while importing 'torch-sparse'. Disabling its usage. Stacktrace: /home/xli149/Documents/repos/RoboGrammar/venv/lib/python3.10/site-packages/torch_sparse/_version_cpu.so: undefined symbol: _ZN3c1017RegisterOperatorsD1Ev
+  warnings.warn(f"An issue occurred while importing 'torch-sparse'. "
+2025-09-23 22:56:08.638935: I tensorflow/core/util/port.cc:153] oneDNN custom operations are on. You may see slightly different numerical results due to floating-point round-off errors from different computation orders. To turn them off, set the environment variable `TF_ENABLE_ONEDNN_OPTS=0`.
+2025-09-23 22:56:08.648726: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:467] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+E0000 00:00:1758682568.659603  127084 cuda_dnn.cc:8579] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+E0000 00:00:1758682568.663392  127084 cuda_blas.cc:1407] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+W0000 00:00:1758682568.672684  127084 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1758682568.672711  127084 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1758682568.672714  127084 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1758682568.672715  127084 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+2025-09-23 22:56:08.675328: I tensorflow/core/platform/cpu_feature_guard.cc:210] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 AVX_VNNI FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+🤖 SB3 SAC 可用
+['/home/xli149/Documents/repos/test_robo3/examples/surrogate_model/sac/../../../examples/surrogate_model/sac/../../../examples/surrogate_model/sac', '/home/xli149/Documents/repos/test_robo3/examples/surrogate_model/sac/../../../examples/surrogate_model/sac/../../../examples/surrogate_model/attn_model', '/home/xli149/Documents/repos/test_robo3/examples/surrogate_model/sac/../../../examples/surrogate_model/sac/../../../examples/surrogate_model/attn_dataset', '/home/xli149/Documents/repos/test_robo3/examples/surrogate_model/sac/../../../examples/surrogate_model/sac', '/home/xli149/Documents/repos/test_robo3/examples/surrogate_model/sac/../../../examples/surrogate_model/attn_model', '/home/xli149/Documents/repos/test_robo3/examples/surrogate_model/sac/../../../examples/surrogate_model/attn_dataset', '/home/xli149/Documents/repos/test_robo3/examples/surrogate_model/sac/../../../examples/surrogate_model/attn_model', '/home/xli149/Documents/repos/test_robo3/examples/surrogate_model/sac/../../../examples/surrogate_model/attn_dataset', '/home/xli149/Documents/repos/test_robo3/examples/surrogate_model/sac/../../../2d_reacher/envs', '/home/xli149/Documents/repos/test_robo3/examples/surrogate_model/sac', '/home/xli149/Documents/repos/test_robo3/examples/surrogate_model', '/home/xli149/Documents/repos/RoboGrammar/examples/design_search', '/home/xli149/Documents/repos/RoboGrammar/examples/graph_learning', '/home/xli149/Documents/repos/test_robo3', '/usr/lib/python310.zip', '/usr/lib/python3.10', '/usr/lib/python3.10/lib-dynload', '/home/xli149/Documents/repos/RoboGrammar/venv/lib/python3.10/site-packages', '__editable__.design_search-0.1.0.finder.__path_hook__', '/home/xli149/Documents/repos/RoboGrammar/examples/rl/externals/baselines', '/home/xli149/Documents/repos/RoboGrammar/examples/rl/externals/pytorch-a2c-ppo-acktr-gail', '/home/xli149/Documents/repos/test_robo3/examples/surrogate_model/../../', '/home/xli149/Documents/repos/test_robo3/examples/surrogate_model/../../examples/2d_reacher/envs', '/home/xli149/Documents/repos/test_robo3/examples/surrogate_model/../../examples/surrogate_model/gnn_encoder', '/home/xli149/Documents/repos/test_robo3/examples/surrogate_model/../../examples/rl/train', '/home/xli149/Documents/repos/test_robo3/examples/surrogate_model/../../examples/rl/common', '/home/xli149/Documents/repos/test_robo3/examples/surrogate_model/../../examples/rl/environments', '/home/xli149/Documents/repos/test_robo3/examples/surrogate_model/../../examples/rl', '/home/xli149/Documents/repos/test_robo3/examples/surrogate_model/../', '/home/xli149/Documents/repos/test_robo3/examples/surrogate_model/../graph_learning', '/home/xli149/Documents/repos/test_robo3/examples/surrogate_model/../design_search', '/tmp/tmpisray59s', '/home/xli149/Documents/repos/test_robo3/examples/surrogate_model/attn_model/../../', '/home/xli149/Documents/repos/test_robo3/examples/surrogate_model/attn_model/../../surrogate_model', '/home/xli149/Documents/repos/test_robo3/examples/surrogate_model/sac/../../../', '/home/xli149/Documents/repos/test_robo3/examples/surrogate_model/sac/../../../', '/home/xli149/Documents/repos/test_robo3/examples/surrogate_model/sac/../../../examples/surrogate_model/sac/../../../']
+['/home/xli149/Documents/repos/test_robo3/examples/surrogate_model/sac/../../../examples/surrogate_model/sac/../../../examples/surrogate_model/sac/../../../examples/surrogate_model/attn_model', '/home/xli149/Documents/repos/test_robo3/examples/surrogate_model/sac/../../../examples/surrogate_model/sac/../../../examples/surrogate_model/sac/../../../examples/surrogate_model/attn_dataset', '/home/xli149/Documents/repos/test_robo3/examples/surrogate_model/sac/../../../examples/surrogate_model/sac/../../../examples/surrogate_model/sac', '/home/xli149/Documents/repos/test_robo3/examples/surrogate_model/sac/../../../examples/surrogate_model/sac/../../../examples/surrogate_model/attn_model', '/home/xli149/Documents/repos/test_robo3/examples/surrogate_model/sac/../../../examples/surrogate_model/sac/../../../examples/surrogate_model/attn_dataset', '/home/xli149/Documents/repos/test_robo3/examples/surrogate_model/sac/../../../examples/surrogate_model/sac', '/home/xli149/Documents/repos/test_robo3/examples/surrogate_model/sac/../../../examples/surrogate_model/attn_model', '/home/xli149/Documents/repos/test_robo3/examples/surrogate_model/sac/../../../examples/surrogate_model/attn_dataset', '/home/xli149/Documents/repos/test_robo3/examples/surrogate_model/sac/../../../examples/surrogate_model/attn_model', '/home/xli149/Documents/repos/test_robo3/examples/surrogate_model/sac/../../../examples/surrogate_model/attn_dataset', '/home/xli149/Documents/repos/test_robo3/examples/surrogate_model/sac/../../../2d_reacher/envs', '/home/xli149/Documents/repos/test_robo3/examples/surrogate_model/sac', '/home/xli149/Documents/repos/test_robo3/examples/surrogate_model', '/home/xli149/Documents/repos/RoboGrammar/examples/design_search', '/home/xli149/Documents/repos/RoboGrammar/examples/graph_learning', '/home/xli149/Documents/repos/test_robo3', '/usr/lib/python310.zip', '/usr/lib/python3.10', '/usr/lib/python3.10/lib-dynload', '/home/xli149/Documents/repos/RoboGrammar/venv/lib/python3.10/site-packages', '__editable__.design_search-0.1.0.finder.__path_hook__', '/home/xli149/Documents/repos/RoboGrammar/examples/rl/externals/baselines', '/home/xli149/Documents/repos/RoboGrammar/examples/rl/externals/pytorch-a2c-ppo-acktr-gail', '/home/xli149/Documents/repos/test_robo3/examples/surrogate_model/../../', '/home/xli149/Documents/repos/test_robo3/examples/surrogate_model/../../examples/2d_reacher/envs', '/home/xli149/Documents/repos/test_robo3/examples/surrogate_model/../../examples/surrogate_model/gnn_encoder', '/home/xli149/Documents/repos/test_robo3/examples/surrogate_model/../../examples/rl/train', '/home/xli149/Documents/repos/test_robo3/examples/surrogate_model/../../examples/rl/common', '/home/xli149/Documents/repos/test_robo3/examples/surrogate_model/../../examples/rl/environments', '/home/xli149/Documents/repos/test_robo3/examples/surrogate_model/../../examples/rl', '/home/xli149/Documents/repos/test_robo3/examples/surrogate_model/../', '/home/xli149/Documents/repos/test_robo3/examples/surrogate_model/../graph_learning', '/home/xli149/Documents/repos/test_robo3/examples/surrogate_model/../design_search', '/tmp/tmpisray59s', '/home/xli149/Documents/repos/test_robo3/examples/surrogate_model/attn_model/../../', '/home/xli149/Documents/repos/test_robo3/examples/surrogate_model/attn_model/../../surrogate_model', '/home/xli149/Documents/repos/test_robo3/examples/surrogate_model/sac/../../../', '/home/xli149/Documents/repos/test_robo3/examples/surrogate_model/sac/../../../', '/home/xli149/Documents/repos/test_robo3/examples/surrogate_model/sac/../../../examples/surrogate_model/sac/../../../', '/home/xli149/Documents/repos/test_robo3/examples/surrogate_model/sac/../../../examples/surrogate_model/sac/../../../examples/surrogate_model/sac/../../../']
+✅ 异步渲染器可用
+🚀 开始训练...
+使用 reacher2d 环境
+🤖 使用MAP-Elites配置: 3关节, 长度=[90.0, 90.0, 90.0]
+🎨 渲染设置: 通过 --render 启用
+环境参数: {'num_links': 3, 'link_lengths': [90.0, 90.0, 90.0], 'render_mode': 'human', 'config_path': None}
+🎨 渲染设置: 启用
+🏭 Reacher 环境工厂 - 创建 auto 版本环境
+   ✅ MuJoCo 环境可用，选择 MuJoCo 版本
+   自动选择版本: mujoco
+   ✅ 创建 MuJoCo Reacher 适配器
+⚠️ MuJoCo Reacher 只支持 2 关节，将使用 2 关节而不是 3
+🎯 MuJoCo Reacher 适配器初始化完成
+   观察空间: Box(-inf, inf, (12,), float32)
+   动作空间: Box(-10.0, 10.0, (2,), float32)
+   渲染模式: human
+✅ 训练环境已创建（进程数: 1，直接渲染）
+⚠️ 渲染初始化错误: Cannot call `env.render()` before calling `env.reset()`, if this is an intended action, set `disable_render_order_enforcing=True` on the OrderEnforcer wrapper.
+关节数量: 2
+🤖 初始化 DataHandler，环境类型: reacher2d，关节数: 2
+🤖 初始化 Reacher2D GNN 编码器...
+🔗 邻接矩阵连接数: 2.0
+/home/xli149/Documents/repos/RoboGrammar/venv/lib/python3.10/site-packages/stable_baselines3/common/policies.py:268: DeprecationWarning: __array__ implementation doesn't accept a copy keyword, so passing copy=False failed. __array__ must implement 'dtype' and 'copy' keyword arguments. To learn more, see the migration guide https://numpy.org/devdocs/numpy_2_0_migration_guide.html#adapting-to-changes-in-the-copy-keyword
+  observation = np.array(observation)
+📊 特征矩阵非零行: 2
+🔍 特征差异性检查:
+   Link 0 vs Link 1 特征差异: 81.231
+🔧 特征矩阵形状: (20, 39)
+🔗 邻接矩阵形状: (20, 20)
+🎯 关节数: 2
+🎭 掩码: 真实节点=2, 总节点=20
+✅ GNN 嵌入形状: torch.Size([1, 2, 128])
+📈 Link Loss: 0.0875, Entropy Loss: 0.8414
+✅ Reacher2D GNN 嵌入生成成功，形状: torch.Size([1, 2, 128])
+🔧 Critic稳定性优化配置:
+   批次大小: 64 → 256
+   学习率策略: Actor=3.00e-04, Critic=4.50e-04 (1.5倍，更稳定)
+   Tau参数: 将自动调整到至少0.01
+🚀 创建 SB3 SAC 模型...
+🤖 SB3 SAC 适配器初始化完成
+   动作维度: 2
+   设备: cpu
+   环境类型: reacher2d
+🔧 检测到向量化环境包装器: <class 'a2c_ppo_acktr.envs.VecPyTorch'>
+🔧 底层环境类型: <class 'mujoco_reacher_adapter.MuJoCoReacherAdapter'>
+🔧 应用 SB3 兼容包装器
+✅ SB3 SAC 模型创建完成
+   观察空间: Box(-inf, inf, (12,), float32)
+   动作空间: Box(-10.0, 10.0, (2,), float32)
+✅ SB3 SAC 模型创建完成
+🔧 更新 SB3 SAC 熵系数: 0.1
+🔒 Alpha衰减下限设置为: 0.05
+📊 TrainingLogger 初始化完成
+   实验名称: reacher2d_sac_20250923_225610
+   日志目录: ./trained_models/reacher2d/enhanced_test/09-23-2025-22-56-09/training_logs/reacher2d_sac_20250923_225610
+📊 训练监控系统已初始化: ./trained_models/reacher2d/enhanced_test/09-23-2025-22-56-09/training_logs/reacher2d_sac_20250923_225610
+🎯 训练配置: 2个episodes × 120,000步/episode = 总计240,000步
+🔄 MuJoCo 适配器重置完成 - Episode 1
+初始观察: torch.Size([1, 12])
+🔧 训练环境已重置（直接渲染模式）
+开始训练: warmup 1000 步
+训练配置: 2个episodes × 120000步/episode
+
+🎯 开始Episode 1/2
+🔄 重置环境开始Episode 1...
+🔄 MuJoCo 适配器重置完成 - Episode 1
+🎯 [Episode 1] Step 0 - 环境goal_pos: [600 550]
+🖼️ [Step 0] 训练环境渲染更新
+🎯 [Episode 1] Step 1 - 环境goal_pos: [600 550]
+🎯 [Episode 1] Step 2 - 环境goal_pos: [600 550]
+🎯 [Episode 1] Step 3 - 环境goal_pos: [600 550]
+🎯 [Episode 1] Step 4 - 环境goal_pos: [600 550]
+🎯 [Episode 1] Step 5 - 环境goal_pos: [600 550]
+🎯 [Episode 1] Step 6 - 环境goal_pos: [600 550]
+🎯 [Episode 1] Step 7 - 环境goal_pos: [600 550]
+🎯 [Episode 1] Step 8 - 环境goal_pos: [600 550]
+🎯 [Episode 1] Step 9 - 环境goal_pos: [600 550]
+🎯 [Episode 1] Step 10 - 环境goal_pos: [600 550]
+🎯 [Episode 1] Step 11 - 环境goal_pos: [600 550]
+🎯 [Episode 1] Step 12 - 环境goal_pos: [600 550]
+🎯 [Episode 1] Step 13 - 环境goal_pos: [600 550]
+🎯 [Episode 1] Step 14 - 环境goal_pos: [600 550]
+🎯 [Episode 1] Step 15 - 环境goal_pos: [600 550]
+🎯 [Episode 1] Step 16 - 环境goal_pos: [600 550]
+🎯 [Episode 1] Step 17 - 环境goal_pos: [600 550]
+🎯 [Episode 1] Step 18 - 环境goal_pos: [600 550]
+🎯 [Episode 1] Step 19 - 环境goal_pos: [600 550]
+🎯 [Episode 1] Step 50 - 环境goal_pos: [600 550]
+🎯 [Episode 1] Step 100 - 环境goal_pos: [600 550]
+🖼️ [Step 100] 训练环境渲染更新
+🎯 [Episode 1] Step 150 - 环境goal_pos: [600 550]
+🎯 [Episode 1] Step 200 - 环境goal_pos: [600 550]
+🖼️ [Step 200] 训练环境渲染更新
+🏆 发现更好性能，保存最佳模型: 813.9px
+❌ 保存模型失败: 'SB3SACAdapter' object has no attribute 'target_critic1'
+🎯 [Episode 1] Step 250 - 环境goal_pos: [600 550]
+🎯 [Episode 1] Step 300 - 环境goal_pos: [600 550]
+🖼️ [Step 300] 训练环境渲染更新
+🎯 [Episode 1] Step 350 - 环境goal_pos: [600 550]
+🎯 [Episode 1] Step 400 - 环境goal_pos: [600 550]
+🖼️ [Step 400] 训练环境渲染更新
+🏆 发现更好性能，保存最佳模型: 813.9px
+❌ 保存模型失败: 'SB3SACAdapter' object has no attribute 'target_critic1'
+🎯 [Episode 1] Step 450 - 环境goal_pos: [600 550]
+🎯 [Episode 1] Step 500 - 环境goal_pos: [600 550]
+🖼️ [Step 500] 训练环境渲染更新
+🎯 [Episode 1] Step 550 - 环境goal_pos: [600 550]
+🎯 [Episode 1] Step 600 - 环境goal_pos: [600 550]
+🖼️ [Step 600] 训练环境渲染更新
+🏆 发现更好性能，保存最佳模型: 813.9px
+❌ 保存模型失败: 'SB3SACAdapter' object has no attribute 'target_critic1'
+🎯 [Episode 1] Step 650 - 环境goal_pos: [600 550]
+🎯 [Episode 1] Step 700 - 环境goal_pos: [600 550]
+🖼️ [Step 700] 训练环境渲染更新
+🎯 [Episode 1] Step 750 - 环境goal_pos: [600 550]
+🎯 [Episode 1] Step 800 - 环境goal_pos: [600 550]
+🖼️ [Step 800] 训练环境渲染更新
+🏆 发现更好性能，保存最佳模型: 813.9px
+❌ 保存模型失败: 'SB3SACAdapter' object has no attribute 'target_critic1'
+🎯 [Episode 1] Step 850 - 环境goal_pos: [600 550]
+🎯 [Episode 1] Step 900 - 环境goal_pos: [600 550]
+🖼️ [Step 900] 训练环境渲染更新
+🎯 [Episode 1] Step 950 - 环境goal_pos: [600 550]
+🎯 [Episode 1] Step 1000 - 环境goal_pos: [600 550]
+🖼️ [Step 1000] 训练环境渲染更新
+🏆 发现更好性能，保存最佳模型: 813.9px
+❌ 保存模型失败: 'SB3SACAdapter' object has no attribute 'target_critic1'
+🎯 [Episode 1] Step 1050 - 环境goal_pos: [600 550]
+🎯 [Episode 1] Step 1100 - 环境goal_pos: [600 550]
+🖼️ [Step 1100] 训练环境渲染更新
+🎯 [Episode 1] Step 1150 - 环境goal_pos: [600 550]
+🎯 [Episode 1] Step 1200 - 环境goal_pos: [600 550]
+🖼️ [Step 1200] 训练环境渲染更新
+🏆 发现更好性能，保存最佳模型: 813.9px
+❌ 保存模型失败: 'SB3SACAdapter' object has no attribute 'target_critic1'
+🎯 [Episode 1] Step 1250 - 环境goal_pos: [600 550]
+🎯 [Episode 1] Step 1300 - 环境goal_pos: [600 550]
+🖼️ [Step 1300] 训练环境渲染更新
+🎯 [Episode 1] Step 1350 - 环境goal_pos: [600 550]
+🎯 [Episode 1] Step 1400 - 环境goal_pos: [600 550]
+🖼️ [Step 1400] 训练环境渲染更新
+🏆 发现更好性能，保存最佳模型: 813.9px
+❌ 保存模型失败: 'SB3SACAdapter' object has no attribute 'target_critic1'
+🎯 [Episode 1] Step 1450 - 环境goal_pos: [600 550]
+🎯 [Episode 1] Step 1500 - 环境goal_pos: [600 550]
+🖼️ [Step 1500] 训练环境渲染更新
+🎯 [Episode 1] Step 1550 - 环境goal_pos: [600 550]
+🎯 [Episode 1] Step 1600 - 环境goal_pos: [600 550]
+🖼️ [Step 1600] 训练环境渲染更新
+🏆 发现更好性能，保存最佳模型: 813.9px
+❌ 保存模型失败: 'SB3SACAdapter' object has no attribute 'target_critic1'
+🎯 [Episode 1] Step 1650 - 环境goal_pos: [600 550]
+🎯 [Episode 1] Step 1700 - 环境goal_pos: [600 550]
+🖼️ [Step 1700] 训练环境渲染更新
+🎯 [Episode 1] Step 1750 - 环境goal_pos: [600 550]
+🎯 [Episode 1] Step 1800 - 环境goal_pos: [600 550]
+🖼️ [Step 1800] 训练环境渲染更新
+🏆 发现更好性能，保存最佳模型: 813.9px
+❌ 保存模型失败: 'SB3SACAdapter' object has no attribute 'target_critic1'
+🎯 [Episode 1] Step 1850 - 环境goal_pos: [600 550]
+🎯 [Episode 1] Step 1900 - 环境goal_pos: [600 550]
+🖼️ [Step 1900] 训练环境渲染更新
+🎯 [Episode 1] Step 1950 - 环境goal_pos: [600 550]
+🎯 [Episode 1] Step 2000 - 环境goal_pos: [600 550]
+⏰ Episode步数限制: 2000步，进入下一个episode
+🔄 MuJoCo 适配器重置完成 - Episode 2
+🖼️ [Step 2000] 训练环境渲染更新
+🔍 [DEBUG] Episode结束检测: proc_id=0, 当前episodes=0
+📊 Episode 1/2 完成:
+   类型: TIMEOUT_MEDIUM (超时中等表现)
+   成功: ❌
+   最佳距离: 813.9px (步数: 0)
+   结束距离: 813.9px
+   总步数: 2000
+   最终奖励: 257517.70
+   得分: 0.20
+🔍 [DEBUG] handle_episode_end返回: should_end=False, 新的current_episodes=1
+🔍 [DEBUG] 目标检查: goal_reached=False
+🔴 训练过程中发生错误: 'SB3SACAdapter' object has no attribute 'actor_optimizer'
+❌ 没有数据生成报告
+Traceback (most recent call last):
+  File "/home/xli149/Documents/repos/test_robo3/examples/surrogate_model/enhanced_train_backup.py", line 2081, in <module>
+    main(args)
+  File "/home/xli149/Documents/repos/test_robo3/examples/surrogate_model/enhanced_train_backup.py", line 1133, in main
+    run_training_loop(args, envs, sync_env, sac, single_gnn_embed, training_manager, num_joints, start_step)
+  File "/home/xli149/Documents/repos/test_robo3/examples/surrogate_model/enhanced_train_backup.py", line 1442, in run_training_loop
+    raise e
+  File "/home/xli149/Documents/repos/test_robo3/examples/surrogate_model/enhanced_train_backup.py", line 1368, in run_training_loop
+    training_manager.update_and_log(global_step, global_step)
+  File "/home/xli149/Documents/repos/test_robo3/examples/surrogate_model/enhanced_train_backup.py", line 778, in update_and_log
+    'learning_rate': self.sac.actor_optimizer.param_groups[0]['lr'],
+AttributeError: 'SB3SACAdapter' object has no attribute 'actor_optimizer'
+/home/xli149/Documents/repos/RoboGrammar/venv/lib/python3.10/site-packages/gymnasium/envs/mujoco/mujoco_rendering.py:404: UserWarning: [33mWARN: Environment was not properly closed using 'env.close()'. Please ensure to close the environment explicitly. GLFW module or dependencies are unloaded. Window cleanup might not have completed.[0m
